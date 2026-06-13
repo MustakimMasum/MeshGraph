@@ -2,9 +2,9 @@
 
 ## Project Structure & Module Organization
 
-This repository currently contains the implementation specification in `directive/system_prompt.md`. Treat it as the source of truth while scaffolding Cadmus.
+The implementation specification is in `directive/system_prompt.md`. Keep code changes aligned with its three-layer architecture.
 
-The intended application layout is:
+The application layout is:
 
 - `docker-compose.yml`: local Oxigraph database and Axum gateway services.
 - `Cargo.toml`: shared Rust dependencies and release settings.
@@ -18,10 +18,9 @@ Keep database, gateway, and frontend concerns separated. Shared response types m
 
 ## Build, Test, and Development Commands
 
-The scaffold and scripts described by the directive have not been added yet. Once present, use standard commands:
-
 - `cargo check`: quickly validate Rust code and dependencies.
 - `cargo test`: run all Rust tests.
+- `trunk build`: compile the Leptos client into `dist/`.
 - `cargo fmt --check`: verify formatting without modifying files.
 - `cargo clippy --all-targets --all-features -- -D warnings`: enforce lint cleanliness.
 - `docker compose up --build`: build and run Oxigraph plus the gateway locally.

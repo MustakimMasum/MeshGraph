@@ -1,0 +1,39 @@
+services:
+  oxigraph_db:
+    image: ghcr.io/oxigraph/oxigraph:latest
+    command: serve --location /data --bind 0.0.0.0:7878
+    ports:
+      - "7878:7878"
+    volumes:
+      - ./local_graph_store:/data
+    restart: unless-stopped
+
+  graph_seed:
+    image: curlimages/curl:8.12.1
+    depends_on:
+      - oxigraph_db
+    volumes:
+      - ./data:/seed:ro
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >-
+        until curl --fail --silent http://oxigraph_db:7878/query?query=ASK%7B%7D > /dev/null;
+        do sleep 2; done;
+        curl --fail --request PUT
+        --header "Content-Type: text/turtle"
+        --data-binary @/seed/sojourner.ttl
+        "http://oxigraph_db:7878/store?default"
+    restart: "no"
+
+  axum_gateway:
+    build:
+      context: .
+    depends_on:
+      graph_seed:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: http://oxigraph_db:7878/query
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+

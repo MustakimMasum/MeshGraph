@@ -1,0 +1,26 @@
+@prefix ex: <http://example.org/cadmus/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:SojournerRover
+    ex:hasPart ex:ChassisBase, ex:CameraMast, ex:LeftWheel, ex:RightWheel .
+
+ex:ChassisBase
+    ex:offsetX "0.0"^^xsd:decimal ;
+    ex:offsetY "0.0"^^xsd:decimal ;
+    ex:offsetZ "0.0"^^xsd:decimal .
+
+ex:CameraMast
+    ex:offsetX "0.0"^^xsd:decimal ;
+    ex:offsetY "1.8"^^xsd:decimal ;
+    ex:offsetZ "0.0"^^xsd:decimal .
+
+ex:LeftWheel
+    ex:offsetX "-2.2"^^xsd:decimal ;
+    ex:offsetY "-0.5"^^xsd:decimal ;
+    ex:offsetZ "0.0"^^xsd:decimal .
+
+ex:RightWheel
+    ex:offsetX "2.2"^^xsd:decimal ;
+    ex:offsetY "-0.5"^^xsd:decimal ;
+    ex:offsetZ "0.0"^^xsd:decimal .
+

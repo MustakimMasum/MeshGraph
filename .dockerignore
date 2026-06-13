@@ -1,0 +1,9 @@
+target
+dist
+local_graph_store
+.git
+.gitignore
+directive
+AGENTS.md
+README.md
+
