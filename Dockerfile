@@ -6,6 +6,7 @@ RUN rustup target add wasm32-unknown-unknown \
 WORKDIR /app
 COPY Cargo.toml Cargo.lock index.html ./
 COPY src ./src
+COPY public ./public
 
 RUN trunk build --release \
     && cargo build --release

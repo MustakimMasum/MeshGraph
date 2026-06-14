@@ -2,25 +2,30 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 ex:SojournerRover
-    ex:hasPart ex:ChassisBase, ex:CameraMast, ex:LeftWheel, ex:RightWheel .
+    ex:hasPart ex:BodyAssembly, ex:LeftSuspension, ex:RightSuspension,
+        ex:WheelFrontLeft, ex:WheelMiddleLeft, ex:WheelRearLeft,
+        ex:WheelFrontRight, ex:WheelMiddleRight, ex:WheelRearRight,
+        ex:Drill .
 
-ex:ChassisBase
+ex:BodyAssembly
     ex:offsetX "0.0"^^xsd:decimal ;
-    ex:offsetY "0.0"^^xsd:decimal ;
+    ex:offsetY "-0.3"^^xsd:decimal ;
     ex:offsetZ "0.0"^^xsd:decimal .
 
-ex:CameraMast
-    ex:offsetX "0.0"^^xsd:decimal ;
-    ex:offsetY "1.8"^^xsd:decimal ;
+ex:LeftSuspension
+    ex:offsetX "-3.0"^^xsd:decimal ;
+    ex:offsetY "-0.9"^^xsd:decimal ;
     ex:offsetZ "0.0"^^xsd:decimal .
 
-ex:LeftWheel
-    ex:offsetX "-2.2"^^xsd:decimal ;
-    ex:offsetY "-0.5"^^xsd:decimal ;
+ex:RightSuspension
+    ex:offsetX "3.0"^^xsd:decimal ;
+    ex:offsetY "-0.9"^^xsd:decimal ;
     ex:offsetZ "0.0"^^xsd:decimal .
 
-ex:RightWheel
-    ex:offsetX "2.2"^^xsd:decimal ;
-    ex:offsetY "-0.5"^^xsd:decimal ;
-    ex:offsetZ "0.0"^^xsd:decimal .
-
+ex:WheelFrontLeft ex:offsetX "-4.3"^^xsd:decimal ; ex:offsetY "-1.0"^^xsd:decimal ; ex:offsetZ "-1.7"^^xsd:decimal .
+ex:WheelMiddleLeft ex:offsetX "-4.3"^^xsd:decimal ; ex:offsetY "-1.0"^^xsd:decimal ; ex:offsetZ "0.0"^^xsd:decimal .
+ex:WheelRearLeft ex:offsetX "-4.3"^^xsd:decimal ; ex:offsetY "-1.0"^^xsd:decimal ; ex:offsetZ "1.7"^^xsd:decimal .
+ex:WheelFrontRight ex:offsetX "4.3"^^xsd:decimal ; ex:offsetY "-1.0"^^xsd:decimal ; ex:offsetZ "-1.7"^^xsd:decimal .
+ex:WheelMiddleRight ex:offsetX "4.3"^^xsd:decimal ; ex:offsetY "-1.0"^^xsd:decimal ; ex:offsetZ "0.0"^^xsd:decimal .
+ex:WheelRearRight ex:offsetX "4.3"^^xsd:decimal ; ex:offsetY "-1.0"^^xsd:decimal ; ex:offsetZ "1.7"^^xsd:decimal .
+ex:Drill ex:offsetX "0.0"^^xsd:decimal ; ex:offsetY "0.0"^^xsd:decimal ; ex:offsetZ "-3.2"^^xsd:decimal .

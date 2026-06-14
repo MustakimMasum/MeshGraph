@@ -4,6 +4,10 @@ Cadmus is a local, microservice-backed 3D spatial knowledge base. Oxigraph store
 the graph, an Axum gateway exposes a narrow API, and a Leptos/A-Frame client
 renders the graph as an interactive scene.
 
+The assembled rover uses the public-domain
+[Mars Sojourner Rover](https://www.printables.com/model/411486-mars-sojourner-rover)
+model reuploaded by Books from the original Blend Swap model by argonius.
+
 ## Run with Docker
 
 ```sh

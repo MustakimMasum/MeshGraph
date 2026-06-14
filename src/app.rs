@@ -23,21 +23,6 @@ struct SparqlValue {
     value: String,
 }
 
-impl StructureBinding {
-    fn position(&self) -> String {
-        format!("{} {} {}", self.x.value, self.y.value, self.z.value)
-    }
-
-    fn assembled_position(&self) -> &'static str {
-        match self.part_name.value.as_str() {
-            "CameraMast" => "0 1.1 0",
-            "LeftWheel" => "-1.4 -0.45 0",
-            "RightWheel" => "1.4 -0.45 0",
-            _ => "0 0 0",
-        }
-    }
-}
-
 async fn fetch_structure() -> Result<StructureLoad, String> {
     let response = Request::get("/api/v1/structure")
         .send()
@@ -64,10 +49,16 @@ async fn fetch_structure() -> Result<StructureLoad, String> {
 
 fn demo_structure() -> Vec<StructureBinding> {
     [
-        ("ChassisBase", "0.0", "0.0", "0.0"),
-        ("CameraMast", "0.0", "1.8", "0.0"),
-        ("LeftWheel", "-2.2", "-0.5", "0.0"),
-        ("RightWheel", "2.2", "-0.5", "0.0"),
+        ("BodyAssembly", "0.0", "-0.3", "0.0"),
+        ("LeftSuspension", "-3.0", "-0.9", "0.0"),
+        ("RightSuspension", "3.0", "-0.9", "0.0"),
+        ("WheelFrontLeft", "-4.3", "-1.0", "-1.7"),
+        ("WheelMiddleLeft", "-4.3", "-1.0", "0.0"),
+        ("WheelRearLeft", "-4.3", "-1.0", "1.7"),
+        ("WheelFrontRight", "4.3", "-1.0", "-1.7"),
+        ("WheelMiddleRight", "4.3", "-1.0", "0.0"),
+        ("WheelRearRight", "4.3", "-1.0", "1.7"),
+        ("Drill", "0.0", "0.0", "-3.2"),
     ]
     .into_iter()
     .map(|(part_name, x, y, z)| StructureBinding {
@@ -92,17 +83,51 @@ fn animate_components(components: &[StructureBinding], exploded: bool) {
         return;
     };
 
-    for component in components {
-        let Some(element) = document.get_element_by_id(&component.part_name.value) else {
+    if let Some(assembled_rover) = document.get_element_by_id("assembled-rover") {
+        let _ = assembled_rover.set_attribute("visible", if exploded { "false" } else { "true" });
+    }
+    if let Some(graph_parts) = document.get_element_by_id("graph-parts") {
+        let _ = graph_parts.set_attribute("visible", if exploded { "true" } else { "false" });
+        let graph_description = components
+            .iter()
+            .map(|component| {
+                format!(
+                    "{}:{} {} {}",
+                    component.part_name.value,
+                    component.x.value,
+                    component.y.value,
+                    component.z.value
+                )
+            })
+            .collect::<Vec<_>>()
+            .join("|");
+        let _ = graph_parts.set_attribute("data-graph-parts", &graph_description);
+    }
+
+    let exploded_parts = [
+        ("ExplodedBody", "0 -0.9 0", "0 -0.3 0"),
+        ("ExplodedLeftSuspension", "-1.25 -0.9 0", "-3 -0.9 0"),
+        ("ExplodedRightSuspension", "1.25 -0.9 0", "3 -0.9 0"),
+        ("ExplodedWheelFL", "-1.7 -1 -0.8", "-4.3 -1 -1.7"),
+        ("ExplodedWheelML", "-1.7 -1 0", "-4.3 -1 0"),
+        ("ExplodedWheelRL", "-1.7 -1 0.8", "-4.3 -1 1.7"),
+        ("ExplodedWheelFR", "1.7 -1 -0.8", "4.3 -1 -1.7"),
+        ("ExplodedWheelMR", "1.7 -1 0", "4.3 -1 0"),
+        ("ExplodedWheelRR", "1.7 -1 0.8", "4.3 -1 1.7"),
+        ("ExplodedDrill", "0 -0.4 -1.3", "0 0 -3.2"),
+    ];
+
+    for (id, assembled_position, exploded_position) in exploded_parts {
+        let Some(element) = document.get_element_by_id(id) else {
             continue;
         };
         let target = if exploded {
-            component.position()
+            exploded_position
         } else {
-            component.assembled_position().to_owned()
+            assembled_position
         };
         let animation =
-            format!("property: position; to: {target}; dur: 1000; easing: easeOutElastic;");
+            format!("property: position; to: {target}; dur: 1100; easing: easeOutElastic;");
         let _ = element.set_attribute("animation__position", &animation);
     }
 }
@@ -157,51 +182,77 @@ pub fn App() -> impl IntoView {
 
             <a-scene background="color: #000000" cursor="rayOrigin: mouse">
                 <a-entity
-                    id="rover-group"
+                    id="assembled-rover"
                     class="clickable"
-                    position="0 0.4 0"
+                    position="0 -1.1 0"
                     rotation="0 -25 0"
+                    scale="2.4 2.4 2.4"
+                    gltf-model="url(/public/models/sojourner-rover.glb)"
+                    on:click=move |_| toggle_explosion(is_exploded, set_exploded, components)
+                ></a-entity>
+                <a-entity
+                    id="graph-parts"
+                    position="0 -0.2 0"
+                    rotation="0 -25 0"
+                    visible="false"
                 >
                     <a-box
-                        id="ChassisBase"
                         class="clickable"
-                        position="0 0 0"
-                        width="2.8"
-                        height="0.8"
-                        depth="1.8"
-                        material="wireframe: true; color: #00FF33; emissive: #00FF33"
+                        position="0 0.8 0"
+                        width="10"
+                        height="5"
+                        depth="6"
+                        material="opacity: 0; transparent: true"
                         on:click=move |_| toggle_explosion(is_exploded, set_exploded, components)
                     ></a-box>
-                    <a-box
-                        id="CameraMast"
-                        class="clickable"
-                        position="0 1.1 0"
-                        width="0.3"
-                        height="1.4"
-                        depth="0.3"
-                        material="wireframe: true; color: #00FF33; emissive: #00FF33"
-                        on:click=move |_| toggle_explosion(is_exploded, set_exploded, components)
-                    ></a-box>
-                    <a-cylinder
-                        id="LeftWheel"
-                        class="clickable"
-                        position="-1.4 -0.45 0"
-                        rotation="0 0 90"
-                        radius="0.55"
-                        height="0.35"
-                        material="wireframe: true; color: #00FF33; emissive: #00FF33"
-                        on:click=move |_| toggle_explosion(is_exploded, set_exploded, components)
-                    ></a-cylinder>
-                    <a-cylinder
-                        id="RightWheel"
-                        class="clickable"
-                        position="1.4 -0.45 0"
-                        rotation="0 0 90"
-                        radius="0.55"
-                        height="0.35"
-                        material="wireframe: true; color: #00FF33; emissive: #00FF33"
-                        on:click=move |_| toggle_explosion(is_exploded, set_exploded, components)
-                    ></a-cylinder>
+                    <a-entity
+                        id="ExplodedBody"
+                        position="0 -0.9 0"
+                        scale="0.12 0.12 0.12"
+                        gltf-model="url(/public/models/rover-body-netfabb.glb)"
+                    ></a-entity>
+                    <a-entity
+                        id="ExplodedLeftSuspension"
+                        position="-1.25 -0.9 0"
+                        scale="0.1 0.1 0.1"
+                        gltf-model="url(/public/models/rover-suspension-netfabb.glb)"
+                    ></a-entity>
+                    <a-entity
+                        id="ExplodedRightSuspension"
+                        position="1.25 -0.9 0"
+                        scale="-0.1 0.1 0.1"
+                        gltf-model="url(/public/models/rover-suspension-netfabb.glb)"
+                    ></a-entity>
+                    {["ExplodedWheelFL", "ExplodedWheelML", "ExplodedWheelRL"]
+                        .into_iter()
+                        .zip(["-1.7 -1 -0.8", "-1.7 -1 0", "-1.7 -1 0.8"])
+                        .map(|(id, position)| view! {
+                            <a-entity
+                                id=id
+                                position=position
+                                scale="5 5 5"
+                                gltf-model="url(/public/models/rover-wheel.glb)"
+                            ></a-entity>
+                        })
+                        .collect_view()}
+                    {["ExplodedWheelFR", "ExplodedWheelMR", "ExplodedWheelRR"]
+                        .into_iter()
+                        .zip(["1.7 -1 -0.8", "1.7 -1 0", "1.7 -1 0.8"])
+                        .map(|(id, position)| view! {
+                            <a-entity
+                                id=id
+                                position=position
+                                scale="-5 5 5"
+                                gltf-model="url(/public/models/rover-wheel.glb)"
+                            ></a-entity>
+                        })
+                        .collect_view()}
+                    <a-entity
+                        id="ExplodedDrill"
+                        position="0 -0.4 -1.3"
+                        scale="5 5 5"
+                        gltf-model="url(/public/models/rover-drill.glb)"
+                    ></a-entity>
                 </a-entity>
 
                 <a-plane
@@ -212,6 +263,13 @@ pub fn App() -> impl IntoView {
                     material="wireframe: true; color: #003311"
                 ></a-plane>
                 <a-sky color="#000000"></a-sky>
+                <a-light type="ambient" color="#99aabb" intensity="0.8"></a-light>
+                <a-light
+                    type="directional"
+                    color="#ffffff"
+                    intensity="1.2"
+                    position="-2 5 4"
+                ></a-light>
                 <a-camera
                     position="0 2.8 8"
                     rotation="-14 0 0"
