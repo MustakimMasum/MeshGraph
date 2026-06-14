@@ -2,10 +2,11 @@
   "name": "cadmus-webxr-tests",
   "private": true,
   "scripts": {
+    "demo:record": "node scripts/record-demo.mjs",
+    "demo:narrate": "powershell -ExecutionPolicy Bypass -File scripts/add-demo-narration.ps1",
     "test:webxr": "playwright test"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0"
   }
 }
-
