@@ -738,7 +738,7 @@ pub fn App() -> impl IntoView {
 
                 <a-plane
                     class="clickable"
-                    position="0 -1.1 0"
+                    position="0 -1.5 0"
                     rotation="-90 0 0"
                     width="40"
                     height="40"
