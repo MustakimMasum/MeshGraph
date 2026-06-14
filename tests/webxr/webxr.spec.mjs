@@ -157,6 +157,28 @@ test("visible rover geometry toggles exploded state", async ({ page }) => {
   expect(state.afterAssemble).toEqual({ assembled: true, exploded: false });
 });
 
+test("starts from the elevated front three-quarter view", async ({ page }) => {
+  await loadWithWebXr(page, false);
+
+  const camera = await page.evaluate(() => {
+    const element = document.querySelector("a-camera");
+    const controls = element.components["look-controls"];
+    return {
+      position: element.getAttribute("position"),
+      pitch: THREE.MathUtils.radToDeg(controls.pitchObject.rotation.x),
+      yaw: THREE.MathUtils.radToDeg(controls.yawObject.rotation.y),
+      fov: element.getAttribute("camera").fov,
+    };
+  });
+
+  expect(camera).toMatchObject({
+    position: { x: 3.9, y: 1.45, z: -2.2 },
+    fov: 62,
+  });
+  expect(camera.pitch).toBeCloseTo(-15);
+  expect(camera.yaw).toBeCloseTo(120);
+});
+
 test("major parts explode along their intended axes", async ({ page }) => {
   await loadWithWebXr(page, false);
 

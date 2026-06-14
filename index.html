@@ -50,6 +50,27 @@
         },
       });
 
+      AFRAME.registerComponent("initial-camera-look", {
+        schema: {
+          pitch: { default: 0 },
+          yaw: { default: 0 },
+        },
+
+        tick: function () {
+          if (this.applied) return;
+          const controls = this.el.components["look-controls"];
+          if (!controls?.pitchObject || !controls?.yawObject) return;
+
+          controls.pitchObject.rotation.x = THREE.MathUtils.degToRad(
+            this.data.pitch,
+          );
+          controls.yawObject.rotation.y = THREE.MathUtils.degToRad(
+            this.data.yaw,
+          );
+          this.applied = true;
+        },
+      });
+
       AFRAME.registerComponent("viewport-controls", {
         schema: {
           zoomSpeed: { default: 0.0025 },
