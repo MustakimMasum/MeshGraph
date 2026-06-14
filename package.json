@@ -1,0 +1,11 @@
+{
+  "name": "cadmus-webxr-tests",
+  "private": true,
+  "scripts": {
+    "test:webxr": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0"
+  }
+}
+

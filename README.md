@@ -40,3 +40,6 @@ Then open `http://localhost:3000`. Axum serves each rebuilt frontend bundle from
 
 Use `cargo test`, `cargo fmt --check`, and
 `cargo clippy --all-targets --all-features -- -D warnings` before committing.
+
+Run `npm run test:webxr` to validate WebXR capability detection, session-state
+recovery, controller trigger interaction, and rover explode/assemble behavior.

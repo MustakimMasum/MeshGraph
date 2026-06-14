@@ -118,6 +118,79 @@
           );
         },
       });
+
+      AFRAME.registerComponent("webxr-launcher", {
+        schema: {
+          sessionTimeout: { default: 15000 },
+        },
+
+        init: function () {
+          this.button = document.getElementById("enter-vr-button");
+          this.status = document.getElementById("vr-status");
+          if (!this.button || !this.status) return;
+
+          this.setState = (label, status, disabled) => {
+            this.button.textContent = label;
+            this.button.disabled = disabled;
+            this.status.textContent = status;
+          };
+          this.onClick = async () => {
+            try {
+              this.setState("Starting VR...", "Requesting headset access", true);
+              await Promise.race([
+                this.el.enterVR(),
+                new Promise((_, reject) =>
+                  setTimeout(
+                    () => reject(new Error("WebXR session request timed out")),
+                    this.data.sessionTimeout,
+                  ),
+                ),
+              ]);
+            } catch (error) {
+              console.error("Unable to enter VR", error);
+              this.setState(
+                "Enter VR",
+                "Unable to start VR; check headset permissions",
+                false,
+              );
+            }
+          };
+          this.onEnterVr = () =>
+            this.setState("VR Active", "Use headset controls to exit", true);
+          this.onExitVr = () =>
+            this.setState("Enter VR", "Headset ready", false);
+
+          this.button.addEventListener("click", this.onClick);
+          this.el.addEventListener("enter-vr", this.onEnterVr);
+          this.el.addEventListener("exit-vr", this.onExitVr);
+
+          if (!window.isSecureContext) {
+            this.setState("Enter VR", "HTTPS or localhost required", true);
+            return;
+          }
+          if (!navigator.xr?.isSessionSupported) {
+            this.setState("Enter VR", "WebXR unavailable", true);
+            return;
+          }
+
+          navigator.xr
+            .isSessionSupported("immersive-vr")
+            .then((supported) => {
+              this.setState(
+                "Enter VR",
+                supported ? "Headset ready" : "No VR headset detected",
+                !supported,
+              );
+            })
+            .catch(() => this.setState("Enter VR", "WebXR unavailable", true));
+        },
+
+        remove: function () {
+          this.button?.removeEventListener("click", this.onClick);
+          this.el.removeEventListener("enter-vr", this.onEnterVr);
+          this.el.removeEventListener("exit-vr", this.onExitVr);
+        },
+      });
     </script>
     <link data-trunk rel="copy-dir" href="public">
     <link data-trunk rel="rust" data-wasm-opt="z">

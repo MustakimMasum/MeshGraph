@@ -181,12 +181,30 @@ pub fn App() -> impl IntoView {
                 <div>"Middle drag  Pan"</div>
                 <div>"Click rover  Explode / Assemble"</div>
             </div>
+            <div
+                style="position: fixed; z-index: 11; right: 1rem; bottom: 1rem; display: flex; align-items: flex-end; flex-direction: column; gap: 0.35rem; font-family: monospace;"
+            >
+                <button
+                    id="enter-vr-button"
+                    type="button"
+                    disabled=true
+                    style="padding: 0.75rem 1.1rem; border: 1px solid #17324d; border-radius: 0.5rem; color: #ffffff; background: #17324d; font: inherit; font-weight: bold; cursor: pointer;"
+                >
+                    "Enter VR"
+                </button>
+                <span id="vr-status" style="color: #17324d; font-size: 0.75rem;">
+                    "Checking WebXR..."
+                </span>
+            </div>
 
             <a-scene
                 background="color: #e8edf2"
                 cursor="rayOrigin: mouse"
                 raycaster="objects: .clickable"
                 renderer="colorManagement: true; physicallyCorrectLights: true; exposure: 1.15"
+                webxr="optionalFeatures: local-floor, bounded-floor, hand-tracking"
+                vr-mode-ui="enabled: false"
+                webxr-launcher
             >
                 <a-entity
                     id="assembled-rover"
@@ -302,6 +320,14 @@ pub fn App() -> impl IntoView {
                     distance="18"
                     position="0 5 -5"
                 ></a-light>
+                <a-entity
+                    laser-controls="hand: left"
+                    raycaster="objects: .clickable"
+                ></a-entity>
+                <a-entity
+                    laser-controls="hand: right"
+                    raycaster="objects: .clickable"
+                ></a-entity>
                 <a-camera
                     position="0 0.15 5.2"
                     rotation="-80 0 0"

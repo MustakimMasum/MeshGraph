@@ -1,4 +1,7 @@
 /dist/
 /local_graph_store/
+/node_modules/
+/playwright-report/
 /target/
-
+/test-results/
+/node_modules/
