@@ -164,14 +164,14 @@ pub fn App() -> impl IntoView {
     view! {
         <main>
             <div
-                style="position: fixed; z-index: 10; top: 1rem; left: 1rem; color: #00ff33; font-family: monospace;"
+                style="position: fixed; z-index: 10; top: 1rem; left: 1rem; max-width: 70%; padding: 0.75rem 1rem; color: #17324d; background: rgba(255, 255, 255, 0.82); border: 1px solid rgba(23, 50, 77, 0.15); border-radius: 0.5rem; font-family: monospace; box-shadow: 0 0.5rem 2rem rgba(23, 50, 77, 0.12);"
             >
                 <strong>"CADMUS // SOJOURNER ROVER"</strong>
                 <p>"Click the rover to toggle the exploded graph view."</p>
                 {move || load_error.get().map(|error| view! { <p>{error}</p> })}
             </div>
             <div
-                style="position: fixed; z-index: 10; top: 1rem; right: 1rem; color: #00ff33; font-family: monospace; text-align: right; line-height: 1.5;"
+                style="position: fixed; z-index: 10; top: 1rem; right: 1rem; padding: 0.75rem 1rem; color: #17324d; background: rgba(255, 255, 255, 0.82); border: 1px solid rgba(23, 50, 77, 0.15); border-radius: 0.5rem; font-family: monospace; text-align: right; line-height: 1.5; box-shadow: 0 0.5rem 2rem rgba(23, 50, 77, 0.12);"
             >
                 <strong>"NAVIGATION"</strong>
                 <div>"W A S D  Move"</div>
@@ -180,7 +180,11 @@ pub fn App() -> impl IntoView {
                 <div>"Click rover  Explode / Assemble"</div>
             </div>
 
-            <a-scene background="color: #000000" cursor="rayOrigin: mouse">
+            <a-scene
+                background="color: #e8edf2"
+                cursor="rayOrigin: mouse"
+                renderer="colorManagement: true; physicallyCorrectLights: true; exposure: 1.15"
+            >
                 <a-entity
                     id="assembled-rover"
                     class="clickable"
@@ -188,6 +192,7 @@ pub fn App() -> impl IntoView {
                     rotation="0 -25 0"
                     scale="2.4 2.4 2.4"
                     gltf-model="url(/public/models/sojourner-rover.glb)"
+                    shadow="cast: true; receive: true"
                     on:click=move |_| toggle_explosion(is_exploded, set_exploded, components)
                 ></a-entity>
                 <a-entity
@@ -210,18 +215,21 @@ pub fn App() -> impl IntoView {
                         position="0 -0.9 0"
                         scale="0.12 0.12 0.12"
                         gltf-model="url(/public/models/rover-body-netfabb.glb)"
+                        shadow="cast: true; receive: true"
                     ></a-entity>
                     <a-entity
                         id="ExplodedLeftSuspension"
                         position="-1.25 -0.9 0"
                         scale="0.1 0.1 0.1"
                         gltf-model="url(/public/models/rover-suspension-netfabb.glb)"
+                        shadow="cast: true; receive: true"
                     ></a-entity>
                     <a-entity
                         id="ExplodedRightSuspension"
                         position="1.25 -0.9 0"
                         scale="-0.1 0.1 0.1"
                         gltf-model="url(/public/models/rover-suspension-netfabb.glb)"
+                        shadow="cast: true; receive: true"
                     ></a-entity>
                     {["ExplodedWheelFL", "ExplodedWheelML", "ExplodedWheelRL"]
                         .into_iter()
@@ -232,6 +240,7 @@ pub fn App() -> impl IntoView {
                                 position=position
                                 scale="5 5 5"
                                 gltf-model="url(/public/models/rover-wheel.glb)"
+                                shadow="cast: true; receive: true"
                             ></a-entity>
                         })
                         .collect_view()}
@@ -244,6 +253,7 @@ pub fn App() -> impl IntoView {
                                 position=position
                                 scale="-5 5 5"
                                 gltf-model="url(/public/models/rover-wheel.glb)"
+                                shadow="cast: true; receive: true"
                             ></a-entity>
                         })
                         .collect_view()}
@@ -252,27 +262,43 @@ pub fn App() -> impl IntoView {
                         position="0 -0.4 -1.3"
                         scale="5 5 5"
                         gltf-model="url(/public/models/rover-drill.glb)"
+                        shadow="cast: true; receive: true"
                     ></a-entity>
                 </a-entity>
 
                 <a-plane
                     position="0 -1.1 0"
                     rotation="-90 0 0"
-                    width="30"
-                    height="30"
-                    material="wireframe: true; color: #003311"
+                    width="40"
+                    height="40"
+                    material="color: #f7f8fa; roughness: 0.95; metalness: 0"
+                    shadow="receive: true"
                 ></a-plane>
-                <a-sky color="#000000"></a-sky>
-                <a-light type="ambient" color="#99aabb" intensity="0.8"></a-light>
+                <a-sky color="#e8edf2"></a-sky>
+                <a-light type="ambient" color="#dce8f5" intensity="1.15"></a-light>
                 <a-light
                     type="directional"
+                    color="#fff4df"
+                    intensity="2.4"
+                    position="-4 7 5"
+                    shadow="cast: true"
+                ></a-light>
+                <a-light
+                    type="directional"
+                    color="#d9eaff"
+                    intensity="1.5"
+                    position="5 4 2"
+                ></a-light>
+                <a-light
+                    type="point"
                     color="#ffffff"
-                    intensity="1.2"
-                    position="-2 5 4"
+                    intensity="1.1"
+                    distance="18"
+                    position="0 5 -5"
                 ></a-light>
                 <a-camera
-                    position="0 2.8 8"
-                    rotation="-14 0 0"
+                    position="0 1.15 4.8"
+                    rotation="-3 0 0"
                     look-controls="pointerLockEnabled: false"
                     wasd-controls="acceleration: 25"
                     vertical-controls="speed: 3"
