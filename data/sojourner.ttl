@@ -10,22 +10,42 @@ ex:SojournerRover
 ex:BodyAssembly
     ex:offsetX "0.0"^^xsd:decimal ;
     ex:offsetY "-0.3"^^xsd:decimal ;
-    ex:offsetZ "0.0"^^xsd:decimal .
+    ex:offsetZ "0.0"^^xsd:decimal ;
+    ex:displayName "Warm Electronics Box" ;
+    ex:category "Primary chassis" ;
+    ex:purpose "Houses rover electronics and supports the solar array." ;
+    ex:powerRequirement "Distributes solar-array power" ;
+    ex:missionNote "Protected Sojourner's electronics during the Pathfinder surface mission." .
 
 ex:Antenna
     ex:offsetX "-2.6"^^xsd:decimal ;
     ex:offsetY "-0.3"^^xsd:decimal ;
-    ex:offsetZ "0.0"^^xsd:decimal .
+    ex:offsetZ "0.0"^^xsd:decimal ;
+    ex:displayName "Low-Gain Antenna" ;
+    ex:category "Communications" ;
+    ex:purpose "Returns rover telemetry through the Pathfinder lander." ;
+    ex:powerRequirement "Low-power UHF link" ;
+    ex:missionNote "Maintained the rover-to-lander communications link." .
 
 ex:LeftSuspension
     ex:offsetX "0.0"^^xsd:decimal ;
     ex:offsetY "-0.9"^^xsd:decimal ;
-    ex:offsetZ "2.2"^^xsd:decimal .
+    ex:offsetZ "2.2"^^xsd:decimal ;
+    ex:displayName "Left Rocker-Bogie Assembly" ;
+    ex:category "Mobility system" ;
+    ex:purpose "Keeps three left wheels in contact with uneven terrain." ;
+    ex:powerRequirement "Passive articulated suspension" ;
+    ex:missionNote "Enabled obstacle traversal without springs." .
 
 ex:RightSuspension
     ex:offsetX "0.0"^^xsd:decimal ;
     ex:offsetY "-0.9"^^xsd:decimal ;
-    ex:offsetZ "-2.2"^^xsd:decimal .
+    ex:offsetZ "-2.2"^^xsd:decimal ;
+    ex:displayName "Right Rocker-Bogie Assembly" ;
+    ex:category "Mobility system" ;
+    ex:purpose "Keeps three right wheels in contact with uneven terrain." ;
+    ex:powerRequirement "Passive articulated suspension" ;
+    ex:missionNote "Balanced chassis motion across the rover's right side." .
 
 ex:WheelFrontLeft ex:offsetX "-1.4"^^xsd:decimal ; ex:offsetY "-1.0"^^xsd:decimal ; ex:offsetZ "2.8"^^xsd:decimal .
 ex:WheelMiddleLeft ex:offsetX "0.0"^^xsd:decimal ; ex:offsetY "-1.0"^^xsd:decimal ; ex:offsetZ "2.8"^^xsd:decimal .
@@ -33,4 +53,19 @@ ex:WheelRearLeft ex:offsetX "1.4"^^xsd:decimal ; ex:offsetY "-1.0"^^xsd:decimal 
 ex:WheelFrontRight ex:offsetX "-1.4"^^xsd:decimal ; ex:offsetY "-1.0"^^xsd:decimal ; ex:offsetZ "-2.8"^^xsd:decimal .
 ex:WheelMiddleRight ex:offsetX "0.0"^^xsd:decimal ; ex:offsetY "-1.0"^^xsd:decimal ; ex:offsetZ "-2.8"^^xsd:decimal .
 ex:WheelRearRight ex:offsetX "1.4"^^xsd:decimal ; ex:offsetY "-1.0"^^xsd:decimal ; ex:offsetZ "-2.8"^^xsd:decimal .
-ex:Drill ex:offsetX "3.2"^^xsd:decimal ; ex:offsetY "-0.4"^^xsd:decimal ; ex:offsetZ "0.0"^^xsd:decimal .
+ex:Drill
+    ex:offsetX "3.2"^^xsd:decimal ;
+    ex:offsetY "-0.4"^^xsd:decimal ;
+    ex:offsetZ "0.0"^^xsd:decimal ;
+    ex:displayName "Alpha Proton X-Ray Spectrometer" ;
+    ex:category "Science instrument" ;
+    ex:purpose "Measures elemental composition of rocks and soil." ;
+    ex:powerRequirement "Instrument deployment and measurement power" ;
+    ex:missionNote "Analyzed Martian targets during Sojourner's surface operations." .
+
+ex:WheelFrontLeft ex:displayName "Front Left Wheel" ; ex:category "Mobility wheel" ; ex:purpose "Provides traction and steering." .
+ex:WheelMiddleLeft ex:displayName "Middle Left Wheel" ; ex:category "Mobility wheel" ; ex:purpose "Provides traction across uneven terrain." .
+ex:WheelRearLeft ex:displayName "Rear Left Wheel" ; ex:category "Mobility wheel" ; ex:purpose "Provides traction and steering." .
+ex:WheelFrontRight ex:displayName "Front Right Wheel" ; ex:category "Mobility wheel" ; ex:purpose "Provides traction and steering." .
+ex:WheelMiddleRight ex:displayName "Middle Right Wheel" ; ex:category "Mobility wheel" ; ex:purpose "Provides traction across uneven terrain." .
+ex:WheelRearRight ex:displayName "Rear Right Wheel" ; ex:category "Mobility wheel" ; ex:purpose "Provides traction and steering." .

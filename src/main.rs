@@ -11,7 +11,7 @@ mod gateway {
     use std::{env, net::SocketAddr};
 
     use axum::{
-        extract::State,
+        extract::{Path, State},
         http::{header, StatusCode},
         routing::get,
         Json, Router,
@@ -50,6 +50,28 @@ ORDER BY ?partName
         bindings: Vec<StructureBinding>,
     }
 
+    #[derive(Debug, Deserialize)]
+    struct MetadataEnvelope {
+        results: MetadataResults,
+    }
+
+    #[derive(Debug, Deserialize)]
+    struct MetadataResults {
+        bindings: Vec<MetadataBinding>,
+    }
+
+    #[derive(Debug, Deserialize)]
+    struct MetadataBinding {
+        #[serde(rename = "displayName")]
+        display_name: Option<SparqlValue>,
+        category: Option<SparqlValue>,
+        purpose: Option<SparqlValue>,
+        #[serde(rename = "powerRequirement")]
+        power_requirement: Option<SparqlValue>,
+        #[serde(rename = "missionNote")]
+        mission_note: Option<SparqlValue>,
+    }
+
     #[derive(Debug, Deserialize, Serialize)]
     struct StructureBinding {
         #[serde(rename = "partName")]
@@ -70,6 +92,16 @@ ORDER BY ?partName
     #[derive(Debug, Serialize)]
     struct ApiError {
         error: String,
+    }
+
+    #[derive(Debug, Serialize)]
+    struct ComponentMetadata {
+        component_name: String,
+        display_name: String,
+        category: Option<String>,
+        purpose: Option<String>,
+        power_requirement: Option<String>,
+        mission_note: Option<String>,
     }
 
     impl ApiError {
@@ -96,6 +128,10 @@ ORDER BY ?partName
         let app = Router::new()
             .route("/api/v1/health", get(health))
             .route("/api/v1/structure", get(structure))
+            .route(
+                "/api/v1/components/:component_name",
+                get(component_metadata),
+            )
             .fallback_service(ServeDir::new("./dist"))
             .layer(cors)
             .with_state(state);
@@ -130,6 +166,82 @@ ORDER BY ?partName
             .map_err(|error| upstream_error(format!("Invalid Oxigraph response: {error}")))?;
 
         Ok(Json(envelope.results.bindings))
+    }
+
+    async fn component_metadata(
+        State(state): State<AppState>,
+        Path(component_name): Path<String>,
+    ) -> ApiResult<ComponentMetadata> {
+        let query = metadata_query(&component_name).ok_or_else(|| {
+            (
+                StatusCode::BAD_REQUEST,
+                Json(ApiError::new("Invalid component name")),
+            )
+        })?;
+
+        let response = state
+            .client
+            .post(&state.database_url)
+            .header(header::CONTENT_TYPE, "application/sparql-query")
+            .header(header::ACCEPT, "application/sparql-results+json")
+            .body(query)
+            .send()
+            .await
+            .map_err(|error| upstream_error(format!("Oxigraph request failed: {error}")))?
+            .error_for_status()
+            .map_err(|error| upstream_error(format!("Oxigraph returned an error: {error}")))?;
+
+        let envelope = response
+            .json::<MetadataEnvelope>()
+            .await
+            .map_err(|error| upstream_error(format!("Invalid Oxigraph response: {error}")))?;
+        let binding = envelope
+            .results
+            .bindings
+            .into_iter()
+            .next()
+            .ok_or_else(|| {
+                (
+                    StatusCode::NOT_FOUND,
+                    Json(ApiError::new("Component metadata not found")),
+                )
+            })?;
+
+        Ok(Json(ComponentMetadata {
+            display_name: binding
+                .display_name
+                .map(|value| value.value)
+                .unwrap_or_else(|| component_name.clone()),
+            category: binding.category.map(|value| value.value),
+            purpose: binding.purpose.map(|value| value.value),
+            power_requirement: binding.power_requirement.map(|value| value.value),
+            mission_note: binding.mission_note.map(|value| value.value),
+            component_name,
+        }))
+    }
+
+    fn metadata_query(component_name: &str) -> Option<String> {
+        if component_name.is_empty()
+            || !component_name
+                .chars()
+                .all(|character| character.is_ascii_alphanumeric() || character == '_')
+        {
+            return None;
+        }
+
+        Some(format!(
+            r#"
+PREFIX ex: <http://example.org/cadmus/>
+SELECT ?displayName ?category ?purpose ?powerRequirement ?missionNote WHERE {{
+    BIND(ex:{component_name} AS ?part)
+    OPTIONAL {{ ?part ex:displayName ?displayName . }}
+    OPTIONAL {{ ?part ex:category ?category . }}
+    OPTIONAL {{ ?part ex:purpose ?purpose . }}
+    OPTIONAL {{ ?part ex:powerRequirement ?powerRequirement . }}
+    OPTIONAL {{ ?part ex:missionNote ?missionNote . }}
+}}
+"#
+        ))
     }
 
     fn database_url(value: Option<&str>) -> String {
@@ -168,6 +280,37 @@ ORDER BY ?partName
 
             let parsed: SparqlEnvelope = serde_json::from_str(response).expect("valid response");
             assert_eq!(parsed.results.bindings[0].part_name.value, "ChassisBase");
+        }
+
+        #[test]
+        fn metadata_query_rejects_non_identifier_component_names() {
+            assert!(metadata_query("Antenna").is_some());
+            assert!(metadata_query("WheelFrontLeft").is_some());
+            assert!(metadata_query("../query").is_none());
+            assert!(metadata_query("Antenna> ?s ?p ?o").is_none());
+        }
+
+        #[test]
+        fn parses_optional_component_metadata() {
+            let response = r#"{
+                "results": {
+                    "bindings": [{
+                        "displayName": {"type": "literal", "value": "Low-Gain Antenna"},
+                        "purpose": {"type": "literal", "value": "Returns telemetry"}
+                    }]
+                }
+            }"#;
+
+            let parsed: MetadataEnvelope = serde_json::from_str(response).expect("valid response");
+            let binding = &parsed.results.bindings[0];
+            assert_eq!(
+                binding
+                    .display_name
+                    .as_ref()
+                    .map(|value| value.value.as_str()),
+                Some("Low-Gain Antenna")
+            );
+            assert!(binding.power_requirement.is_none());
         }
     }
 }

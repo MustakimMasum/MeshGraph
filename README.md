@@ -19,6 +19,15 @@ Open `http://localhost:3000`. Oxigraph is available on
 Sojourner rover graph on startup. Check gateway availability at
 `http://localhost:3000/api/v1/health`.
 
+The gateway exposes rover structure at `/api/v1/structure` and semantic
+component metadata at `/api/v1/components/:component_name`, for example
+`/api/v1/components/Drill`.
+
+Click the assembled rover to explode it. In the exploded view, click an
+individual component to highlight it and open a floating SPARQL-backed metadata
+card connected by a spatial relationship tether. Use **Assemble Rover** on
+desktop or the in-headset assemble control in VR to collapse the model.
+
 ## Local Development
 
 Install Rust, the `wasm32-unknown-unknown` target, and Trunk:

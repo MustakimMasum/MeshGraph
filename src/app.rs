@@ -1,6 +1,7 @@
 use gloo_net::http::Request;
 use leptos::*;
 use serde::Deserialize;
+use wasm_bindgen_futures::spawn_local;
 use web_sys::window;
 
 #[derive(Clone)]
@@ -21,6 +22,16 @@ struct StructureBinding {
 #[derive(Clone, Debug, Deserialize)]
 struct SparqlValue {
     value: String,
+}
+
+#[derive(Clone, Debug, Default, Deserialize)]
+struct ComponentMetadata {
+    component_name: String,
+    display_name: String,
+    category: Option<String>,
+    purpose: Option<String>,
+    power_requirement: Option<String>,
+    mission_note: Option<String>,
 }
 
 async fn fetch_structure() -> Result<StructureLoad, String> {
@@ -138,11 +149,126 @@ fn toggle_explosion(
     animate_components(&components.get_untracked(), exploded);
 }
 
+fn set_semantic_selection(previous_id: Option<&str>, element_id: Option<&str>) {
+    let Some(document) = window().and_then(|window| window.document()) else {
+        return;
+    };
+
+    if let Some(previous_id) = previous_id {
+        if let Some(previous) = document.get_element_by_id(previous_id) {
+            let _ = previous.set_attribute("semantic-highlight", "active: false");
+        }
+    }
+
+    let Some(element_id) = element_id else {
+        if let Some(hud) = document.get_element_by_id("semantic-hud") {
+            let _ = hud.set_attribute("visible", "false");
+        }
+        if let Some(tether) = document.get_element_by_id("semantic-tether") {
+            let _ = tether.set_attribute("visible", "false");
+        }
+        return;
+    };
+
+    if let Some(selected) = document.get_element_by_id(element_id) {
+        let _ = selected.set_attribute("semantic-highlight", "active: true");
+    }
+    if let Some(hud) = document.get_element_by_id("semantic-hud") {
+        let _ = hud.set_attribute("semantic-hud", &format!("target: #{element_id}"));
+        let _ = hud.set_attribute("visible", "true");
+    }
+    if let Some(tether) = document.get_element_by_id("semantic-tether") {
+        let _ = tether.set_attribute(
+            "relationship-tether",
+            &format!("target: #{element_id}; card: #semantic-hud; color: #00ff66"),
+        );
+        let _ = tether.set_attribute("visible", "true");
+    }
+}
+
+fn select_component(
+    component_name: &'static str,
+    element_id: &'static str,
+    selected_element: ReadSignal<Option<String>>,
+    set_selected_element: WriteSignal<Option<String>>,
+    set_metadata: WriteSignal<ComponentMetadata>,
+) {
+    let previous = selected_element.get_untracked();
+    set_semantic_selection(previous.as_deref(), Some(element_id));
+    set_selected_element.set(Some(element_id.to_owned()));
+    set_metadata.set(ComponentMetadata {
+        component_name: component_name.to_owned(),
+        display_name: "Loading semantic context...".to_owned(),
+        ..ComponentMetadata::default()
+    });
+
+    spawn_local(async move {
+        let metadata = match Request::get(&format!("/api/v1/components/{component_name}"))
+            .send()
+            .await
+        {
+            Ok(response) if response.ok() => response
+                .json::<ComponentMetadata>()
+                .await
+                .unwrap_or_else(|_| ComponentMetadata {
+                    component_name: component_name.to_owned(),
+                    display_name: "Metadata response could not be parsed".to_owned(),
+                    ..ComponentMetadata::default()
+                }),
+            _ => ComponentMetadata {
+                component_name: component_name.to_owned(),
+                display_name: "Semantic metadata unavailable".to_owned(),
+                ..ComponentMetadata::default()
+            },
+        };
+        set_metadata.set(metadata);
+    });
+}
+
+fn assemble_rover(
+    set_exploded: WriteSignal<bool>,
+    components: ReadSignal<Vec<StructureBinding>>,
+    selected_element: ReadSignal<Option<String>>,
+    set_selected_element: WriteSignal<Option<String>>,
+) {
+    set_semantic_selection(selected_element.get_untracked().as_deref(), None);
+    set_selected_element.set(None);
+    set_exploded.set(false);
+    animate_components(&components.get_untracked(), false);
+}
+
+fn metadata_details(metadata: &ComponentMetadata) -> String {
+    [
+        metadata
+            .category
+            .as_ref()
+            .map(|value| format!("TYPE  {value}")),
+        metadata
+            .purpose
+            .as_ref()
+            .map(|value| format!("ROLE  {value}")),
+        metadata
+            .power_requirement
+            .as_ref()
+            .map(|value| format!("POWER {value}")),
+        metadata
+            .mission_note
+            .as_ref()
+            .map(|value| format!("LOG   {value}")),
+    ]
+    .into_iter()
+    .flatten()
+    .collect::<Vec<_>>()
+    .join("\n\n")
+}
+
 #[component]
 pub fn App() -> impl IntoView {
     let (components, set_components) = create_signal(Vec::<StructureBinding>::new());
     let (load_error, set_load_error) = create_signal(None::<String>);
     let (is_exploded, set_exploded) = create_signal(false);
+    let (selected_element, set_selected_element) = create_signal(None::<String>);
+    let (metadata, set_metadata) = create_signal(ComponentMetadata::default());
 
     let structure = create_local_resource(|| (), |_| fetch_structure());
     create_effect(move |_| {
@@ -175,11 +301,28 @@ pub fn App() -> impl IntoView {
                 <div>"Mouse  Look"</div>
                 <div>"Scroll  Zoom"</div>
                 <div>"Middle drag  Pan"</div>
-                <div>"Click rover  Explode / Assemble"</div>
+                <div>"Click rover  Explode"</div>
+                <div>"Click part  Semantic context"</div>
             </div>
             <div
                 style="position: fixed; z-index: 11; right: 1rem; bottom: 1rem; display: flex; align-items: flex-end; flex-direction: column; gap: 0.35rem; font-family: monospace;"
             >
+                <button
+                    id="assemble-rover-button"
+                    type="button"
+                    disabled=move || !is_exploded.get()
+                    on:click=move |_| {
+                        assemble_rover(
+                            set_exploded,
+                            components,
+                            selected_element,
+                            set_selected_element,
+                        )
+                    }
+                    style="padding: 0.65rem 1rem; border: 1px solid #17324d; border-radius: 0.5rem; color: #17324d; background: rgba(255, 255, 255, 0.9); font: inherit; font-weight: bold; cursor: pointer;"
+                >
+                    "Assemble Rover"
+                </button>
                 <button
                     id="enter-vr-button"
                     type="button"
@@ -219,45 +362,82 @@ pub fn App() -> impl IntoView {
                     visible="false"
                 >
                     <a-entity
-                        id="ExplodedBody"
-                        class="clickable"
+                    id="ExplodedBody"
+                    class="clickable"
+                    semantic-highlight="active: false"
                         position="0 -0.9 0"
                         scale="0.12 0.12 0.12"
                         gltf-model="url(/public/models/rover-body.glb)"
                         shadow="cast: true; receive: true"
-                        on:click=move |_| toggle_explosion(is_exploded, set_exploded, components)
+                        on:click=move |_| {
+                            select_component(
+                                "BodyAssembly",
+                                "ExplodedBody",
+                                selected_element,
+                                set_selected_element,
+                                set_metadata,
+                            )
+                        }
                     ></a-entity>
                     <a-entity
                         id="ExplodedAntenna"
                         class="clickable"
+                        semantic-highlight="active: false"
                         position="0 -0.9 0"
                         scale="0.12 0.12 0.12"
                         gltf-model="url(/public/models/rover-antenna.glb)"
                         shadow="cast: true; receive: true"
-                        on:click=move |_| toggle_explosion(is_exploded, set_exploded, components)
+                        on:click=move |_| {
+                            select_component(
+                                "Antenna",
+                                "ExplodedAntenna",
+                                selected_element,
+                                set_selected_element,
+                                set_metadata,
+                            )
+                        }
                     ></a-entity>
                     <a-entity id="ExplodedLeftWheelAssembly" position="0 0 0">
                         <a-entity
                             id="ExplodedLeftSuspension"
                             class="clickable"
+                            semantic-highlight="active: false"
                             position="0 -0.9 0.9"
                             scale="0.1 0.1 0.1"
                             gltf-model="url(/public/models/rover-suspension-netfabb.glb)"
                             shadow="cast: true; receive: true"
-                            on:click=move |_| toggle_explosion(is_exploded, set_exploded, components)
+                            on:click=move |_| {
+                                select_component(
+                                    "LeftSuspension",
+                                    "ExplodedLeftSuspension",
+                                    selected_element,
+                                    set_selected_element,
+                                    set_metadata,
+                                )
+                            }
                         ></a-entity>
                         {["ExplodedWheelFL", "ExplodedWheelML", "ExplodedWheelRL"]
                             .into_iter()
                             .zip(["-1.4 -1 1.5", "0 -1 1.5", "1.4 -1 1.5"])
-                            .map(|(id, position)| view! {
+                            .zip(["WheelFrontLeft", "WheelMiddleLeft", "WheelRearLeft"])
+                            .map(|((id, position), component_name)| view! {
                             <a-entity
                                 id=id
                                 class="clickable"
+                                semantic-highlight="active: false"
                                 position=position
                                 scale="5 5 5"
                                 gltf-model="url(/public/models/rover-wheel.glb)"
                                 shadow="cast: true; receive: true"
-                                on:click=move |_| toggle_explosion(is_exploded, set_exploded, components)
+                                on:click=move |_| {
+                                    select_component(
+                                        component_name,
+                                        id,
+                                        selected_element,
+                                        set_selected_element,
+                                        set_metadata,
+                                    )
+                                }
                             ></a-entity>
                         })
                         .collect_view()}
@@ -266,24 +446,43 @@ pub fn App() -> impl IntoView {
                         <a-entity
                             id="ExplodedRightSuspension"
                             class="clickable"
+                            semantic-highlight="active: false"
                             position="0 -0.9 -0.9"
                             scale="0.1 0.1 -0.1"
                             gltf-model="url(/public/models/rover-suspension-netfabb.glb)"
                             shadow="cast: true; receive: true"
-                            on:click=move |_| toggle_explosion(is_exploded, set_exploded, components)
+                            on:click=move |_| {
+                                select_component(
+                                    "RightSuspension",
+                                    "ExplodedRightSuspension",
+                                    selected_element,
+                                    set_selected_element,
+                                    set_metadata,
+                                )
+                            }
                         ></a-entity>
                         {["ExplodedWheelFR", "ExplodedWheelMR", "ExplodedWheelRR"]
                             .into_iter()
                             .zip(["-1.4 -1 -1.5", "0 -1 -1.5", "1.4 -1 -1.5"])
-                            .map(|(id, position)| view! {
+                            .zip(["WheelFrontRight", "WheelMiddleRight", "WheelRearRight"])
+                            .map(|((id, position), component_name)| view! {
                             <a-entity
                                 id=id
                                 class="clickable"
+                                semantic-highlight="active: false"
                                 position=position
                                 scale="5 5 -5"
                                 gltf-model="url(/public/models/rover-wheel.glb)"
                                 shadow="cast: true; receive: true"
-                                on:click=move |_| toggle_explosion(is_exploded, set_exploded, components)
+                                on:click=move |_| {
+                                    select_component(
+                                        component_name,
+                                        id,
+                                        selected_element,
+                                        set_selected_element,
+                                        set_metadata,
+                                    )
+                                }
                             ></a-entity>
                         })
                         .collect_view()}
@@ -291,12 +490,60 @@ pub fn App() -> impl IntoView {
                     <a-entity
                         id="ExplodedDrill"
                         class="clickable"
+                        semantic-highlight="active: false"
                         position="0 -0.4 0"
                         scale="5 5 5"
                         gltf-model="url(/public/models/rover-drill.glb)"
                         shadow="cast: true; receive: true"
-                        on:click=move |_| toggle_explosion(is_exploded, set_exploded, components)
+                        on:click=move |_| {
+                            select_component(
+                                "Drill",
+                                "ExplodedDrill",
+                                selected_element,
+                                set_selected_element,
+                                set_metadata,
+                            )
+                        }
                     ></a-entity>
+                </a-entity>
+
+                <a-entity id="semantic-tether" visible="false"></a-entity>
+                <a-entity id="semantic-hud" visible="false" semantic-hud>
+                    <a-plane
+                        width="1.45"
+                        height="0.95"
+                        material="color: #071b18; opacity: 0.88; transparent: true; side: double"
+                    ></a-plane>
+                    <a-text
+                        position="0 0.34 -0.02"
+                        rotation="0 180 0"
+                        align="center"
+                        anchor="center"
+                        width="1.22"
+                        wrap-count="28"
+                        color="#00ff66"
+                        value=move || metadata.get().display_name
+                    ></a-text>
+                    <a-text
+                        position="0 0.14 -0.02"
+                        rotation="0 180 0"
+                        align="center"
+                        anchor="center"
+                        width="1.22"
+                        wrap-count="32"
+                        color="#80ffb0"
+                        value=move || format!("ID    {}", metadata.get().component_name)
+                    ></a-text>
+                    <a-text
+                        position="0 -0.04 -0.02"
+                        rotation="0 180 0"
+                        align="center"
+                        anchor="center"
+                        width="1.18"
+                        wrap-count="42"
+                        color="#e6fff0"
+                        value=move || metadata_details(&metadata.get())
+                    ></a-text>
                 </a-entity>
 
                 <a-plane
@@ -345,7 +592,35 @@ pub fn App() -> impl IntoView {
                     wasd-controls="acceleration: 25"
                     vertical-controls="speed: 3"
                     viewport-controls="zoomSpeed: 0.0025; panSpeed: 0.004"
-                ></a-camera>
+                >
+                    <a-entity
+                        id="vr-assemble-control"
+                        class="clickable"
+                        vr-assemble-control=move || format!("active: {}", is_exploded.get())
+                        position="0.7 -0.55 -2.4"
+                        on:click=move |_| {
+                            assemble_rover(
+                                set_exploded,
+                                components,
+                                selected_element,
+                                set_selected_element,
+                            )
+                        }
+                    >
+                        <a-plane
+                            width="0.48"
+                            height="0.14"
+                            material="color: #17324d; opacity: 0.9; transparent: true"
+                        ></a-plane>
+                        <a-text
+                            position="0 0 0.01"
+                            align="center"
+                            width="0.42"
+                            color="#ffffff"
+                            value="ASSEMBLE"
+                        ></a-text>
+                    </a-entity>
+                </a-camera>
             </a-scene>
         </main>
     }

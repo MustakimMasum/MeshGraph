@@ -132,7 +132,9 @@ test("configures WebXR features and controller ray interaction", async ({
   }
 });
 
-test("visible rover geometry toggles exploded state", async ({ page }) => {
+test("assembled rover explodes and dedicated control assembles it", async ({
+  page,
+}) => {
   await loadWithWebXr(page, false);
 
   const state = await page.evaluate(() => {
@@ -143,18 +145,116 @@ test("visible rover geometry toggles exploded state", async ({ page }) => {
       assembled: assembled.getAttribute("visible"),
       exploded: exploded.getAttribute("visible"),
     };
-    document.querySelector("#ExplodedBody").emit("click");
-    return {
-      afterExplode,
-      afterAssemble: {
-        assembled: assembled.getAttribute("visible"),
-        exploded: exploded.getAttribute("visible"),
-      },
-    };
+    return { afterExplode };
   });
 
   expect(state.afterExplode).toEqual({ assembled: false, exploded: true });
-  expect(state.afterAssemble).toEqual({ assembled: true, exploded: false });
+  await expect(page.locator("#assemble-rover-button")).toBeEnabled();
+  await page.locator("#assemble-rover-button").click();
+  await expect(page.locator("#assemble-rover-button")).toBeDisabled();
+
+  const assembled = await page.evaluate(() => ({
+    assembled: document.querySelector("#assembled-rover").getAttribute("visible"),
+    exploded: document.querySelector("#graph-parts").getAttribute("visible"),
+  }));
+  expect(assembled).toEqual({ assembled: true, exploded: false });
+});
+
+test("selecting an exploded part opens semantic spatial context", async ({
+  page,
+}) => {
+  await page.route("**/api/v1/components/Drill", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        component_name: "Drill",
+        display_name: "Alpha Proton X-Ray Spectrometer",
+        category: "Science instrument",
+        purpose: "Measures elemental composition of rocks and soil.",
+        power_requirement: "Instrument measurement power",
+        mission_note: "Analyzed Martian surface targets.",
+      }),
+    });
+  });
+  await loadWithWebXr(page, false);
+
+  await page.evaluate(() => {
+    document.querySelector("#assembled-rover").emit("click");
+    document.querySelector("#ExplodedDrill").emit("click");
+  });
+  await page.waitForFunction(
+    () =>
+      document
+        .querySelector("#semantic-hud a-text")
+        ?.getAttribute("value") === "Alpha Proton X-Ray Spectrometer",
+  );
+
+  const context = await page.evaluate(() => ({
+    assembled: document.querySelector("#assembled-rover").getAttribute("visible"),
+    exploded: document.querySelector("#graph-parts").getAttribute("visible"),
+    hudVisible: document.querySelector("#semantic-hud").getAttribute("visible"),
+    tetherVisible: document
+      .querySelector("#semantic-tether")
+      .getAttribute("visible"),
+    tetherTarget:
+      document.querySelector("#semantic-tether").components[
+        "relationship-tether"
+      ].data.target.id,
+    selected:
+      document.querySelector("#ExplodedDrill").components["semantic-highlight"]
+        .data.active,
+    title: document.querySelector("#semantic-hud a-text").getAttribute("value"),
+  }));
+
+  expect(context).toEqual({
+    assembled: false,
+    exploded: true,
+    hudVisible: true,
+    tetherVisible: true,
+    tetherTarget: "ExplodedDrill",
+    selected: true,
+    title: "Alpha Proton X-Ray Spectrometer",
+  });
+});
+
+test("VR assemble control collapses rover and clears semantic context", async ({
+  page,
+}) => {
+  await loadWithWebXr(page, false);
+
+  const state = await page.evaluate(() => {
+    const scene = document.querySelector("a-scene");
+    document.querySelector("#assembled-rover").emit("click");
+    document.querySelector("#ExplodedAntenna").emit("click");
+    const control = document.querySelector("#vr-assemble-control");
+    const desktopVisible = control.getAttribute("visible");
+    scene.addState("vr-mode");
+    scene.emit("enter-vr");
+    const vrVisible = control.getAttribute("visible");
+    document.querySelector("#vr-assemble-control").emit("click");
+    return {
+      desktopVisible,
+      vrVisible,
+      assembled: document.querySelector("#assembled-rover").getAttribute("visible"),
+      exploded: document.querySelector("#graph-parts").getAttribute("visible"),
+      hud: document.querySelector("#semantic-hud").getAttribute("visible"),
+      tether: document.querySelector("#semantic-tether").getAttribute("visible"),
+      highlighted:
+        document.querySelector("#ExplodedAntenna").components[
+          "semantic-highlight"
+        ].data.active,
+    };
+  });
+
+  expect(state).toEqual({
+    desktopVisible: false,
+    vrVisible: true,
+    assembled: true,
+    exploded: false,
+    hud: false,
+    tether: false,
+    highlighted: false,
+  });
 });
 
 test("starts from the elevated front three-quarter view", async ({ page }) => {
@@ -172,7 +272,7 @@ test("starts from the elevated front three-quarter view", async ({ page }) => {
   });
 
   expect(camera).toMatchObject({
-    position: { x: 4.35, y: 1.65, z: -2.5 },
+    position: { x: 5.5, y: 1.65, z: -3.5 },
     fov: 62,
   });
   expect(camera.pitch).toBeCloseTo(-15);
