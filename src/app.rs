@@ -286,6 +286,20 @@ fn assemble_rover(
     animate_components(&components.get_untracked(), false);
 }
 
+fn component_breadcrumb(component_name: &str) -> Vec<String> {
+    let parent = match component_name {
+        "WheelFrontLeft" | "WheelMiddleLeft" | "WheelRearLeft" => Some("LeftSuspension"),
+        "WheelFrontRight" | "WheelMiddleRight" | "WheelRearRight" => Some("RightSuspension"),
+        _ => None,
+    };
+
+    ["SojournerRover", parent.unwrap_or_default(), component_name]
+        .into_iter()
+        .filter(|segment| !segment.is_empty())
+        .map(str::to_owned)
+        .collect()
+}
+
 #[component]
 pub fn App() -> impl IntoView {
     let (components, set_components) = create_signal(Vec::<StructureBinding>::new());
@@ -313,7 +327,7 @@ pub fn App() -> impl IntoView {
             <div
                 style="position: fixed; z-index: 10; top: 1rem; left: 1rem; width: min(20rem, calc(100vw - 2rem)); box-sizing: border-box; padding: 0.85rem 1rem; color: #17324d; background: rgba(255, 255, 255, 0.82); border: 1px solid rgba(23, 50, 77, 0.15); border-radius: 0.5rem; font-family: monospace; font-size: 0.8rem; line-height: 1.5; box-shadow: 0 0.5rem 2rem rgba(23, 50, 77, 0.12);"
             >
-                <strong style="display: block; font-size: 0.9rem;">"SOJOURNER ROVER"</strong>
+                <strong style="display: block; font-size: 1.2rem;">"SOJOURNER ROVER"</strong>
                 <p style="margin: 0.35rem 0 0;">"Click the rover to toggle the exploded graph view."</p>
                 {move || load_error.get().map(|error| view! {
                     <p style="margin: 0.35rem 0 0;">{error}</p>
@@ -377,9 +391,13 @@ pub fn App() -> impl IntoView {
                 </button>
             </Show>
             <Show when=move || selected_element.get().is_some()>
+                <div
+                    id="selection-panel-stack"
+                    style="position: fixed; z-index: 12; left: 1rem; top: 8.5rem; width: min(20rem, calc(100vw - 2rem)); max-height: calc(100vh - 9.5rem); display: flex; flex-direction: column; gap: 0.75rem; overflow-y: auto; padding-right: 0.25rem; box-sizing: border-box;"
+                >
                 <aside
                     id="semantic-panel"
-                    style="position: fixed; z-index: 12; left: 1rem; top: calc(1rem + 4.3125rem + 20px); width: min(20rem, calc(100vw - 2rem)); box-sizing: border-box; padding: 0.85rem 1rem; color: #e6fff0; background: rgba(7, 27, 24, 0.94); border: 1px solid rgba(0, 255, 102, 0.45); border-radius: 0.5rem; font-family: monospace; font-size: 0.8rem; line-height: 1.5; box-shadow: 0 0.75rem 2.5rem rgba(7, 27, 24, 0.3); backdrop-filter: blur(0.5rem);"
+                    style="position: relative; flex: none; width: 100%; box-sizing: border-box; padding: 0.85rem 1rem; color: #e6fff0; background: rgba(7, 27, 24, 0.94); border: 1px solid rgba(0, 255, 102, 0.45); border-radius: 0.5rem; font-family: monospace; font-size: 0.8rem; line-height: 1.5; box-shadow: 0 0.75rem 2.5rem rgba(7, 27, 24, 0.3); backdrop-filter: blur(0.5rem);"
                 >
                     <button
                         id="close-semantic-panel"
@@ -428,6 +446,98 @@ pub fn App() -> impl IntoView {
                         })}
                     </div>
                 </aside>
+                <aside
+                    id="oxigraph-trace"
+                    style="position: relative; flex: none; width: 100%; box-sizing: border-box; padding: 0.9rem 1rem; color: rgba(23, 50, 77, 0.88); background: rgba(239, 255, 246, 0.94); border: 1px solid rgba(0, 166, 81, 0.2); border-radius: 0.5rem; font-family: monospace; font-size: 0.85rem; line-height: 1.55; box-shadow: 0 0.5rem 2rem rgba(23, 50, 77, 0.14); backdrop-filter: blur(0.4rem); pointer-events: none;"
+                >
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.45rem;">
+                    <strong style="color: #17324d; font-size: 0.9rem; letter-spacing: 0.08em;">
+                        "OXIGRAPH"
+                    </strong>
+                    <span style="color: rgba(23, 50, 77, 0.68); font-size: 0.72rem;">"SPARQL RESULT GRAPH"</span>
+                </div>
+                <div
+                    id="oxigraph-breadcrumb"
+                    style="display: flex; flex-wrap: wrap; gap: 0.25rem; margin-bottom: 0.45rem; color: rgba(23, 50, 77, 0.72);"
+                >
+                    {move || {
+                        let component_name = selected_element
+                            .get()
+                            .map(|_| metadata.get().component_name)
+                            .unwrap_or_default();
+                        if component_name.is_empty() {
+                            view! { <span>"SojournerRover"</span> }.into_view()
+                        } else {
+                            component_breadcrumb(&component_name)
+                                .into_iter()
+                                .enumerate()
+                                .map(|(index, segment)| view! {
+                                    {if index > 0 {
+                                        view! { <span style="opacity: 0.45;">"›"</span> }.into_view()
+                                    } else {
+                                        ().into_view()
+                                    }}
+                                    <span>{segment}</span>
+                                })
+                                .collect_view()
+                                .into_view()
+                        }
+                    }}
+                </div>
+                <code
+                    id="oxigraph-query"
+                    style="display: block; margin-bottom: 0.45rem; color: rgba(23, 50, 77, 0.66); white-space: normal;"
+                >
+                    {move || {
+                        let component_name = selected_element
+                            .get()
+                            .map(|_| metadata.get().component_name)
+                            .unwrap_or_default();
+                        if component_name.is_empty() {
+                            "SELECT ?part ?x ?y ?z WHERE { SojournerRover hasPart ?part . ?part offsetX ?x ; offsetY ?y ; offsetZ ?z . }".to_owned()
+                        } else {
+                            format!("SELECT ?predicate ?value WHERE {{ {component_name} ?predicate ?value . }}")
+                        }
+                    }}
+                </code>
+                <div id="oxigraph-relationships" style="display: grid; gap: 0.18rem;">
+                    {move || {
+                        let selected_metadata = metadata.get();
+                        let component_name = selected_element
+                            .get()
+                            .map(|_| selected_metadata.component_name.clone())
+                            .unwrap_or_default();
+                        let related = related_elements.get();
+                        if component_name.is_empty() {
+                            view! {
+                                <span>"SojournerRover —hasPart→ "{components.get().len()}" nodes"</span>
+                            }.into_view()
+                        } else {
+                            let mut triples = Vec::new();
+                            if let Some(category) = selected_metadata.category {
+                                triples.push(format!("{component_name} —category→ {category}"));
+                            }
+                            if let Some(power) = selected_metadata.power_requirement {
+                                triples.push(format!("{component_name} —powerRequirement→ {power}"));
+                            }
+                            triples.extend(
+                                related
+                                .into_iter()
+                                .map(|related_name| format!("{component_name} —connectedTo→ {related_name}")),
+                            );
+                            if triples.is_empty() {
+                                triples.push(format!("{component_name} —querying→ relationships"));
+                            }
+                            triples
+                                .into_iter()
+                                .map(|triple| view! { <span>{triple}</span> })
+                                .collect_view()
+                                .into_view()
+                        }
+                    }}
+                </div>
+                </aside>
+                </div>
             </Show>
 
             <a-scene
