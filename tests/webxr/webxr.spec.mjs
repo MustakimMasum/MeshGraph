@@ -160,7 +160,7 @@ test("assembled rover explodes and dedicated control assembles it", async ({
   expect(assembled).toEqual({ assembled: true, exploded: false });
 });
 
-test("selecting an exploded part opens semantic spatial context", async ({
+test("selecting an exploded part opens the lower-left semantic panel", async ({
   page,
 }) => {
   await page.route("**/api/v1/components/Drill", async (route) => {
@@ -182,39 +182,46 @@ test("selecting an exploded part opens semantic spatial context", async ({
     document.querySelector("#assembled-rover").emit("click");
     document.querySelector("#ExplodedDrill").emit("click");
   });
-  await page.waitForFunction(
-    () =>
-      document
-        .querySelector("#semantic-hud a-text")
-        ?.getAttribute("value") === "Alpha Proton X-Ray Spectrometer",
+  await expect(page.locator("#semantic-panel-title")).toHaveText(
+    "Alpha Proton X-Ray Spectrometer",
   );
 
   const context = await page.evaluate(() => ({
     assembled: document.querySelector("#assembled-rover").getAttribute("visible"),
     exploded: document.querySelector("#graph-parts").getAttribute("visible"),
-    hudVisible: document.querySelector("#semantic-hud").getAttribute("visible"),
-    tetherVisible: document
-      .querySelector("#semantic-tether")
-      .getAttribute("visible"),
-    tetherTarget:
-      document.querySelector("#semantic-tether").components[
-        "relationship-tether"
-      ].data.target.id,
+    panelPosition: getComputedStyle(
+      document.querySelector("#semantic-panel"),
+    ).position,
+    panelLeft: getComputedStyle(document.querySelector("#semantic-panel")).left,
+    panelBottom: getComputedStyle(document.querySelector("#semantic-panel"))
+      .bottom,
     selected:
       document.querySelector("#ExplodedDrill").components["semantic-highlight"]
         .data.active,
-    title: document.querySelector("#semantic-hud a-text").getAttribute("value"),
+    title: document.querySelector("#semantic-panel-title").textContent.trim(),
+    details: document.querySelector("#semantic-panel-details").textContent,
   }));
 
-  expect(context).toEqual({
+  expect(context).toMatchObject({
     assembled: false,
     exploded: true,
-    hudVisible: true,
-    tetherVisible: true,
-    tetherTarget: "ExplodedDrill",
+    panelPosition: "fixed",
+    panelLeft: "16px",
+    panelBottom: "16px",
     selected: true,
     title: "Alpha Proton X-Ray Spectrometer",
   });
+  expect(context.details).toContain("Measures elemental composition");
+  expect(context.details).toContain("Analyzed Martian surface targets");
+
+  await page.locator("#close-semantic-panel").click();
+  await expect(page.locator("#semantic-panel")).toHaveCount(0);
+  const selectionCleared = await page.evaluate(
+    () =>
+      document.querySelector("#ExplodedDrill").components["semantic-highlight"]
+        .data.active,
+  );
+  expect(selectionCleared).toBe(false);
 });
 
 test("VR assemble control collapses rover and clears semantic context", async ({
@@ -237,8 +244,7 @@ test("VR assemble control collapses rover and clears semantic context", async ({
       vrVisible,
       assembled: document.querySelector("#assembled-rover").getAttribute("visible"),
       exploded: document.querySelector("#graph-parts").getAttribute("visible"),
-      hud: document.querySelector("#semantic-hud").getAttribute("visible"),
-      tether: document.querySelector("#semantic-tether").getAttribute("visible"),
+      semanticPanel: document.querySelector("#semantic-panel"),
       highlighted:
         document.querySelector("#ExplodedAntenna").components[
           "semantic-highlight"
@@ -251,8 +257,7 @@ test("VR assemble control collapses rover and clears semantic context", async ({
     vrVisible: true,
     assembled: true,
     exploded: false,
-    hud: false,
-    tether: false,
+    semanticPanel: null,
     highlighted: false,
   });
 });

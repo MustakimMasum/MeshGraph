@@ -165,7 +165,9 @@ fn set_semantic_selection(
     }
 
     for related_name in previous_related {
-        if let Ok(Some(related)) = document.query_selector(&format!("[data-component-name='{}']", related_name)) {
+        if let Ok(Some(related)) =
+            document.query_selector(&format!("[data-component-name='{}']", related_name))
+        {
             let _ = related.set_attribute("semantic-highlight", "state: none");
             let related_id = related.id();
             if let Some(tether) = document.get_element_by_id(&format!("tether-{related_id}")) {
@@ -175,28 +177,11 @@ fn set_semantic_selection(
     }
 
     let Some(element_id) = element_id else {
-        if let Some(hud) = document.get_element_by_id("semantic-hud") {
-            let _ = hud.set_attribute("visible", "false");
-        }
-        if let Some(tether) = document.get_element_by_id("semantic-tether") {
-            let _ = tether.set_attribute("visible", "false");
-        }
         return;
     };
 
     if let Some(selected) = document.get_element_by_id(element_id) {
         let _ = selected.set_attribute("semantic-highlight", "state: active");
-    }
-    if let Some(hud) = document.get_element_by_id("semantic-hud") {
-        let _ = hud.set_attribute("semantic-hud", &format!("target: #{element_id}"));
-        let _ = hud.set_attribute("visible", "true");
-    }
-    if let Some(tether) = document.get_element_by_id("semantic-tether") {
-        let _ = tether.set_attribute(
-            "relationship-tether",
-            &format!("target: #{element_id}; card: #semantic-hud; color: #00ff66"),
-        );
-        let _ = tether.set_attribute("visible", "true");
     }
 }
 
@@ -268,10 +253,9 @@ fn select_component(
         };
         set_metadata.set(metadata);
 
-        if let Ok(response) =
-            Request::get(&format!("/api/v1/components/{component_name}/related"))
-                .send()
-                .await
+        if let Ok(response) = Request::get(&format!("/api/v1/components/{component_name}/related"))
+            .send()
+            .await
         {
             if response.ok() {
                 if let Ok(related) = response.json::<Vec<String>>().await {
@@ -300,31 +284,6 @@ fn assemble_rover(
     set_related_elements.set(vec![]);
     set_exploded.set(false);
     animate_components(&components.get_untracked(), false);
-}
-
-fn metadata_details(metadata: &ComponentMetadata) -> String {
-    [
-        metadata
-            .category
-            .as_ref()
-            .map(|value| format!("TYPE  {value}")),
-        metadata
-            .purpose
-            .as_ref()
-            .map(|value| format!("ROLE  {value}")),
-        metadata
-            .power_requirement
-            .as_ref()
-            .map(|value| format!("POWER {value}")),
-        metadata
-            .mission_note
-            .as_ref()
-            .map(|value| format!("LOG   {value}")),
-    ]
-    .into_iter()
-    .flatten()
-    .collect::<Vec<_>>()
-    .join("\n\n")
 }
 
 #[component]
@@ -403,6 +362,59 @@ pub fn App() -> impl IntoView {
                     "Checking WebXR..."
                 </span>
             </div>
+            <Show when=move || selected_element.get().is_some()>
+                <aside
+                    id="semantic-panel"
+                    style="position: fixed; z-index: 12; left: 1rem; top: 7.5rem; width: min(25rem, calc(100vw - 2rem)); box-sizing: border-box; padding: 1rem 1.1rem; color: #e6fff0; background: rgba(7, 27, 24, 0.94); border: 1px solid rgba(0, 255, 102, 0.45); border-radius: 0.6rem; font-family: monospace; box-shadow: 0 0.75rem 2.5rem rgba(7, 27, 24, 0.3); backdrop-filter: blur(0.5rem);"
+                >
+                    <button
+                        id="close-semantic-panel"
+                        type="button"
+                        aria-label="Close semantic context"
+                        on:click=move |_| {
+                            set_semantic_selection(
+                                selected_element.get_untracked().as_deref(),
+                                &related_elements.get_untracked(),
+                                None,
+                            );
+                            set_selected_element.set(None);
+                            set_related_elements.set(vec![]);
+                        }
+                        style="position: absolute; top: 0.65rem; right: 0.65rem; width: 1.75rem; height: 1.75rem; padding: 0; color: #80ffb0; background: transparent; border: 1px solid rgba(128, 255, 176, 0.45); border-radius: 0.3rem; font: inherit; cursor: pointer;"
+                    >
+                        "X"
+                    </button>
+                    <div style="padding-right: 2.2rem;">
+                        <strong
+                            id="semantic-panel-title"
+                            style="display: block; color: #00ff66; font-size: 1rem; line-height: 1.4;"
+                        >
+                            {move || metadata.get().display_name}
+                        </strong>
+                        <div
+                            id="semantic-panel-id"
+                            style="margin-top: 0.25rem; color: #80ffb0; font-size: 0.75rem;"
+                        >
+                            {move || format!("ID  {}", metadata.get().component_name)}
+                        </div>
+                    </div>
+                    <div style="height: 1px; margin: 0.8rem 0; background: rgba(0, 255, 102, 0.3);"></div>
+                    <div id="semantic-panel-details" style="display: grid; gap: 0.65rem; font-size: 0.78rem; line-height: 1.45;">
+                        {move || metadata.get().category.map(|value| view! {
+                            <div><strong style="color: #80ffb0;">"TYPE  "</strong>{value}</div>
+                        })}
+                        {move || metadata.get().purpose.map(|value| view! {
+                            <div><strong style="color: #80ffb0;">"ROLE  "</strong>{value}</div>
+                        })}
+                        {move || metadata.get().power_requirement.map(|value| view! {
+                            <div><strong style="color: #80ffb0;">"POWER "</strong>{value}</div>
+                        })}
+                        {move || metadata.get().mission_note.map(|value| view! {
+                            <div><strong style="color: #80ffb0;">"LOG   "</strong>{value}</div>
+                        })}
+                    </div>
+                </aside>
+            </Show>
 
             <a-scene
                 id="rover-scene"
@@ -595,55 +607,6 @@ pub fn App() -> impl IntoView {
                             )
                         }
                     ></a-entity>
-                </a-entity>
-
-                <a-entity id="semantic-tether" visible="false"></a-entity>
-                <a-entity id="semantic-hud" visible="false" semantic-hud always-on-top>
-                    <a-plane
-                        width="1.8"
-                        height="1.4"
-                        material="color: #071b18; opacity: 0.92; transparent: true; side: double; depthTest: false"
-                    ></a-plane>
-                    <a-text
-                        position="0 0.55 -0.02"
-                        rotation="0 180 0"
-                        align="center"
-                        anchor="center"
-                        baseline="top"
-                        width="1.6"
-                        wrap-count="26"
-                        color="#00ff66"
-                        value=move || metadata.get().display_name
-                    ></a-text>
-                    <a-text
-                        position="0 0.35 -0.02"
-                        rotation="0 180 0"
-                        align="center"
-                        anchor="center"
-                        baseline="top"
-                        width="1.6"
-                        wrap-count="45"
-                        color="#80ffb0"
-                        value=move || format!("ID    {}", metadata.get().component_name)
-                    ></a-text>
-                    <a-plane
-                        position="0 0.24 -0.02"
-                        rotation="0 180 0"
-                        width="1.5"
-                        height="0.005"
-                        material="color: #00ff66; opacity: 0.35; shader: flat; transparent: true; depthTest: false"
-                    ></a-plane>
-                    <a-text
-                        position="0 0.15 -0.02"
-                        rotation="0 180 0"
-                        align="left"
-                        anchor="center"
-                        baseline="top"
-                        width="1.5"
-                        wrap-count="46"
-                        color="#e6fff0"
-                        value=move || metadata_details(&metadata.get())
-                    ></a-text>
                 </a-entity>
 
                 <a-plane

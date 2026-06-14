@@ -122,56 +122,6 @@
         },
       });
 
-      AFRAME.registerComponent("semantic-hud", {
-        schema: {
-          target: { type: "selector" },
-          offset: { type: "vec3", default: { x: 0.5, y: 0.55, z: 0.2 } },
-        },
-
-        init: function () {
-          this.targetPosition = new THREE.Vector3();
-          this.cameraPosition = new THREE.Vector3();
-        },
-
-        tick: function () {
-          const camera = this.el.sceneEl.camera?.el;
-          if (!this.data.target || !camera) return;
-
-          this.data.target.object3D.getWorldPosition(this.targetPosition);
-          this.el.object3D.position
-            .copy(this.targetPosition)
-            .add(this.data.offset);
-          camera.object3D.getWorldPosition(this.cameraPosition);
-          this.el.object3D.lookAt(this.cameraPosition);
-          this.el.object3D.rotateY(Math.PI);
-        },
-      });
-
-      AFRAME.registerComponent("relationship-tether", {
-        schema: {
-          target: { type: "selector" },
-          card: { type: "selector" },
-          color: { default: "#00ff66" },
-        },
-
-        init: function () {
-          this.start = new THREE.Vector3();
-          this.end = new THREE.Vector3();
-        },
-
-        tick: function () {
-          if (!this.data.target || !this.data.card) return;
-          this.data.target.object3D.getWorldPosition(this.start);
-          this.data.card.object3D.getWorldPosition(this.end);
-          this.el.setAttribute(
-            "line",
-            `start: ${this.start.x} ${this.start.y} ${this.start.z}; ` +
-              `end: ${this.end.x} ${this.end.y} ${this.end.z}; ` +
-              `color: ${this.data.color}; opacity: 0.9`,
-          );
-        },
-      });
-
       AFRAME.registerComponent("connection-tether", {
         schema: {
           source: { type: "selector" },

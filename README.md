@@ -11,6 +11,11 @@ model reuploaded by Books from the original Blend Swap model by argonius.
 ## Run with Docker
 
 ```sh
+docker compose up -d --build
+(-d to run in the background)
+
+or
+
 docker compose up --build
 ```
 
@@ -24,9 +29,9 @@ component metadata at `/api/v1/components/:component_name`, for example
 `/api/v1/components/Drill`.
 
 Click the assembled rover to explode it. In the exploded view, click an
-individual component to highlight it and open a floating SPARQL-backed metadata
-card connected by a spatial relationship tether. Use **Assemble Rover** on
-desktop or the in-headset assemble control in VR to collapse the model.
+individual component to highlight it and open its SPARQL-backed metadata in the
+lower-left semantic panel. Use **Assemble Rover** on desktop or the in-headset
+assemble control in VR to collapse the model.
 
 ## Local Development
 
@@ -36,6 +41,9 @@ Install Rust, the `wasm32-unknown-unknown` target, and Trunk:
 rustup target add wasm32-unknown-unknown
 cargo install trunk --locked
 ```
+provide Docker seed
+
+docker compose up -d oxigraph_db graph_seed
 
 Run the frontend and gateway in separate terminals:
 
