@@ -69,3 +69,7 @@ ex:WheelRearLeft ex:displayName "Rear Left Wheel" ; ex:category "Mobility wheel"
 ex:WheelFrontRight ex:displayName "Front Right Wheel" ; ex:category "Mobility wheel" ; ex:purpose "Provides traction and steering." .
 ex:WheelMiddleRight ex:displayName "Middle Right Wheel" ; ex:category "Mobility wheel" ; ex:purpose "Provides traction across uneven terrain." .
 ex:WheelRearRight ex:displayName "Rear Right Wheel" ; ex:category "Mobility wheel" ; ex:purpose "Provides traction and steering." .
+
+ex:BodyAssembly ex:connectedTo ex:LeftSuspension, ex:RightSuspension, ex:Antenna, ex:Drill .
+ex:LeftSuspension ex:connectedTo ex:WheelFrontLeft, ex:WheelMiddleLeft, ex:WheelRearLeft .
+ex:RightSuspension ex:connectedTo ex:WheelFrontRight, ex:WheelMiddleRight, ex:WheelRearRight .

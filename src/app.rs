@@ -149,14 +149,28 @@ fn toggle_explosion(
     animate_components(&components.get_untracked(), exploded);
 }
 
-fn set_semantic_selection(previous_id: Option<&str>, element_id: Option<&str>) {
+fn set_semantic_selection(
+    previous_id: Option<&str>,
+    previous_related: &[String],
+    element_id: Option<&str>,
+) {
     let Some(document) = window().and_then(|window| window.document()) else {
         return;
     };
 
     if let Some(previous_id) = previous_id {
         if let Some(previous) = document.get_element_by_id(previous_id) {
-            let _ = previous.set_attribute("semantic-highlight", "active: false");
+            let _ = previous.set_attribute("semantic-highlight", "state: none");
+        }
+    }
+
+    for related_name in previous_related {
+        if let Ok(Some(related)) = document.query_selector(&format!("[data-component-name='{}']", related_name)) {
+            let _ = related.set_attribute("semantic-highlight", "state: none");
+            let related_id = related.id();
+            if let Some(tether) = document.get_element_by_id(&format!("tether-{related_id}")) {
+                tether.remove();
+            }
         }
     }
 
@@ -171,7 +185,7 @@ fn set_semantic_selection(previous_id: Option<&str>, element_id: Option<&str>) {
     };
 
     if let Some(selected) = document.get_element_by_id(element_id) {
-        let _ = selected.set_attribute("semantic-highlight", "active: true");
+        let _ = selected.set_attribute("semantic-highlight", "state: active");
     }
     if let Some(hud) = document.get_element_by_id("semantic-hud") {
         let _ = hud.set_attribute("semantic-hud", &format!("target: #{element_id}"));
@@ -186,16 +200,47 @@ fn set_semantic_selection(previous_id: Option<&str>, element_id: Option<&str>) {
     }
 }
 
+fn set_related_highlights(element_id: &str, related_elements: &[String]) {
+    let Some(document) = window().and_then(|window| window.document()) else {
+        return;
+    };
+    let Some(scene) = document.get_element_by_id("rover-scene") else {
+        return;
+    };
+
+    for related_name in related_elements {
+        if let Ok(Some(related)) =
+            document.query_selector(&format!("[data-component-name='{}']", related_name))
+        {
+            let _ = related.set_attribute("semantic-highlight", "state: related");
+            let related_id = related.id();
+
+            if let Ok(tether) = document.create_element("a-entity") {
+                tether.set_id(&format!("tether-{related_id}"));
+                let _ = tether.set_attribute(
+                    "connection-tether",
+                    &format!("source: #{element_id}; target: #{related_id}; color: #ff9900"),
+                );
+                let _ = scene.append_child(&tether);
+            }
+        }
+    }
+}
+
 fn select_component(
     component_name: &'static str,
     element_id: &'static str,
     selected_element: ReadSignal<Option<String>>,
     set_selected_element: WriteSignal<Option<String>>,
     set_metadata: WriteSignal<ComponentMetadata>,
+    related_elements: ReadSignal<Vec<String>>,
+    set_related_elements: WriteSignal<Vec<String>>,
 ) {
     let previous = selected_element.get_untracked();
-    set_semantic_selection(previous.as_deref(), Some(element_id));
+    let previous_related = related_elements.get_untracked();
+    set_semantic_selection(previous.as_deref(), &previous_related, Some(element_id));
     set_selected_element.set(Some(element_id.to_owned()));
+    set_related_elements.set(vec![]);
     set_metadata.set(ComponentMetadata {
         component_name: component_name.to_owned(),
         display_name: "Loading semantic context...".to_owned(),
@@ -222,6 +267,19 @@ fn select_component(
             },
         };
         set_metadata.set(metadata);
+
+        if let Ok(response) =
+            Request::get(&format!("/api/v1/components/{component_name}/related"))
+                .send()
+                .await
+        {
+            if response.ok() {
+                if let Ok(related) = response.json::<Vec<String>>().await {
+                    set_related_highlights(element_id, &related);
+                    set_related_elements.set(related);
+                }
+            }
+        }
     });
 }
 
@@ -230,9 +288,16 @@ fn assemble_rover(
     components: ReadSignal<Vec<StructureBinding>>,
     selected_element: ReadSignal<Option<String>>,
     set_selected_element: WriteSignal<Option<String>>,
+    related_elements: ReadSignal<Vec<String>>,
+    set_related_elements: WriteSignal<Vec<String>>,
 ) {
-    set_semantic_selection(selected_element.get_untracked().as_deref(), None);
+    set_semantic_selection(
+        selected_element.get_untracked().as_deref(),
+        &related_elements.get_untracked(),
+        None,
+    );
     set_selected_element.set(None);
+    set_related_elements.set(vec![]);
     set_exploded.set(false);
     animate_components(&components.get_untracked(), false);
 }
@@ -269,6 +334,7 @@ pub fn App() -> impl IntoView {
     let (is_exploded, set_exploded) = create_signal(false);
     let (selected_element, set_selected_element) = create_signal(None::<String>);
     let (metadata, set_metadata) = create_signal(ComponentMetadata::default());
+    let (related_elements, set_related_elements) = create_signal(Vec::<String>::new());
 
     let structure = create_local_resource(|| (), |_| fetch_structure());
     create_effect(move |_| {
@@ -317,6 +383,8 @@ pub fn App() -> impl IntoView {
                             components,
                             selected_element,
                             set_selected_element,
+                            related_elements,
+                            set_related_elements,
                         )
                     }
                     style="padding: 0.65rem 1rem; border: 1px solid #17324d; border-radius: 0.5rem; color: #17324d; background: rgba(255, 255, 255, 0.9); font: inherit; font-weight: bold; cursor: pointer;"
@@ -337,6 +405,7 @@ pub fn App() -> impl IntoView {
             </div>
 
             <a-scene
+                id="rover-scene"
                 background="color: #e8edf2"
                 cursor="rayOrigin: mouse"
                 raycaster="objects: .clickable"
@@ -362,9 +431,10 @@ pub fn App() -> impl IntoView {
                     visible="false"
                 >
                     <a-entity
-                    id="ExplodedBody"
-                    class="clickable"
-                    semantic-highlight="active: false"
+                        id="ExplodedBody"
+                        data-component-name="BodyAssembly"
+                        class="clickable"
+                        semantic-highlight="state: none"
                         position="0 -0.9 0"
                         scale="0.12 0.12 0.12"
                         gltf-model="url(/public/models/rover-body.glb)"
@@ -376,13 +446,16 @@ pub fn App() -> impl IntoView {
                                 selected_element,
                                 set_selected_element,
                                 set_metadata,
+                                related_elements,
+                                set_related_elements,
                             )
                         }
                     ></a-entity>
                     <a-entity
                         id="ExplodedAntenna"
+                        data-component-name="Antenna"
                         class="clickable"
-                        semantic-highlight="active: false"
+                        semantic-highlight="state: none"
                         position="0 -0.9 0"
                         scale="0.12 0.12 0.12"
                         gltf-model="url(/public/models/rover-antenna.glb)"
@@ -394,14 +467,17 @@ pub fn App() -> impl IntoView {
                                 selected_element,
                                 set_selected_element,
                                 set_metadata,
+                                related_elements,
+                                set_related_elements,
                             )
                         }
                     ></a-entity>
                     <a-entity id="ExplodedRightWheelAssembly" position="0 0 0">
                         <a-entity
                             id="ExplodedRightSuspension"
+                            data-component-name="RightSuspension"
                             class="clickable"
-                            semantic-highlight="active: false"
+                            semantic-highlight="state: none"
                             position="0 -0.9 0.9"
                             scale="0.1 0.1 0.1"
                             gltf-model="url(/public/models/rover-suspension-netfabb.glb)"
@@ -413,6 +489,8 @@ pub fn App() -> impl IntoView {
                                     selected_element,
                                     set_selected_element,
                                     set_metadata,
+                                    related_elements,
+                                    set_related_elements,
                                 )
                             }
                         ></a-entity>
@@ -423,8 +501,9 @@ pub fn App() -> impl IntoView {
                             .map(|((id, position), component_name)| view! {
                             <a-entity
                                 id=id
+                                data-component-name=component_name
                                 class="clickable"
-                                semantic-highlight="active: false"
+                                semantic-highlight="state: none"
                                 position=position
                                 scale="5 5 5"
                                 gltf-model="url(/public/models/rover-wheel.glb)"
@@ -436,6 +515,8 @@ pub fn App() -> impl IntoView {
                                         selected_element,
                                         set_selected_element,
                                         set_metadata,
+                                        related_elements,
+                                        set_related_elements,
                                     )
                                 }
                             ></a-entity>
@@ -445,8 +526,9 @@ pub fn App() -> impl IntoView {
                     <a-entity id="ExplodedLeftWheelAssembly" position="0 0 0">
                         <a-entity
                             id="ExplodedLeftSuspension"
+                            data-component-name="LeftSuspension"
                             class="clickable"
-                            semantic-highlight="active: false"
+                            semantic-highlight="state: none"
                             position="0 -0.9 -0.9"
                             scale="0.1 0.1 -0.1"
                             gltf-model="url(/public/models/rover-suspension-netfabb.glb)"
@@ -458,6 +540,8 @@ pub fn App() -> impl IntoView {
                                     selected_element,
                                     set_selected_element,
                                     set_metadata,
+                                    related_elements,
+                                    set_related_elements,
                                 )
                             }
                         ></a-entity>
@@ -468,8 +552,9 @@ pub fn App() -> impl IntoView {
                             .map(|((id, position), component_name)| view! {
                             <a-entity
                                 id=id
+                                data-component-name=component_name
                                 class="clickable"
-                                semantic-highlight="active: false"
+                                semantic-highlight="state: none"
                                 position=position
                                 scale="5 5 -5"
                                 gltf-model="url(/public/models/rover-wheel.glb)"
@@ -481,6 +566,8 @@ pub fn App() -> impl IntoView {
                                         selected_element,
                                         set_selected_element,
                                         set_metadata,
+                                        related_elements,
+                                        set_related_elements,
                                     )
                                 }
                             ></a-entity>
@@ -489,8 +576,9 @@ pub fn App() -> impl IntoView {
                     </a-entity>
                     <a-entity
                         id="ExplodedDrill"
+                        data-component-name="Drill"
                         class="clickable"
-                        semantic-highlight="active: false"
+                        semantic-highlight="state: none"
                         position="0 -0.4 0"
                         scale="5 5 5"
                         gltf-model="url(/public/models/rover-drill.glb)"
@@ -502,6 +590,8 @@ pub fn App() -> impl IntoView {
                                 selected_element,
                                 set_selected_element,
                                 set_metadata,
+                                related_elements,
+                                set_related_elements,
                             )
                         }
                     ></a-entity>
@@ -565,16 +655,26 @@ pub fn App() -> impl IntoView {
                     material="color: #f7f8fa; roughness: 0.95; metalness: 0"
                     shadow="receive: true"
                     on:click=move |_| {
-                        set_semantic_selection(selected_element.get_untracked().as_deref(), None);
+                        set_semantic_selection(
+                            selected_element.get_untracked().as_deref(),
+                            &related_elements.get_untracked(),
+                            None,
+                        );
                         set_selected_element.set(None);
+                        set_related_elements.set(vec![]);
                     }
                 ></a-plane>
                 <a-sky
                     class="clickable"
                     color="#e8edf2"
                     on:click=move |_| {
-                        set_semantic_selection(selected_element.get_untracked().as_deref(), None);
+                        set_semantic_selection(
+                            selected_element.get_untracked().as_deref(),
+                            &related_elements.get_untracked(),
+                            None,
+                        );
                         set_selected_element.set(None);
+                        set_related_elements.set(vec![]);
                     }
                 ></a-sky>
                 <a-light type="ambient" color="#dce8f5" intensity="1.15"></a-light>
@@ -627,6 +727,8 @@ pub fn App() -> impl IntoView {
                                 components,
                                 selected_element,
                                 set_selected_element,
+                                related_elements,
+                                set_related_elements,
                             )
                         }
                     >

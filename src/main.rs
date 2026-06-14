@@ -61,6 +61,22 @@ ORDER BY ?partName
     }
 
     #[derive(Debug, Deserialize)]
+    struct RelatedComponentsEnvelope {
+        results: RelatedComponentsResults,
+    }
+
+    #[derive(Debug, Deserialize)]
+    struct RelatedComponentsResults {
+        bindings: Vec<RelatedComponentBinding>,
+    }
+
+    #[derive(Debug, Deserialize)]
+    struct RelatedComponentBinding {
+        #[serde(rename = "relatedPart")]
+        related_part: SparqlValue,
+    }
+
+    #[derive(Debug, Deserialize)]
     struct MetadataBinding {
         #[serde(rename = "displayName")]
         display_name: Option<SparqlValue>,
@@ -131,6 +147,10 @@ ORDER BY ?partName
             .route(
                 "/api/v1/components/:component_name",
                 get(component_metadata),
+            )
+            .route(
+                "/api/v1/components/:component_name/related",
+                get(related_components),
             )
             .fallback_service(ServeDir::new("./dist"))
             .layer(cors)
@@ -218,6 +238,59 @@ ORDER BY ?partName
             mission_note: binding.mission_note.map(|value| value.value),
             component_name,
         }))
+    }
+
+    async fn related_components(
+        State(state): State<AppState>,
+        Path(component_name): Path<String>,
+    ) -> ApiResult<Vec<String>> {
+        if component_name.is_empty()
+            || !component_name
+                .chars()
+                .all(|character| character.is_ascii_alphanumeric() || character == '_')
+        {
+            return Err((
+                StatusCode::BAD_REQUEST,
+                Json(ApiError::new("Invalid component name")),
+            ));
+        }
+
+        let query = format!(
+            r#"
+PREFIX ex: <http://example.org/cadmus/>
+SELECT DISTINCT ?relatedPart WHERE {{
+    BIND(ex:{component_name} AS ?part)
+    {{ ?part ex:connectedTo ?related }} UNION {{ ?related ex:connectedTo ?part }}
+    BIND(STRAFTER(STR(?related), "http://example.org/cadmus/") AS ?relatedPart)
+}}
+"#
+        );
+
+        let response = state
+            .client
+            .post(&state.database_url)
+            .header(header::CONTENT_TYPE, "application/sparql-query")
+            .header(header::ACCEPT, "application/sparql-results+json")
+            .body(query)
+            .send()
+            .await
+            .map_err(|error| upstream_error(format!("Oxigraph request failed: {error}")))?
+            .error_for_status()
+            .map_err(|error| upstream_error(format!("Oxigraph returned an error: {error}")))?;
+
+        let envelope = response
+            .json::<RelatedComponentsEnvelope>()
+            .await
+            .map_err(|error| upstream_error(format!("Invalid Oxigraph response: {error}")))?;
+
+        let related: Vec<String> = envelope
+            .results
+            .bindings
+            .into_iter()
+            .map(|binding| binding.related_part.value)
+            .collect();
+
+        Ok(Json(related))
     }
 
     fn metadata_query(component_name: &str) -> Option<String> {

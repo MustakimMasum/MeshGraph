@@ -72,7 +72,7 @@
       });
 
       AFRAME.registerComponent("semantic-highlight", {
-        schema: { active: { default: false } },
+        schema: { state: { default: "none" } },
 
         init: function () {
           this.el.addEventListener("model-loaded", () => this.apply());
@@ -94,14 +94,19 @@
                 node.material.emissiveIntensity ?? 1;
             }
 
-            node.material.emissive.copy(
-              this.data.active
-                ? new THREE.Color("#00ff66")
-                : node.userData.semanticOriginalEmissive,
-            );
-            node.material.emissiveIntensity = this.data.active
-              ? 0.75
-              : node.userData.semanticOriginalIntensity;
+            let targetColor = node.userData.semanticOriginalEmissive;
+            let targetIntensity = node.userData.semanticOriginalIntensity;
+
+            if (this.data.state === "active") {
+              targetColor = new THREE.Color("#00ff66");
+              targetIntensity = 0.75;
+            } else if (this.data.state === "related") {
+              targetColor = new THREE.Color("#ff9900");
+              targetIntensity = 0.75;
+            }
+
+            node.material.emissive.copy(targetColor);
+            node.material.emissiveIntensity = targetIntensity;
           });
         },
       });
@@ -163,6 +168,31 @@
             `start: ${this.start.x} ${this.start.y} ${this.start.z}; ` +
               `end: ${this.end.x} ${this.end.y} ${this.end.z}; ` +
               `color: ${this.data.color}; opacity: 0.9`,
+          );
+        },
+      });
+
+      AFRAME.registerComponent("connection-tether", {
+        schema: {
+          source: { type: "selector" },
+          target: { type: "selector" },
+          color: { default: "#ff9900" },
+        },
+
+        init: function () {
+          this.start = new THREE.Vector3();
+          this.end = new THREE.Vector3();
+        },
+
+        tick: function () {
+          if (!this.data.source || !this.data.target) return;
+          this.data.source.object3D.getWorldPosition(this.start);
+          this.data.target.object3D.getWorldPosition(this.end);
+          this.el.setAttribute(
+            "line",
+            `start: ${this.start.x} ${this.start.y} ${this.start.z}; ` +
+              `end: ${this.end.x} ${this.end.y} ${this.end.z}; ` +
+              `color: ${this.data.color}; opacity: 0.75`,
           );
         },
       });
