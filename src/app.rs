@@ -338,7 +338,7 @@ pub fn App() -> impl IntoView {
                     raycaster="objects: .clickable"
                 ></a-entity>
                 <a-camera
-                    position="3.9 1.45 -2.2"
+                    position="5.5 1.65 -3.5"
                     initial-camera-look="pitch: -15; yaw: 120"
                     camera="fov: 62"
                     look-controls="pointerLockEnabled: false"

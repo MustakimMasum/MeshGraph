@@ -172,7 +172,7 @@ test("starts from the elevated front three-quarter view", async ({ page }) => {
   });
 
   expect(camera).toMatchObject({
-    position: { x: 3.9, y: 1.45, z: -2.2 },
+    position: { x: 4.35, y: 1.65, z: -2.5 },
     fov: 62,
   });
   expect(camera.pitch).toBeCloseTo(-15);
