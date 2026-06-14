@@ -157,6 +157,75 @@ test("visible rover geometry toggles exploded state", async ({ page }) => {
   expect(state.afterAssemble).toEqual({ assembled: true, exploded: false });
 });
 
+test("major parts explode along their intended axes", async ({ page }) => {
+  await loadWithWebXr(page, false);
+
+  const targets = await page.evaluate(() => {
+    document.querySelector("#assembled-rover").emit("click");
+    return Object.fromEntries(
+      [
+        "ExplodedAntenna",
+        "ExplodedLeftWheelAssembly",
+        "ExplodedRightWheelAssembly",
+        "ExplodedDrill",
+      ].map((id) => [
+        id,
+        document.querySelector(`#${id}`).getAttribute("animation__position").to,
+      ]),
+    );
+  });
+
+  expect(targets).toEqual({
+    ExplodedAntenna: "-2.6 -0.9 0",
+    ExplodedLeftWheelAssembly: "0 0 1.3",
+    ExplodedRightWheelAssembly: "0 0 -1.3",
+    ExplodedDrill: "3.2 -0.4 -1.3",
+  });
+});
+
+test("wheel assemblies preserve their internal spacing and orientation", async ({
+  page,
+}) => {
+  await loadWithWebXr(page, false);
+
+  const assemblies = await page.evaluate(() =>
+    ["Left", "Right"].map((side) => {
+      const assembly = document.querySelector(
+        `#Exploded${side}WheelAssembly`,
+      );
+      return {
+        side,
+        children: [...assembly.children].map((child) => ({
+          id: child.id,
+          position: child.getAttribute("position"),
+          scale: child.getAttribute("scale"),
+        })),
+      };
+    }),
+  );
+
+  expect(assemblies).toEqual([
+    {
+      side: "Left",
+      children: [
+        { id: "ExplodedLeftSuspension", position: { x: 0, y: -0.9, z: 0.9 }, scale: { x: 0.1, y: 0.1, z: 0.1 } },
+        { id: "ExplodedWheelFL", position: { x: -1.4, y: -1, z: 1.5 }, scale: { x: 5, y: 5, z: 5 } },
+        { id: "ExplodedWheelML", position: { x: 0, y: -1, z: 1.5 }, scale: { x: 5, y: 5, z: 5 } },
+        { id: "ExplodedWheelRL", position: { x: 1.4, y: -1, z: 1.5 }, scale: { x: 5, y: 5, z: 5 } },
+      ],
+    },
+    {
+      side: "Right",
+      children: [
+        { id: "ExplodedRightSuspension", position: { x: 0, y: -0.9, z: -0.9 }, scale: { x: 0.1, y: 0.1, z: -0.1 } },
+        { id: "ExplodedWheelFR", position: { x: -1.4, y: -1, z: -1.5 }, scale: { x: 5, y: 5, z: -5 } },
+        { id: "ExplodedWheelMR", position: { x: 0, y: -1, z: -1.5 }, scale: { x: 5, y: 5, z: -5 } },
+        { id: "ExplodedWheelRR", position: { x: 1.4, y: -1, z: -1.5 }, scale: { x: 5, y: 5, z: -5 } },
+      ],
+    },
+  ]);
+});
+
 test("clicks outside visible rover geometry do not explode it", async ({
   page,
 }) => {

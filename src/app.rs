@@ -50,15 +50,16 @@ async fn fetch_structure() -> Result<StructureLoad, String> {
 fn demo_structure() -> Vec<StructureBinding> {
     [
         ("BodyAssembly", "0.0", "-0.3", "0.0"),
-        ("LeftSuspension", "-3.0", "-0.9", "0.0"),
-        ("RightSuspension", "3.0", "-0.9", "0.0"),
-        ("WheelFrontLeft", "-4.3", "-1.0", "-1.7"),
-        ("WheelMiddleLeft", "-4.3", "-1.0", "0.0"),
-        ("WheelRearLeft", "-4.3", "-1.0", "1.7"),
-        ("WheelFrontRight", "4.3", "-1.0", "-1.7"),
-        ("WheelMiddleRight", "4.3", "-1.0", "0.0"),
-        ("WheelRearRight", "4.3", "-1.0", "1.7"),
-        ("Drill", "0.0", "0.0", "-3.2"),
+        ("Antenna", "-2.6", "-0.3", "0.0"),
+        ("LeftSuspension", "0.0", "-0.9", "2.2"),
+        ("RightSuspension", "0.0", "-0.9", "-2.2"),
+        ("WheelFrontLeft", "-1.4", "-1.0", "2.8"),
+        ("WheelMiddleLeft", "0.0", "-1.0", "2.8"),
+        ("WheelRearLeft", "1.4", "-1.0", "2.8"),
+        ("WheelFrontRight", "-1.4", "-1.0", "-2.8"),
+        ("WheelMiddleRight", "0.0", "-1.0", "-2.8"),
+        ("WheelRearRight", "1.4", "-1.0", "-2.8"),
+        ("Drill", "3.2", "-0.4", "0.0"),
     ]
     .into_iter()
     .map(|(part_name, x, y, z)| StructureBinding {
@@ -105,16 +106,11 @@ fn animate_components(components: &[StructureBinding], exploded: bool) {
     }
 
     let exploded_parts = [
-        ("ExplodedBody", "0 -0.9 0", "0 -0.3 0"),
-        ("ExplodedLeftSuspension", "-1.25 -0.9 0", "-3 -0.9 0"),
-        ("ExplodedRightSuspension", "1.25 -0.9 0", "3 -0.9 0"),
-        ("ExplodedWheelFL", "-1.7 -1 -0.8", "-4.3 -1 -1.7"),
-        ("ExplodedWheelML", "-1.7 -1 0", "-4.3 -1 0"),
-        ("ExplodedWheelRL", "-1.7 -1 0.8", "-4.3 -1 1.7"),
-        ("ExplodedWheelFR", "1.7 -1 -0.8", "4.3 -1 -1.7"),
-        ("ExplodedWheelMR", "1.7 -1 0", "4.3 -1 0"),
-        ("ExplodedWheelRR", "1.7 -1 0.8", "4.3 -1 1.7"),
-        ("ExplodedDrill", "0 -0.4 -1.3", "0 0 -3.2"),
+        ("ExplodedBody", "0 -0.9 0", "0 -0.9 0"),
+        ("ExplodedAntenna", "0 -0.9 0", "-2.6 -0.9 0"),
+        ("ExplodedLeftWheelAssembly", "0 0 0", "0 0 1.3"),
+        ("ExplodedRightWheelAssembly", "0 0 0", "0 0 -1.3"),
+        ("ExplodedDrill", "0 -0.4 -1.3", "3.2 -0.4 -1.3"),
     ];
 
     for (id, assembled_position, exploded_position) in exploded_parts {
@@ -227,32 +223,33 @@ pub fn App() -> impl IntoView {
                         class="clickable"
                         position="0 -0.9 0"
                         scale="0.12 0.12 0.12"
-                        gltf-model="url(/public/models/rover-body-netfabb.glb)"
+                        gltf-model="url(/public/models/rover-body.glb)"
                         shadow="cast: true; receive: true"
                         on:click=move |_| toggle_explosion(is_exploded, set_exploded, components)
                     ></a-entity>
                     <a-entity
-                        id="ExplodedLeftSuspension"
+                        id="ExplodedAntenna"
                         class="clickable"
-                        position="-1.25 -0.9 0"
-                        scale="0.1 0.1 0.1"
-                        gltf-model="url(/public/models/rover-suspension-netfabb.glb)"
+                        position="0 -0.9 0"
+                        scale="0.12 0.12 0.12"
+                        gltf-model="url(/public/models/rover-antenna.glb)"
                         shadow="cast: true; receive: true"
                         on:click=move |_| toggle_explosion(is_exploded, set_exploded, components)
                     ></a-entity>
-                    <a-entity
-                        id="ExplodedRightSuspension"
-                        class="clickable"
-                        position="1.25 -0.9 0"
-                        scale="-0.1 0.1 0.1"
-                        gltf-model="url(/public/models/rover-suspension-netfabb.glb)"
-                        shadow="cast: true; receive: true"
-                        on:click=move |_| toggle_explosion(is_exploded, set_exploded, components)
-                    ></a-entity>
-                    {["ExplodedWheelFL", "ExplodedWheelML", "ExplodedWheelRL"]
-                        .into_iter()
-                        .zip(["-1.7 -1 -0.8", "-1.7 -1 0", "-1.7 -1 0.8"])
-                        .map(|(id, position)| view! {
+                    <a-entity id="ExplodedLeftWheelAssembly" position="0 0 0">
+                        <a-entity
+                            id="ExplodedLeftSuspension"
+                            class="clickable"
+                            position="0 -0.9 0.9"
+                            scale="0.1 0.1 0.1"
+                            gltf-model="url(/public/models/rover-suspension-netfabb.glb)"
+                            shadow="cast: true; receive: true"
+                            on:click=move |_| toggle_explosion(is_exploded, set_exploded, components)
+                        ></a-entity>
+                        {["ExplodedWheelFL", "ExplodedWheelML", "ExplodedWheelRL"]
+                            .into_iter()
+                            .zip(["-1.4 -1 1.5", "0 -1 1.5", "1.4 -1 1.5"])
+                            .map(|(id, position)| view! {
                             <a-entity
                                 id=id
                                 class="clickable"
@@ -264,21 +261,33 @@ pub fn App() -> impl IntoView {
                             ></a-entity>
                         })
                         .collect_view()}
-                    {["ExplodedWheelFR", "ExplodedWheelMR", "ExplodedWheelRR"]
-                        .into_iter()
-                        .zip(["1.7 -1 -0.8", "1.7 -1 0", "1.7 -1 0.8"])
-                        .map(|(id, position)| view! {
+                    </a-entity>
+                    <a-entity id="ExplodedRightWheelAssembly" position="0 0 0">
+                        <a-entity
+                            id="ExplodedRightSuspension"
+                            class="clickable"
+                            position="0 -0.9 -0.9"
+                            scale="0.1 0.1 -0.1"
+                            gltf-model="url(/public/models/rover-suspension-netfabb.glb)"
+                            shadow="cast: true; receive: true"
+                            on:click=move |_| toggle_explosion(is_exploded, set_exploded, components)
+                        ></a-entity>
+                        {["ExplodedWheelFR", "ExplodedWheelMR", "ExplodedWheelRR"]
+                            .into_iter()
+                            .zip(["-1.4 -1 -1.5", "0 -1 -1.5", "1.4 -1 -1.5"])
+                            .map(|(id, position)| view! {
                             <a-entity
                                 id=id
                                 class="clickable"
                                 position=position
-                                scale="-5 5 5"
+                                scale="5 5 -5"
                                 gltf-model="url(/public/models/rover-wheel.glb)"
                                 shadow="cast: true; receive: true"
                                 on:click=move |_| toggle_explosion(is_exploded, set_exploded, components)
                             ></a-entity>
                         })
                         .collect_view()}
+                    </a-entity>
                     <a-entity
                         id="ExplodedDrill"
                         class="clickable"
