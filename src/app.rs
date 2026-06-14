@@ -297,8 +297,9 @@ pub fn App() -> impl IntoView {
                     position="0 5 -5"
                 ></a-light>
                 <a-camera
-                    position="0 1.15 4.8"
-                    rotation="-3 0 0"
+                    position="0 0.15 5.2"
+                    rotation="-80 0 0"
+                    camera="fov: 62"
                     look-controls="pointerLockEnabled: false"
                     wasd-controls="acceleration: 25"
                     vertical-controls="speed: 3"
