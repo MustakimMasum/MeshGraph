@@ -49,6 +49,75 @@
           window.removeEventListener("keyup", this.onKeyUp);
         },
       });
+
+      AFRAME.registerComponent("viewport-controls", {
+        schema: {
+          zoomSpeed: { default: 0.0025 },
+          panSpeed: { default: 0.004 },
+        },
+
+        init: function () {
+          this.dragging = false;
+          this.forward = new THREE.Vector3();
+          this.right = new THREE.Vector3();
+          this.up = new THREE.Vector3();
+
+          this.onWheel = (event) => {
+            event.preventDefault();
+            this.el.object3D.getWorldDirection(this.forward);
+            this.el.object3D.position.addScaledVector(
+              this.forward,
+              -event.deltaY * this.data.zoomSpeed,
+            );
+          };
+          this.onMouseDown = (event) => {
+            if (event.button !== 1) return;
+            event.preventDefault();
+            this.dragging = true;
+          };
+          this.onMouseMove = (event) => {
+            if (!this.dragging) return;
+            this.right.set(1, 0, 0).applyQuaternion(this.el.object3D.quaternion);
+            this.up.set(0, 1, 0).applyQuaternion(this.el.object3D.quaternion);
+            this.el.object3D.position.addScaledVector(
+              this.right,
+              -event.movementX * this.data.panSpeed,
+            );
+            this.el.object3D.position.addScaledVector(
+              this.up,
+              event.movementY * this.data.panSpeed,
+            );
+          };
+          this.onMouseUp = (event) => {
+            if (event.button === 1) this.dragging = false;
+          };
+          this.onAuxClick = (event) => {
+            if (event.button === 1) event.preventDefault();
+          };
+
+          this.el.sceneEl.canvas.addEventListener("wheel", this.onWheel, {
+            passive: false,
+          });
+          this.el.sceneEl.canvas.addEventListener("mousedown", this.onMouseDown);
+          window.addEventListener("mousemove", this.onMouseMove);
+          window.addEventListener("mouseup", this.onMouseUp);
+          this.el.sceneEl.canvas.addEventListener("auxclick", this.onAuxClick);
+        },
+
+        remove: function () {
+          this.el.sceneEl.canvas.removeEventListener("wheel", this.onWheel);
+          this.el.sceneEl.canvas.removeEventListener(
+            "mousedown",
+            this.onMouseDown,
+          );
+          window.removeEventListener("mousemove", this.onMouseMove);
+          window.removeEventListener("mouseup", this.onMouseUp);
+          this.el.sceneEl.canvas.removeEventListener(
+            "auxclick",
+            this.onAuxClick,
+          );
+        },
+      });
     </script>
     <link data-trunk rel="copy-dir" href="public">
     <link data-trunk rel="rust" data-wasm-opt="z">

@@ -166,7 +166,7 @@ pub fn App() -> impl IntoView {
             <div
                 style="position: fixed; z-index: 10; top: 1rem; left: 1rem; max-width: 70%; padding: 0.75rem 1rem; color: #17324d; background: rgba(255, 255, 255, 0.82); border: 1px solid rgba(23, 50, 77, 0.15); border-radius: 0.5rem; font-family: monospace; box-shadow: 0 0.5rem 2rem rgba(23, 50, 77, 0.12);"
             >
-                <strong>"CADMUS // SOJOURNER ROVER"</strong>
+                <strong>"SOJOURNER ROVER"</strong>
                 <p>"Click the rover to toggle the exploded graph view."</p>
                 {move || load_error.get().map(|error| view! { <p>{error}</p> })}
             </div>
@@ -177,12 +177,15 @@ pub fn App() -> impl IntoView {
                 <div>"W A S D  Move"</div>
                 <div>"E / C  Up / Down"</div>
                 <div>"Mouse  Look"</div>
+                <div>"Scroll  Zoom"</div>
+                <div>"Middle drag  Pan"</div>
                 <div>"Click rover  Explode / Assemble"</div>
             </div>
 
             <a-scene
                 background="color: #e8edf2"
                 cursor="rayOrigin: mouse"
+                raycaster="objects: .clickable"
                 renderer="colorManagement: true; physicallyCorrectLights: true; exposure: 1.15"
             >
                 <a-entity
@@ -201,35 +204,32 @@ pub fn App() -> impl IntoView {
                     rotation="0 -25 0"
                     visible="false"
                 >
-                    <a-box
-                        class="clickable"
-                        position="0 0.8 0"
-                        width="10"
-                        height="5"
-                        depth="6"
-                        material="opacity: 0; transparent: true"
-                        on:click=move |_| toggle_explosion(is_exploded, set_exploded, components)
-                    ></a-box>
                     <a-entity
                         id="ExplodedBody"
+                        class="clickable"
                         position="0 -0.9 0"
                         scale="0.12 0.12 0.12"
                         gltf-model="url(/public/models/rover-body-netfabb.glb)"
                         shadow="cast: true; receive: true"
+                        on:click=move |_| toggle_explosion(is_exploded, set_exploded, components)
                     ></a-entity>
                     <a-entity
                         id="ExplodedLeftSuspension"
+                        class="clickable"
                         position="-1.25 -0.9 0"
                         scale="0.1 0.1 0.1"
                         gltf-model="url(/public/models/rover-suspension-netfabb.glb)"
                         shadow="cast: true; receive: true"
+                        on:click=move |_| toggle_explosion(is_exploded, set_exploded, components)
                     ></a-entity>
                     <a-entity
                         id="ExplodedRightSuspension"
+                        class="clickable"
                         position="1.25 -0.9 0"
                         scale="-0.1 0.1 0.1"
                         gltf-model="url(/public/models/rover-suspension-netfabb.glb)"
                         shadow="cast: true; receive: true"
+                        on:click=move |_| toggle_explosion(is_exploded, set_exploded, components)
                     ></a-entity>
                     {["ExplodedWheelFL", "ExplodedWheelML", "ExplodedWheelRL"]
                         .into_iter()
@@ -237,10 +237,12 @@ pub fn App() -> impl IntoView {
                         .map(|(id, position)| view! {
                             <a-entity
                                 id=id
+                                class="clickable"
                                 position=position
                                 scale="5 5 5"
                                 gltf-model="url(/public/models/rover-wheel.glb)"
                                 shadow="cast: true; receive: true"
+                                on:click=move |_| toggle_explosion(is_exploded, set_exploded, components)
                             ></a-entity>
                         })
                         .collect_view()}
@@ -250,19 +252,23 @@ pub fn App() -> impl IntoView {
                         .map(|(id, position)| view! {
                             <a-entity
                                 id=id
+                                class="clickable"
                                 position=position
                                 scale="-5 5 5"
                                 gltf-model="url(/public/models/rover-wheel.glb)"
                                 shadow="cast: true; receive: true"
+                                on:click=move |_| toggle_explosion(is_exploded, set_exploded, components)
                             ></a-entity>
                         })
                         .collect_view()}
                     <a-entity
                         id="ExplodedDrill"
+                        class="clickable"
                         position="0 -0.4 -1.3"
                         scale="5 5 5"
                         gltf-model="url(/public/models/rover-drill.glb)"
                         shadow="cast: true; receive: true"
+                        on:click=move |_| toggle_explosion(is_exploded, set_exploded, components)
                     ></a-entity>
                 </a-entity>
 
@@ -303,6 +309,7 @@ pub fn App() -> impl IntoView {
                     look-controls="pointerLockEnabled: false"
                     wasd-controls="acceleration: 25"
                     vertical-controls="speed: 3"
+                    viewport-controls="zoomSpeed: 0.0025; panSpeed: 0.004"
                 ></a-camera>
             </a-scene>
         </main>
