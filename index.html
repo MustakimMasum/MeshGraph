@@ -255,7 +255,8 @@
           if (!this.button || !this.status) return;
 
           this.setState = (label, status, disabled) => {
-            this.button.textContent = label;
+            this.button.setAttribute("aria-label", label);
+            this.button.setAttribute("title", label);
             this.button.disabled = disabled;
             this.status.textContent = status;
           };

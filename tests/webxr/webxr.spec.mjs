@@ -136,6 +136,7 @@ test("assembled rover explodes and dedicated control assembles it", async ({
   page,
 }) => {
   await loadWithWebXr(page, false);
+  await expect(page.locator("#assemble-rover-button")).toHaveCount(0);
 
   const state = await page.evaluate(() => {
     const assembled = document.querySelector("#assembled-rover");
@@ -149,9 +150,16 @@ test("assembled rover explodes and dedicated control assembles it", async ({
   });
 
   expect(state.afterExplode).toEqual({ assembled: false, exploded: true });
-  await expect(page.locator("#assemble-rover-button")).toBeEnabled();
+  await expect(page.locator("#assemble-rover-button")).toBeVisible();
+  const horizontalOffset = await page.locator("#assemble-rover-button").evaluate(
+    (button) => {
+      const bounds = button.getBoundingClientRect();
+      return bounds.left + bounds.width / 2 - window.innerWidth / 2;
+    },
+  );
+  expect(horizontalOffset).toBeCloseTo(0);
   await page.locator("#assemble-rover-button").click();
-  await expect(page.locator("#assemble-rover-button")).toBeDisabled();
+  await expect(page.locator("#assemble-rover-button")).toHaveCount(0);
 
   const assembled = await page.evaluate(() => ({
     assembled: document.querySelector("#assembled-rover").getAttribute("visible"),

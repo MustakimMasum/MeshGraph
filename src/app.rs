@@ -311,31 +311,56 @@ pub fn App() -> impl IntoView {
     view! {
         <main>
             <div
-                style="position: fixed; z-index: 10; top: 1rem; left: 1rem; max-width: 70%; padding: 0.75rem 1rem; color: #17324d; background: rgba(255, 255, 255, 0.82); border: 1px solid rgba(23, 50, 77, 0.15); border-radius: 0.5rem; font-family: monospace; box-shadow: 0 0.5rem 2rem rgba(23, 50, 77, 0.12);"
+                style="position: fixed; z-index: 10; top: 1rem; left: 1rem; width: min(20rem, calc(100vw - 2rem)); box-sizing: border-box; padding: 0.85rem 1rem; color: #17324d; background: rgba(255, 255, 255, 0.82); border: 1px solid rgba(23, 50, 77, 0.15); border-radius: 0.5rem; font-family: monospace; font-size: 0.8rem; line-height: 1.5; box-shadow: 0 0.5rem 2rem rgba(23, 50, 77, 0.12);"
             >
-                <strong>"SOJOURNER ROVER"</strong>
-                <p>"Click the rover to toggle the exploded graph view."</p>
-                {move || load_error.get().map(|error| view! { <p>{error}</p> })}
+                <strong style="display: block; font-size: 0.9rem;">"SOJOURNER ROVER"</strong>
+                <p style="margin: 0.35rem 0 0;">"Click the rover to toggle the exploded graph view."</p>
+                {move || load_error.get().map(|error| view! {
+                    <p style="margin: 0.35rem 0 0;">{error}</p>
+                })}
             </div>
             <div
-                style="position: fixed; z-index: 10; top: 1rem; right: 1rem; padding: 0.75rem 1rem; color: #17324d; background: rgba(255, 255, 255, 0.82); border: 1px solid rgba(23, 50, 77, 0.15); border-radius: 0.5rem; font-family: monospace; text-align: right; line-height: 1.5; box-shadow: 0 0.5rem 2rem rgba(23, 50, 77, 0.12);"
+                style="position: fixed; z-index: 10; top: 1rem; right: 1rem; width: min(15rem, calc(100vw - 2rem)); box-sizing: border-box; padding: 0.85rem 1rem; color: #17324d; background: rgba(255, 255, 255, 0.82); border: 1px solid rgba(23, 50, 77, 0.15); border-radius: 0.5rem; font-family: monospace; font-size: 0.8rem; line-height: 1.5; box-shadow: 0 0.5rem 2rem rgba(23, 50, 77, 0.12);"
             >
-                <strong>"NAVIGATION"</strong>
+                <strong style="display: block; margin-bottom: 0.35rem; font-size: 0.9rem;">"NAVIGATION"</strong>
                 <div>"W A S D  Move"</div>
                 <div>"E / C  Up / Down"</div>
                 <div>"Left Mouse  Look"</div>
                 <div>"Scroll  Zoom"</div>
                 <div>"Middle Mouse drag  Pan"</div>
-                <div>"Click rover  Explode"</div>
-                <div>"Click part  Semantic context"</div>
             </div>
             <div
-                style="position: fixed; z-index: 11; right: 1rem; bottom: 1rem; display: flex; align-items: flex-end; flex-direction: column; gap: 0.35rem; font-family: monospace;"
+                style="position: fixed; z-index: 11; right: 1rem; bottom: 1rem; display: flex; align-items: flex-end; flex-direction: column; gap: 0.35rem; font-family: monospace; font-size: 0.8rem;"
             >
+                <button
+                    id="enter-vr-button"
+                    type="button"
+                    disabled=true
+                    aria-label="Enter VR"
+                    title="Enter VR"
+                    style="display: grid; place-items: center; width: 3rem; height: 3rem; padding: 0; border: 1px solid #17324d; border-radius: 0.5rem; color: #ffffff; background: #17324d; font: inherit; cursor: pointer;"
+                >
+                    <svg
+                        aria-hidden="true"
+                        viewBox="0 0 24 24"
+                        width="26"
+                        height="26"
+                        fill="currentColor"
+                    >
+                        <path
+                            fill-rule="evenodd"
+                            d="M4 5.5h16a2 2 0 0 1 2 2v8.25a2 2 0 0 1-2 2h-3.1a2 2 0 0 1-1.42-.59l-2.07-2.07a2 2 0 0 0-2.82 0l-2.07 2.07a2 2 0 0 1-1.42.59H4a2 2 0 0 1-2-2V7.5a2 2 0 0 1 2-2Zm4.25 8a2.75 2.75 0 1 0 0-5.5 2.75 2.75 0 0 0 0 5.5Zm7.5 0a2.75 2.75 0 1 0 0-5.5 2.75 2.75 0 0 0 0 5.5Z"
+                        ></path>
+                    </svg>
+                </button>
+                <span id="vr-status" style="color: #17324d; font-size: 0.75rem;">
+                    "Checking WebXR..."
+                </span>
+            </div>
+            <Show when=move || is_exploded.get()>
                 <button
                     id="assemble-rover-button"
                     type="button"
-                    disabled=move || !is_exploded.get()
                     on:click=move |_| {
                         assemble_rover(
                             set_exploded,
@@ -346,26 +371,15 @@ pub fn App() -> impl IntoView {
                             set_related_elements,
                         )
                     }
-                    style="padding: 0.65rem 1rem; border: 1px solid #17324d; border-radius: 0.5rem; color: #17324d; background: rgba(255, 255, 255, 0.9); font: inherit; font-weight: bold; cursor: pointer;"
+                    style="position: fixed; z-index: 11; left: 50%; bottom: 1rem; transform: translateX(-50%); min-width: 10rem; padding: 0.75rem 1.1rem; border: 1px solid #17324d; border-radius: 0.5rem; color: #ffffff; background: #17324d; font-family: monospace; font-size: 0.8rem; font-weight: bold; cursor: pointer; box-shadow: 0 0.5rem 2rem rgba(23, 50, 77, 0.18);"
                 >
                     "Assemble Rover"
                 </button>
-                <button
-                    id="enter-vr-button"
-                    type="button"
-                    disabled=true
-                    style="padding: 0.75rem 1.1rem; border: 1px solid #17324d; border-radius: 0.5rem; color: #ffffff; background: #17324d; font: inherit; font-weight: bold; cursor: pointer;"
-                >
-                    "Enter VR"
-                </button>
-                <span id="vr-status" style="color: #17324d; font-size: 0.75rem;">
-                    "Checking WebXR..."
-                </span>
-            </div>
+            </Show>
             <Show when=move || selected_element.get().is_some()>
                 <aside
                     id="semantic-panel"
-                    style="position: fixed; z-index: 12; left: 1rem; top: 7.5rem; width: min(25rem, calc(100vw - 2rem)); box-sizing: border-box; padding: 1rem 1.1rem; color: #e6fff0; background: rgba(7, 27, 24, 0.94); border: 1px solid rgba(0, 255, 102, 0.45); border-radius: 0.6rem; font-family: monospace; box-shadow: 0 0.75rem 2.5rem rgba(7, 27, 24, 0.3); backdrop-filter: blur(0.5rem);"
+                    style="position: fixed; z-index: 12; left: 1rem; top: calc(1rem + 4.3125rem + 20px); width: min(20rem, calc(100vw - 2rem)); box-sizing: border-box; padding: 0.85rem 1rem; color: #e6fff0; background: rgba(7, 27, 24, 0.94); border: 1px solid rgba(0, 255, 102, 0.45); border-radius: 0.5rem; font-family: monospace; font-size: 0.8rem; line-height: 1.5; box-shadow: 0 0.75rem 2.5rem rgba(7, 27, 24, 0.3); backdrop-filter: blur(0.5rem);"
                 >
                     <button
                         id="close-semantic-panel"
@@ -617,29 +631,8 @@ pub fn App() -> impl IntoView {
                     height="40"
                     material="color: #f7f8fa; roughness: 0.95; metalness: 0"
                     shadow="receive: true"
-                    on:click=move |_| {
-                        set_semantic_selection(
-                            selected_element.get_untracked().as_deref(),
-                            &related_elements.get_untracked(),
-                            None,
-                        );
-                        set_selected_element.set(None);
-                        set_related_elements.set(vec![]);
-                    }
                 ></a-plane>
-                <a-sky
-                    class="clickable"
-                    color="#e8edf2"
-                    on:click=move |_| {
-                        set_semantic_selection(
-                            selected_element.get_untracked().as_deref(),
-                            &related_elements.get_untracked(),
-                            None,
-                        );
-                        set_selected_element.set(None);
-                        set_related_elements.set(vec![]);
-                    }
-                ></a-sky>
+                <a-sky class="clickable" color="#e8edf2"></a-sky>
                 <a-light type="ambient" color="#dce8f5" intensity="1.15"></a-light>
                 <a-light
                     type="directional"
