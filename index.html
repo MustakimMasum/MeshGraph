@@ -212,7 +212,7 @@
             this.el.object3D.getWorldDirection(this.forward);
             this.el.object3D.position.addScaledVector(
               this.forward,
-              -event.deltaY * this.data.zoomSpeed,
+              event.deltaY * this.data.zoomSpeed,
             );
           };
           this.onMouseDown = (event) => {
