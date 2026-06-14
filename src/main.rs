@@ -102,7 +102,7 @@ ORDER BY ?partName
 
         let address = SocketAddr::from(([0, 0, 0, 0], 3000));
         let listener = tokio::net::TcpListener::bind(address).await?;
-        println!("Cadmus gateway listening on http://{address}");
+        println!("Cadmus gateway listening on http://localhost:3000");
         axum::serve(listener, app).await?;
         Ok(())
     }

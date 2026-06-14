@@ -16,8 +16,41 @@
       }
     </style>
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script>
+      AFRAME.registerComponent("vertical-controls", {
+        schema: { speed: { default: 3 } },
+
+        init: function () {
+          this.direction = 0;
+          this.onKeyDown = (event) => {
+            if (event.code === "KeyE") this.direction = 1;
+            if (event.code === "KeyC") this.direction = -1;
+          };
+          this.onKeyUp = (event) => {
+            if (
+              (event.code === "KeyE" && this.direction === 1) ||
+              (event.code === "KeyC" && this.direction === -1)
+            ) {
+              this.direction = 0;
+            }
+          };
+          window.addEventListener("keydown", this.onKeyDown);
+          window.addEventListener("keyup", this.onKeyUp);
+        },
+
+        tick: function (_time, delta) {
+          if (!this.direction) return;
+          this.el.object3D.position.y +=
+            this.direction * this.data.speed * (delta / 1000);
+        },
+
+        remove: function () {
+          window.removeEventListener("keydown", this.onKeyDown);
+          window.removeEventListener("keyup", this.onKeyUp);
+        },
+      });
+    </script>
     <link data-trunk rel="rust" data-wasm-opt="z">
   </head>
   <body></body>
 </html>
-

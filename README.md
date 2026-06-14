@@ -27,7 +27,7 @@ cargo install trunk --locked
 Run the frontend and gateway in separate terminals:
 
 ```sh
-trunk build --watch
+trunk watch
 cargo run
 ```
 
