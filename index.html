@@ -106,6 +106,17 @@
         },
       });
 
+      AFRAME.registerComponent("always-on-top", {
+        tick: function () {
+          this.el.object3D.traverse((node) => {
+            if (node.isMesh && node.material && node.material.depthTest !== false) {
+              node.material.depthTest = false;
+              node.material.depthWrite = false;
+            }
+          });
+        },
+      });
+
       AFRAME.registerComponent("semantic-hud", {
         schema: {
           target: { type: "selector" },

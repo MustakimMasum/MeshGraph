@@ -62,14 +62,14 @@ fn demo_structure() -> Vec<StructureBinding> {
     [
         ("BodyAssembly", "0.0", "-0.3", "0.0"),
         ("Antenna", "-2.6", "-0.3", "0.0"),
-        ("LeftSuspension", "0.0", "-0.9", "2.2"),
-        ("RightSuspension", "0.0", "-0.9", "-2.2"),
-        ("WheelFrontLeft", "-1.4", "-1.0", "2.8"),
-        ("WheelMiddleLeft", "0.0", "-1.0", "2.8"),
-        ("WheelRearLeft", "1.4", "-1.0", "2.8"),
-        ("WheelFrontRight", "-1.4", "-1.0", "-2.8"),
-        ("WheelMiddleRight", "0.0", "-1.0", "-2.8"),
-        ("WheelRearRight", "1.4", "-1.0", "-2.8"),
+        ("RightSuspension", "0.0", "-0.9", "2.2"),
+        ("LeftSuspension", "0.0", "-0.9", "-2.2"),
+        ("WheelRearRight", "-1.4", "-1.0", "2.8"),
+        ("WheelMiddleRight", "0.0", "-1.0", "2.8"),
+        ("WheelFrontRight", "1.4", "-1.0", "2.8"),
+        ("WheelRearLeft", "-1.4", "-1.0", "-2.8"),
+        ("WheelMiddleLeft", "0.0", "-1.0", "-2.8"),
+        ("WheelFrontLeft", "1.4", "-1.0", "-2.8"),
         ("Drill", "3.2", "-0.4", "0.0"),
     ]
     .into_iter()
@@ -119,8 +119,8 @@ fn animate_components(components: &[StructureBinding], exploded: bool) {
     let exploded_parts = [
         ("ExplodedBody", "0 -0.9 0", "0 -0.9 0"),
         ("ExplodedAntenna", "0 -0.9 0", "-2.6 -0.9 0"),
-        ("ExplodedLeftWheelAssembly", "0 0 0", "0 0 1.3"),
-        ("ExplodedRightWheelAssembly", "0 0 0", "0 0 -1.3"),
+        ("ExplodedRightWheelAssembly", "0 0 0", "0 0 1.3"),
+        ("ExplodedLeftWheelAssembly", "0 0 0", "0 0 -1.3"),
         ("ExplodedDrill", "0 -0.4 0", "3.2 -0.4 0"),
     ];
 
@@ -298,9 +298,9 @@ pub fn App() -> impl IntoView {
                 <strong>"NAVIGATION"</strong>
                 <div>"W A S D  Move"</div>
                 <div>"E / C  Up / Down"</div>
-                <div>"Mouse  Look"</div>
+                <div>"Left Mouse  Look"</div>
                 <div>"Scroll  Zoom"</div>
-                <div>"Middle drag  Pan"</div>
+                <div>"Middle Mouse drag  Pan"</div>
                 <div>"Click rover  Explode"</div>
                 <div>"Click part  Semantic context"</div>
             </div>
@@ -397,9 +397,9 @@ pub fn App() -> impl IntoView {
                             )
                         }
                     ></a-entity>
-                    <a-entity id="ExplodedLeftWheelAssembly" position="0 0 0">
+                    <a-entity id="ExplodedRightWheelAssembly" position="0 0 0">
                         <a-entity
-                            id="ExplodedLeftSuspension"
+                            id="ExplodedRightSuspension"
                             class="clickable"
                             semantic-highlight="active: false"
                             position="0 -0.9 0.9"
@@ -408,18 +408,18 @@ pub fn App() -> impl IntoView {
                             shadow="cast: true; receive: true"
                             on:click=move |_| {
                                 select_component(
-                                    "LeftSuspension",
-                                    "ExplodedLeftSuspension",
+                                    "RightSuspension",
+                                    "ExplodedRightSuspension",
                                     selected_element,
                                     set_selected_element,
                                     set_metadata,
                                 )
                             }
                         ></a-entity>
-                        {["ExplodedWheelFL", "ExplodedWheelML", "ExplodedWheelRL"]
+                        {["ExplodedWheelRR", "ExplodedWheelMR", "ExplodedWheelFR"]
                             .into_iter()
                             .zip(["-1.4 -1 1.5", "0 -1 1.5", "1.4 -1 1.5"])
-                            .zip(["WheelFrontLeft", "WheelMiddleLeft", "WheelRearLeft"])
+                            .zip(["WheelRearRight", "WheelMiddleRight", "WheelFrontRight"])
                             .map(|((id, position), component_name)| view! {
                             <a-entity
                                 id=id
@@ -442,9 +442,9 @@ pub fn App() -> impl IntoView {
                         })
                         .collect_view()}
                     </a-entity>
-                    <a-entity id="ExplodedRightWheelAssembly" position="0 0 0">
+                    <a-entity id="ExplodedLeftWheelAssembly" position="0 0 0">
                         <a-entity
-                            id="ExplodedRightSuspension"
+                            id="ExplodedLeftSuspension"
                             class="clickable"
                             semantic-highlight="active: false"
                             position="0 -0.9 -0.9"
@@ -453,18 +453,18 @@ pub fn App() -> impl IntoView {
                             shadow="cast: true; receive: true"
                             on:click=move |_| {
                                 select_component(
-                                    "RightSuspension",
-                                    "ExplodedRightSuspension",
+                                    "LeftSuspension",
+                                    "ExplodedLeftSuspension",
                                     selected_element,
                                     set_selected_element,
                                     set_metadata,
                                 )
                             }
                         ></a-entity>
-                        {["ExplodedWheelFR", "ExplodedWheelMR", "ExplodedWheelRR"]
+                        {["ExplodedWheelRL", "ExplodedWheelML", "ExplodedWheelFL"]
                             .into_iter()
                             .zip(["-1.4 -1 -1.5", "0 -1 -1.5", "1.4 -1 -1.5"])
-                            .zip(["WheelFrontRight", "WheelMiddleRight", "WheelRearRight"])
+                            .zip(["WheelRearLeft", "WheelMiddleLeft", "WheelFrontLeft"])
                             .map(|((id, position), component_name)| view! {
                             <a-entity
                                 id=id
@@ -508,53 +508,75 @@ pub fn App() -> impl IntoView {
                 </a-entity>
 
                 <a-entity id="semantic-tether" visible="false"></a-entity>
-                <a-entity id="semantic-hud" visible="false" semantic-hud>
+                <a-entity id="semantic-hud" visible="false" semantic-hud always-on-top>
                     <a-plane
-                        width="1.45"
-                        height="0.95"
-                        material="color: #071b18; opacity: 0.88; transparent: true; side: double"
+                        width="1.8"
+                        height="1.4"
+                        material="color: #071b18; opacity: 0.92; transparent: true; side: double; depthTest: false"
                     ></a-plane>
                     <a-text
-                        position="0 0.34 -0.02"
+                        position="0 0.55 -0.02"
                         rotation="0 180 0"
                         align="center"
                         anchor="center"
-                        width="1.22"
-                        wrap-count="28"
+                        baseline="top"
+                        width="1.6"
+                        wrap-count="26"
                         color="#00ff66"
                         value=move || metadata.get().display_name
                     ></a-text>
                     <a-text
-                        position="0 0.14 -0.02"
+                        position="0 0.35 -0.02"
                         rotation="0 180 0"
                         align="center"
                         anchor="center"
-                        width="1.22"
-                        wrap-count="32"
+                        baseline="top"
+                        width="1.6"
+                        wrap-count="45"
                         color="#80ffb0"
                         value=move || format!("ID    {}", metadata.get().component_name)
                     ></a-text>
-                    <a-text
-                        position="0 -0.04 -0.02"
+                    <a-plane
+                        position="0 0.24 -0.02"
                         rotation="0 180 0"
-                        align="center"
+                        width="1.5"
+                        height="0.005"
+                        material="color: #00ff66; opacity: 0.35; shader: flat; transparent: true; depthTest: false"
+                    ></a-plane>
+                    <a-text
+                        position="0 0.15 -0.02"
+                        rotation="0 180 0"
+                        align="left"
                         anchor="center"
-                        width="1.18"
-                        wrap-count="42"
+                        baseline="top"
+                        width="1.5"
+                        wrap-count="46"
                         color="#e6fff0"
                         value=move || metadata_details(&metadata.get())
                     ></a-text>
                 </a-entity>
 
                 <a-plane
+                    class="clickable"
                     position="0 -1.1 0"
                     rotation="-90 0 0"
                     width="40"
                     height="40"
                     material="color: #f7f8fa; roughness: 0.95; metalness: 0"
                     shadow="receive: true"
+                    on:click=move |_| {
+                        set_semantic_selection(selected_element.get_untracked().as_deref(), None);
+                        set_selected_element.set(None);
+                    }
                 ></a-plane>
-                <a-sky color="#e8edf2"></a-sky>
+                <a-sky
+                    class="clickable"
+                    color="#e8edf2"
+                    on:click=move |_| {
+                        set_semantic_selection(selected_element.get_untracked().as_deref(), None);
+                        set_selected_element.set(None);
+                    }
+                ></a-sky>
                 <a-light type="ambient" color="#dce8f5" intensity="1.15"></a-light>
                 <a-light
                     type="directional"
@@ -597,6 +619,7 @@ pub fn App() -> impl IntoView {
                         id="vr-assemble-control"
                         class="clickable"
                         vr-assemble-control=move || format!("active: {}", is_exploded.get())
+                        always-on-top
                         position="0.7 -0.55 -2.4"
                         on:click=move |_| {
                             assemble_rover(
@@ -610,7 +633,7 @@ pub fn App() -> impl IntoView {
                         <a-plane
                             width="0.48"
                             height="0.14"
-                            material="color: #17324d; opacity: 0.9; transparent: true"
+                            material="color: #17324d; opacity: 0.9; transparent: true; depthTest: false"
                         ></a-plane>
                         <a-text
                             position="0 0 0.01"
