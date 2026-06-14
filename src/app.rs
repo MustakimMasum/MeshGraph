@@ -139,14 +139,17 @@ fn animate_components(components: &[StructureBinding], exploded: bool) {
     }
 }
 
-fn toggle_explosion(
+fn explode_rover(
     is_exploded: ReadSignal<bool>,
     set_exploded: WriteSignal<bool>,
     components: ReadSignal<Vec<StructureBinding>>,
 ) {
-    let exploded = !is_exploded.get_untracked();
-    set_exploded.set(exploded);
-    animate_components(&components.get_untracked(), exploded);
+    if is_exploded.get_untracked() {
+        return;
+    }
+
+    set_exploded.set(true);
+    animate_components(&components.get_untracked(), true);
 }
 
 fn set_semantic_selection(
@@ -558,7 +561,7 @@ pub fn App() -> impl IntoView {
                     scale="2.4 2.4 2.4"
                     gltf-model="url(/public/models/sojourner-rover.glb)"
                     shadow="cast: true; receive: true"
-                    on:click=move |_| toggle_explosion(is_exploded, set_exploded, components)
+                    on:click=move |_| explode_rover(is_exploded, set_exploded, components)
                 ></a-entity>
                 <a-entity
                     id="graph-parts"
@@ -641,7 +644,7 @@ pub fn App() -> impl IntoView {
                                 class="clickable"
                                 semantic-highlight="state: none"
                                 position=position
-                                scale="5 5 5"
+                                scale="2.4 2.4 2.4"
                                 gltf-model="url(/public/models/rover-wheel.glb)"
                                 shadow="cast: true; receive: true"
                                 on:click=move |_| {
@@ -692,7 +695,7 @@ pub fn App() -> impl IntoView {
                                 class="clickable"
                                 semantic-highlight="state: none"
                                 position=position
-                                scale="5 5 -5"
+                                scale="2.4 2.4 -2.4"
                                 gltf-model="url(/public/models/rover-wheel.glb)"
                                 shadow="cast: true; receive: true"
                                 on:click=move |_| {
@@ -716,7 +719,7 @@ pub fn App() -> impl IntoView {
                         class="clickable"
                         semantic-highlight="state: none"
                         position="0 -0.4 0"
-                        scale="5 5 5"
+                        scale="2.4 2.4 2.4"
                         gltf-model="url(/public/models/rover-drill.glb)"
                         shadow="cast: true; receive: true"
                         on:click=move |_| {
