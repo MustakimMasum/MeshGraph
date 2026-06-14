@@ -27,20 +27,11 @@ async function setControl(label) {
   }, label);
 }
 
-async function pressKey(key, duration = 900) {
-  await setControl(key.toUpperCase());
-  await page.keyboard.down(key);
-  await pause(duration);
-  await page.keyboard.up(key);
-  await setControl("");
-  await pause(500);
-}
-
 async function rotateView() {
   await setControl("LEFT MOUSE  LOOK");
   await page.mouse.move(900, 450);
   await page.mouse.down();
-  await page.mouse.move(1020, 390, { steps: 40 });
+  await page.mouse.move(960, 420, { steps: 40 });
   await page.mouse.up();
   await setControl("");
   await pause(900);
@@ -160,8 +151,6 @@ await page.evaluate(() => {
 
 await pause(3000);
 await rotateView();
-await pressKey("w", 850);
-await pressKey("d", 700);
 await zoomView();
 await pause(1000);
 await clickMesh("#assembled-rover");

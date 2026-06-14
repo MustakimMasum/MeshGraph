@@ -51,14 +51,20 @@ test("updates launcher state across successful VR entry and exit", async ({
   });
 
   await page.locator("#enter-vr-button").click();
-  await expect(page.locator("#enter-vr-button")).toHaveText("VR Active");
+  await expect(page.locator("#enter-vr-button")).toHaveAttribute(
+    "aria-label",
+    "VR Active",
+  );
   await expect(page.locator("#enter-vr-button")).toBeDisabled();
   await expect(page.locator("#vr-status")).toHaveText(
     "Use headset controls to exit",
   );
 
   await page.evaluate(() => document.querySelector("a-scene").emit("exit-vr"));
-  await expect(page.locator("#enter-vr-button")).toHaveText("Enter VR");
+  await expect(page.locator("#enter-vr-button")).toHaveAttribute(
+    "aria-label",
+    "Enter VR",
+  );
   await expect(page.locator("#enter-vr-button")).toBeEnabled();
   await expect(page.locator("#vr-status")).toHaveText("Headset ready");
 });
@@ -256,7 +262,7 @@ test("VR assemble control collapses rover and clears semantic context", async ({
       highlighted:
         document.querySelector("#ExplodedAntenna").components[
           "semantic-highlight"
-        ].data.active,
+        ].data.state,
     };
   });
 
@@ -266,7 +272,7 @@ test("VR assemble control collapses rover and clears semantic context", async ({
     assembled: true,
     exploded: false,
     semanticPanel: null,
-    highlighted: false,
+    highlighted: "none",
   });
 });
 
