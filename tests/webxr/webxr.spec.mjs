@@ -179,7 +179,7 @@ test("major parts explode along their intended axes", async ({ page }) => {
     ExplodedAntenna: "-2.6 -0.9 0",
     ExplodedLeftWheelAssembly: "0 0 1.3",
     ExplodedRightWheelAssembly: "0 0 -1.3",
-    ExplodedDrill: "3.2 -0.4 -1.3",
+    ExplodedDrill: "3.2 -0.4 0",
   });
 });
 

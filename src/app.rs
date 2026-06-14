@@ -110,7 +110,7 @@ fn animate_components(components: &[StructureBinding], exploded: bool) {
         ("ExplodedAntenna", "0 -0.9 0", "-2.6 -0.9 0"),
         ("ExplodedLeftWheelAssembly", "0 0 0", "0 0 1.3"),
         ("ExplodedRightWheelAssembly", "0 0 0", "0 0 -1.3"),
-        ("ExplodedDrill", "0 -0.4 -1.3", "3.2 -0.4 -1.3"),
+        ("ExplodedDrill", "0 -0.4 0", "3.2 -0.4 0"),
     ];
 
     for (id, assembled_position, exploded_position) in exploded_parts {
@@ -291,7 +291,7 @@ pub fn App() -> impl IntoView {
                     <a-entity
                         id="ExplodedDrill"
                         class="clickable"
-                        position="0 -0.4 -1.3"
+                        position="0 -0.4 0"
                         scale="5 5 5"
                         gltf-model="url(/public/models/rover-drill.glb)"
                         shadow="cast: true; receive: true"
