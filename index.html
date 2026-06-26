@@ -295,7 +295,7 @@
             return;
           }
           if (!navigator.xr?.isSessionSupported) {
-            this.setState("Enter VR", "WebXR unavailable", true);
+            this.setState("Enter VR", "WebXR not supported (use Chrome or Edge)", true);
             return;
           }
 
@@ -304,17 +304,108 @@
             .then((supported) => {
               this.setState(
                 "Enter VR",
-                supported ? "Headset ready" : "No VR headset detected",
+                supported ? "Headset ready" : "No headset detected — ensure SteamVR or Oculus software is running",
                 !supported,
               );
             })
-            .catch(() => this.setState("Enter VR", "WebXR unavailable", true));
+            .catch((err) => {
+              console.error("WebXR session support check failed", err);
+              this.setState("Enter VR", "WebXR check failed — ensure headset runtime is active", true);
+            });
         },
 
         remove: function () {
           this.button?.removeEventListener("click", this.onClick);
           this.el.removeEventListener("enter-vr", this.onEnterVr);
           this.el.removeEventListener("exit-vr", this.onExitVr);
+        },
+      });
+
+      AFRAME.registerComponent("vr-locomotion", {
+        schema: {
+          speed: { default: 3 },
+          turnAngle: { default: 45 },
+          deadzone: { default: 0.2 },
+        },
+
+        init: function () {
+          this.moveX = 0;
+          this.moveY = 0;
+          this.snapping = false;
+          this.cameraEl = null;
+          this.forward = new THREE.Vector3();
+          this.right = new THREE.Vector3();
+          this.worldQuat = new THREE.Quaternion();
+          this.yawEuler = new THREE.Euler();
+          this.moveEuler = new THREE.Euler();
+
+          this.onLeftThumbstick = (e) => {
+            this.moveX = Math.abs(e.detail.x) > this.data.deadzone ? e.detail.x : 0;
+            this.moveY = Math.abs(e.detail.y) > this.data.deadzone ? e.detail.y : 0;
+          };
+
+          this.onRightThumbstick = (e) => {
+            const x = e.detail.x;
+            if (!this.snapping && Math.abs(x) > 0.7) {
+              this.el.object3D.rotation.y += THREE.MathUtils.degToRad(
+                (x > 0 ? -1 : 1) * this.data.turnAngle,
+              );
+              this.snapping = true;
+            } else if (Math.abs(x) <= 0.3) {
+              this.snapping = false;
+            }
+          };
+
+          this.bindControllers = () => {
+            const left = document.getElementById("left-controller");
+            const right = document.getElementById("right-controller");
+            if (left) left.addEventListener("thumbstickmoved", this.onLeftThumbstick);
+            if (right) right.addEventListener("thumbstickmoved", this.onRightThumbstick);
+          };
+
+          this.unbindControllers = () => {
+            const left = document.getElementById("left-controller");
+            const right = document.getElementById("right-controller");
+            if (left) left.removeEventListener("thumbstickmoved", this.onLeftThumbstick);
+            if (right) right.removeEventListener("thumbstickmoved", this.onRightThumbstick);
+          };
+
+          this.el.sceneEl.addEventListener("enter-vr", this.bindControllers);
+          this.el.sceneEl.addEventListener("exit-vr", this.unbindControllers);
+          if (this.el.sceneEl.is("vr-mode")) this.bindControllers();
+        },
+
+        tick: function (_time, delta) {
+          if (!this.el.sceneEl.is("vr-mode")) return;
+          if (!this.moveX && !this.moveY) return;
+
+          if (!this.cameraEl) {
+            this.cameraEl = this.el.querySelector("[camera]");
+            if (!this.cameraEl) return;
+          }
+
+          this.cameraEl.object3D.getWorldQuaternion(this.worldQuat);
+          this.moveEuler.setFromQuaternion(this.worldQuat, "YXZ");
+          this.yawEuler.set(0, this.moveEuler.y, 0);
+
+          this.forward.set(0, 0, -1).applyEuler(this.yawEuler);
+          this.right.set(1, 0, 0).applyEuler(this.yawEuler);
+
+          const dt = delta / 1000;
+          this.el.object3D.position.addScaledVector(
+            this.forward,
+            -this.moveY * this.data.speed * dt,
+          );
+          this.el.object3D.position.addScaledVector(
+            this.right,
+            this.moveX * this.data.speed * dt,
+          );
+        },
+
+        remove: function () {
+          this.unbindControllers();
+          this.el.sceneEl.removeEventListener("enter-vr", this.bindControllers);
+          this.el.sceneEl.removeEventListener("exit-vr", this.unbindControllers);
         },
       });
     </script>

@@ -549,7 +549,7 @@ pub fn App() -> impl IntoView {
                 cursor="rayOrigin: mouse"
                 raycaster="objects: .clickable"
                 renderer="colorManagement: true; physicallyCorrectLights: true; exposure: 1.15"
-                webxr="optionalFeatures: local-floor, bounded-floor, hand-tracking"
+                webxr="requiredFeatures: local-floor; optionalFeatures: bounded-floor, hand-tracking; referenceSpaceType: local-floor"
                 vr-mode-ui="enabled: false"
                 webxr-launcher
             >
@@ -767,54 +767,57 @@ pub fn App() -> impl IntoView {
                     distance="18"
                     position="0 5 -5"
                 ></a-light>
-                <a-entity
-                    laser-controls="hand: left"
-                    raycaster="objects: .clickable"
-                ></a-entity>
-                <a-entity
-                    laser-controls="hand: right"
-                    raycaster="objects: .clickable"
-                ></a-entity>
-                <a-camera
-                    position="5.5 1.65 -3.5"
-                    initial-camera-look="pitch: -15; yaw: 120"
-                    camera="fov: 62"
-                    look-controls="pointerLockEnabled: false"
-                    wasd-controls="acceleration: 25"
-                    vertical-controls="speed: 3"
-                    viewport-controls="zoomSpeed: 0.0025; panSpeed: 0.004"
-                >
-                    <a-entity
-                        id="vr-assemble-control"
-                        class="clickable"
-                        vr-assemble-control=move || format!("active: {}", is_exploded.get())
-                        always-on-top
-                        position="0.7 -0.55 -2.4"
-                        on:click=move |_| {
-                            assemble_rover(
-                                set_exploded,
-                                components,
-                                selected_element,
-                                set_selected_element,
-                                related_elements,
-                                set_related_elements,
-                            )
-                        }
+                <a-entity id="camera-rig" position="5.5 1.65 -3.5" vr-locomotion>
+                    <a-camera
+                        initial-camera-look="pitch: -15; yaw: 120"
+                        camera="fov: 62"
+                        look-controls="pointerLockEnabled: false"
+                        wasd-controls="acceleration: 25"
+                        vertical-controls="speed: 3"
+                        viewport-controls="zoomSpeed: 0.0025; panSpeed: 0.004"
                     >
-                        <a-plane
-                            width="0.48"
-                            height="0.14"
-                            material="color: #17324d; opacity: 0.9; transparent: true; depthTest: false"
-                        ></a-plane>
-                        <a-text
-                            position="0 0 0.01"
-                            align="center"
-                            width="0.42"
-                            color="#ffffff"
-                            value="ASSEMBLE"
-                        ></a-text>
-                    </a-entity>
-                </a-camera>
+                        <a-entity
+                            id="vr-assemble-control"
+                            class="clickable"
+                            vr-assemble-control=move || format!("active: {}", is_exploded.get())
+                            always-on-top
+                            position="0.7 -0.55 -2.4"
+                            on:click=move |_| {
+                                assemble_rover(
+                                    set_exploded,
+                                    components,
+                                    selected_element,
+                                    set_selected_element,
+                                    related_elements,
+                                    set_related_elements,
+                                )
+                            }
+                        >
+                            <a-plane
+                                width="0.48"
+                                height="0.14"
+                                material="color: #17324d; opacity: 0.9; transparent: true; depthTest: false"
+                            ></a-plane>
+                            <a-text
+                                position="0 0 0.01"
+                                align="center"
+                                width="0.42"
+                                color="#ffffff"
+                                value="ASSEMBLE"
+                            ></a-text>
+                        </a-entity>
+                    </a-camera>
+                    <a-entity
+                        id="left-controller"
+                        laser-controls="hand: left"
+                        raycaster="objects: .clickable"
+                    ></a-entity>
+                    <a-entity
+                        id="right-controller"
+                        laser-controls="hand: right"
+                        raycaster="objects: .clickable"
+                    ></a-entity>
+                </a-entity>
             </a-scene>
         </main>
     }
