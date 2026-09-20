@@ -4,411 +4,222 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#000000">
-    <title>MeshGraph Spatial Knowledge Base</title>
+    <meta
+      name="description"
+      content="MeshGraph is an interactive WebXR research citation constellation."
+    >
+    <title>MeshGraph · Research Citation Constellation</title>
     <style>
+      :root {
+        color-scheme: dark;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --ink: #e7f6ff;
+        --muted: #86a0b9;
+        --cyan: #59e1ff;
+        --violet: #9b7bff;
+        --panel: rgba(5, 16, 31, 0.82);
+        --line: rgba(114, 210, 255, 0.2);
+      }
+
+      * { box-sizing: border-box; }
+
       html,
-      body {
+      body,
+      #app-shell {
         width: 100%;
         height: 100%;
         margin: 0;
         overflow: hidden;
-        background: #e8edf2;
+        background: #000000;
+      }
+
+      body { color: var(--ink); }
+      button, input, select { font: inherit; }
+      button, a { -webkit-tap-highlight-color: transparent; }
+
+      .topbar {
+        position: fixed;
+        z-index: 20;
+        inset: 0 0 auto 0;
+        min-height: 74px;
+        display: grid;
+        grid-template-columns: minmax(220px, 1fr) minmax(420px, 620px) auto;
+        align-items: center;
+        gap: 18px;
+        padding: 12px 18px;
+        background: linear-gradient(180deg, rgba(2, 7, 17, 0.96), rgba(2, 7, 17, 0.58));
+        border-bottom: 1px solid var(--line);
+        backdrop-filter: blur(18px);
+      }
+
+      .brand-lockup { display: flex; align-items: center; gap: 11px; }
+      .brand-mark {
+        display: grid;
+        place-items: center;
+        width: 40px;
+        height: 40px;
+        border: 1px solid rgba(89, 225, 255, 0.5);
+        border-radius: 12px;
+        color: var(--cyan);
+        font-weight: 800;
+        background: radial-gradient(circle at 35% 30%, #183957, #07111f 65%);
+        box-shadow: 0 0 28px rgba(89, 225, 255, 0.15);
+      }
+      .brand-lockup h1 { margin: 0; font-size: 17px; letter-spacing: 0.02em; }
+      .brand-lockup p { margin: 2px 0 0; color: var(--muted); font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase; }
+
+      .ingest-form {
+        display: grid;
+        grid-template-columns: minmax(180px, 1fr) 94px auto;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        overflow: hidden;
+        background: rgba(1, 8, 20, 0.88);
+      }
+      .ingest-form input, .ingest-form select {
+        min-width: 0;
+        color: var(--ink);
+        border: 0;
+        border-right: 1px solid var(--line);
+        outline: 0;
+        background: transparent;
+        padding: 11px 12px;
+      }
+      .ingest-form input:focus { box-shadow: inset 0 0 0 1px var(--cyan); }
+      .ingest-form button, .secondary-button, .mode-switcher button {
+        border: 0;
+        color: #03101a;
+        background: var(--cyan);
+        padding: 10px 14px;
+        font-weight: 750;
+        cursor: pointer;
+      }
+      .ingest-form button:disabled { opacity: 0.55; cursor: wait; }
+      .secondary-button {
+        color: var(--ink);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: rgba(7, 20, 38, 0.88);
+      }
+
+      .hud-panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.32);
+        backdrop-filter: blur(18px);
+      }
+      .graph-overview {
+        position: fixed;
+        z-index: 15;
+        top: 94px;
+        left: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        width: 210px;
+        padding: 15px;
+        border-radius: 14px;
+      }
+      .graph-overview strong { font-size: 24px; color: var(--cyan); }
+      .graph-overview > span:not(.eyebrow) { color: var(--muted); font-size: 12px; }
+      .graph-overview .gesture-state { margin-top: 4px; padding-top: 9px; border-top: 1px solid var(--line); }
+      .eyebrow { color: var(--cyan); font-size: 10px; font-weight: 800; letter-spacing: 0.14em; }
+
+      .mode-switcher {
+        position: fixed;
+        z-index: 15;
+        left: 50%;
+        bottom: 26px;
+        display: flex;
+        transform: translateX(-50%);
+        padding: 5px;
+        border: 1px solid var(--line);
+        border-radius: 13px;
+        background: rgba(3, 12, 25, 0.86);
+        backdrop-filter: blur(16px);
+      }
+      .mode-switcher button { color: var(--muted); border-radius: 9px; background: transparent; font-size: 12px; }
+      .mode-switcher button.active { color: #021018; background: var(--cyan); }
+
+      .paper-panel {
+        position: fixed;
+        z-index: 18;
+        top: 94px;
+        right: 18px;
+        width: min(390px, calc(100vw - 36px));
+        max-height: calc(100vh - 150px);
+        overflow: auto;
+        padding: 22px;
+        border-radius: 16px;
+      }
+      .paper-panel h2 { margin: 8px 32px 14px 0; font-size: 21px; line-height: 1.25; }
+      .paper-panel p { color: #adc0d1; font-size: 13px; line-height: 1.62; }
+      .paper-facts { display: flex; flex-wrap: wrap; gap: 6px; }
+      .paper-facts span, .paper-links span {
+        color: #b5cde0;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 5px 8px;
+        font-size: 10px;
+      }
+      .paper-links { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; margin-top: 15px; }
+      .paper-links a { color: #00111a; border-radius: 999px; padding: 6px 10px; background: var(--cyan); font-size: 11px; font-weight: 800; text-decoration: none; }
+      .panel-close, .notice button { color: var(--muted); border: 0; background: transparent; cursor: pointer; }
+      .panel-close { position: absolute; top: 12px; right: 12px; font-size: 22px; }
+      .loading { color: var(--cyan) !important; }
+
+      .notice {
+        position: fixed;
+        z-index: 25;
+        top: 86px;
+        left: 50%;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        transform: translateX(-50%);
+        max-width: min(640px, calc(100vw - 36px));
+        padding: 10px 14px;
+        color: #d9eeff;
+        border: 1px solid rgba(155, 123, 255, 0.38);
+        border-radius: 10px;
+        background: rgba(25, 17, 55, 0.92);
+        box-shadow: 0 10px 36px rgba(0, 0, 0, 0.35);
+        font-size: 12px;
+      }
+
+      .interaction-hint {
+        position: fixed;
+        z-index: 12;
+        left: 18px;
+        bottom: 18px;
+        color: rgba(173, 203, 225, 0.56);
+        font-size: 9px;
+        letter-spacing: 0.1em;
+        pointer-events: none;
+      }
+
+      a-scene { position: fixed !important; inset: 0; }
+
+      @media (max-width: 900px) {
+        .topbar { grid-template-columns: 1fr auto; }
+        .ingest-form { order: 3; grid-column: 1 / -1; }
+        .graph-overview { top: 140px; }
+        .paper-panel { top: 140px; max-height: calc(100vh - 210px); }
+      }
+
+      @media (max-width: 620px) {
+        .brand-lockup p, .interaction-hint { display: none; }
+        .topbar { gap: 8px; padding: 9px; }
+        .secondary-button { padding: 9px; font-size: 11px; }
+        .ingest-form { grid-template-columns: 1fr 80px; }
+        .ingest-form button { grid-column: 1 / -1; }
+        .graph-overview { top: 176px; left: 10px; width: 165px; padding: 11px; }
+        .paper-panel { top: auto; right: 10px; bottom: 78px; width: calc(100vw - 20px); max-height: 42vh; }
+        .mode-switcher { bottom: 12px; }
       }
     </style>
-    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
-    <script>
-      AFRAME.registerComponent("vertical-controls", {
-        schema: { speed: { default: 3 } },
-
-        init: function () {
-          this.direction = 0;
-          this.onKeyDown = (event) => {
-            if (event.code === "KeyE") this.direction = 1;
-            if (event.code === "KeyC") this.direction = -1;
-          };
-          this.onKeyUp = (event) => {
-            if (
-              (event.code === "KeyE" && this.direction === 1) ||
-              (event.code === "KeyC" && this.direction === -1)
-            ) {
-              this.direction = 0;
-            }
-          };
-          window.addEventListener("keydown", this.onKeyDown);
-          window.addEventListener("keyup", this.onKeyUp);
-        },
-
-        tick: function (_time, delta) {
-          if (!this.direction) return;
-          this.el.object3D.position.y +=
-            this.direction * this.data.speed * (delta / 1000);
-        },
-
-        remove: function () {
-          window.removeEventListener("keydown", this.onKeyDown);
-          window.removeEventListener("keyup", this.onKeyUp);
-        },
-      });
-
-      AFRAME.registerComponent("initial-camera-look", {
-        schema: {
-          pitch: { default: 0 },
-          yaw: { default: 0 },
-        },
-
-        tick: function () {
-          if (this.applied) return;
-          const controls = this.el.components["look-controls"];
-          if (!controls?.pitchObject || !controls?.yawObject) return;
-
-          controls.pitchObject.rotation.x = THREE.MathUtils.degToRad(
-            this.data.pitch,
-          );
-          controls.yawObject.rotation.y = THREE.MathUtils.degToRad(
-            this.data.yaw,
-          );
-          this.applied = true;
-        },
-      });
-
-      AFRAME.registerComponent("semantic-highlight", {
-        schema: { state: { default: "none" } },
-
-        init: function () {
-          this.el.addEventListener("model-loaded", () => this.apply());
-        },
-
-        update: function () {
-          this.apply();
-        },
-
-        apply: function () {
-          this.el.object3D.traverse((node) => {
-            if (!node.isMesh || !node.material?.emissive) return;
-            if (!node.userData.semanticMaterialCloned) {
-              node.material = node.material.clone();
-              node.userData.semanticMaterialCloned = true;
-              node.userData.semanticOriginalEmissive =
-                node.material.emissive.clone();
-              node.userData.semanticOriginalIntensity =
-                node.material.emissiveIntensity ?? 1;
-            }
-
-            let targetColor = node.userData.semanticOriginalEmissive;
-            let targetIntensity = node.userData.semanticOriginalIntensity;
-
-            if (this.data.state === "active") {
-              targetColor = new THREE.Color("#00ff66");
-              targetIntensity = 0.75;
-            } else if (this.data.state === "related") {
-              targetColor = new THREE.Color("#ff9900");
-              targetIntensity = 0.75;
-            }
-
-            node.material.emissive.copy(targetColor);
-            node.material.emissiveIntensity = targetIntensity;
-          });
-        },
-      });
-
-      AFRAME.registerComponent("always-on-top", {
-        tick: function () {
-          this.el.object3D.traverse((node) => {
-            if (node.isMesh && node.material && node.material.depthTest !== false) {
-              node.material.depthTest = false;
-              node.material.depthWrite = false;
-            }
-          });
-        },
-      });
-
-      AFRAME.registerComponent("connection-tether", {
-        schema: {
-          source: { type: "selector" },
-          target: { type: "selector" },
-          color: { default: "#ff9900" },
-        },
-
-        init: function () {
-          this.start = new THREE.Vector3();
-          this.end = new THREE.Vector3();
-        },
-
-        tick: function () {
-          if (!this.data.source || !this.data.target) return;
-          this.data.source.object3D.getWorldPosition(this.start);
-          this.data.target.object3D.getWorldPosition(this.end);
-          this.el.setAttribute(
-            "line",
-            `start: ${this.start.x} ${this.start.y} ${this.start.z}; ` +
-              `end: ${this.end.x} ${this.end.y} ${this.end.z}; ` +
-              `color: ${this.data.color}; opacity: 0.75`,
-          );
-        },
-      });
-
-      AFRAME.registerComponent("vr-assemble-control", {
-        schema: { active: { default: false } },
-
-        init: function () {
-          this.onEnterVr = () => this.updateVisibility();
-          this.onExitVr = () => this.updateVisibility();
-          this.el.sceneEl.addEventListener("enter-vr", this.onEnterVr);
-          this.el.sceneEl.addEventListener("exit-vr", this.onExitVr);
-          this.updateVisibility();
-        },
-
-        update: function () {
-          this.updateVisibility();
-        },
-
-        updateVisibility: function () {
-          this.el.setAttribute(
-            "visible",
-            this.data.active && this.el.sceneEl.is("vr-mode"),
-          );
-        },
-
-        remove: function () {
-          this.el.sceneEl.removeEventListener("enter-vr", this.onEnterVr);
-          this.el.sceneEl.removeEventListener("exit-vr", this.onExitVr);
-        },
-      });
-
-      AFRAME.registerComponent("viewport-controls", {
-        schema: {
-          zoomSpeed: { default: 0.0025 },
-          panSpeed: { default: 0.004 },
-        },
-
-        init: function () {
-          this.dragging = false;
-          this.forward = new THREE.Vector3();
-          this.right = new THREE.Vector3();
-          this.up = new THREE.Vector3();
-
-          this.onWheel = (event) => {
-            event.preventDefault();
-            this.el.object3D.getWorldDirection(this.forward);
-            this.el.object3D.position.addScaledVector(
-              this.forward,
-              event.deltaY * this.data.zoomSpeed,
-            );
-          };
-          this.onMouseDown = (event) => {
-            if (event.button !== 1) return;
-            event.preventDefault();
-            this.dragging = true;
-          };
-          this.onMouseMove = (event) => {
-            if (!this.dragging) return;
-            this.right.set(1, 0, 0).applyQuaternion(this.el.object3D.quaternion);
-            this.up.set(0, 1, 0).applyQuaternion(this.el.object3D.quaternion);
-            this.el.object3D.position.addScaledVector(
-              this.right,
-              -event.movementX * this.data.panSpeed,
-            );
-            this.el.object3D.position.addScaledVector(
-              this.up,
-              event.movementY * this.data.panSpeed,
-            );
-          };
-          this.onMouseUp = (event) => {
-            if (event.button === 1) this.dragging = false;
-          };
-          this.onAuxClick = (event) => {
-            if (event.button === 1) event.preventDefault();
-          };
-
-          this.el.sceneEl.canvas.addEventListener("wheel", this.onWheel, {
-            passive: false,
-          });
-          this.el.sceneEl.canvas.addEventListener("mousedown", this.onMouseDown);
-          window.addEventListener("mousemove", this.onMouseMove);
-          window.addEventListener("mouseup", this.onMouseUp);
-          this.el.sceneEl.canvas.addEventListener("auxclick", this.onAuxClick);
-        },
-
-        remove: function () {
-          this.el.sceneEl.canvas.removeEventListener("wheel", this.onWheel);
-          this.el.sceneEl.canvas.removeEventListener(
-            "mousedown",
-            this.onMouseDown,
-          );
-          window.removeEventListener("mousemove", this.onMouseMove);
-          window.removeEventListener("mouseup", this.onMouseUp);
-          this.el.sceneEl.canvas.removeEventListener(
-            "auxclick",
-            this.onAuxClick,
-          );
-        },
-      });
-
-      AFRAME.registerComponent("webxr-launcher", {
-        schema: {
-          sessionTimeout: { default: 15000 },
-        },
-
-        init: function () {
-          this.button = document.getElementById("enter-vr-button");
-          this.status = document.getElementById("vr-status");
-          if (!this.button || !this.status) return;
-
-          this.setState = (label, status, disabled) => {
-            this.button.setAttribute("aria-label", label);
-            this.button.setAttribute("title", label);
-            this.button.disabled = disabled;
-            this.status.textContent = status;
-          };
-          this.onClick = async () => {
-            try {
-              this.setState("Starting VR...", "Requesting headset access", true);
-              await Promise.race([
-                this.el.enterVR(),
-                new Promise((_, reject) =>
-                  setTimeout(
-                    () => reject(new Error("WebXR session request timed out")),
-                    this.data.sessionTimeout,
-                  ),
-                ),
-              ]);
-            } catch (error) {
-              console.error("Unable to enter VR", error);
-              this.setState(
-                "Enter VR",
-                "Unable to start VR; check headset permissions",
-                false,
-              );
-            }
-          };
-          this.onEnterVr = () =>
-            this.setState("VR Active", "Use headset controls to exit", true);
-          this.onExitVr = () =>
-            this.setState("Enter VR", "Headset ready", false);
-
-          this.button.addEventListener("click", this.onClick);
-          this.el.addEventListener("enter-vr", this.onEnterVr);
-          this.el.addEventListener("exit-vr", this.onExitVr);
-
-          if (!window.isSecureContext) {
-            this.setState("Enter VR", "HTTPS or localhost required", true);
-            return;
-          }
-          if (!navigator.xr?.isSessionSupported) {
-            this.setState("Enter VR", "WebXR not supported (use Chrome or Edge)", true);
-            return;
-          }
-
-          navigator.xr
-            .isSessionSupported("immersive-vr")
-            .then((supported) => {
-              this.setState(
-                "Enter VR",
-                supported ? "Headset ready" : "No headset detected — ensure SteamVR or Oculus software is running",
-                !supported,
-              );
-            })
-            .catch((err) => {
-              console.error("WebXR session support check failed", err);
-              this.setState("Enter VR", "WebXR check failed — ensure headset runtime is active", true);
-            });
-        },
-
-        remove: function () {
-          this.button?.removeEventListener("click", this.onClick);
-          this.el.removeEventListener("enter-vr", this.onEnterVr);
-          this.el.removeEventListener("exit-vr", this.onExitVr);
-        },
-      });
-
-      AFRAME.registerComponent("vr-locomotion", {
-        schema: {
-          speed: { default: 3 },
-          turnAngle: { default: 45 },
-          deadzone: { default: 0.2 },
-        },
-
-        init: function () {
-          this.moveX = 0;
-          this.moveY = 0;
-          this.snapping = false;
-          this.cameraEl = null;
-          this.forward = new THREE.Vector3();
-          this.right = new THREE.Vector3();
-          this.worldQuat = new THREE.Quaternion();
-          this.yawEuler = new THREE.Euler();
-          this.moveEuler = new THREE.Euler();
-
-          this.onLeftThumbstick = (e) => {
-            this.moveX = Math.abs(e.detail.x) > this.data.deadzone ? e.detail.x : 0;
-            this.moveY = Math.abs(e.detail.y) > this.data.deadzone ? e.detail.y : 0;
-          };
-
-          this.onRightThumbstick = (e) => {
-            const x = e.detail.x;
-            if (!this.snapping && Math.abs(x) > 0.7) {
-              this.el.object3D.rotation.y += THREE.MathUtils.degToRad(
-                (x > 0 ? -1 : 1) * this.data.turnAngle,
-              );
-              this.snapping = true;
-            } else if (Math.abs(x) <= 0.3) {
-              this.snapping = false;
-            }
-          };
-
-          this.bindControllers = () => {
-            const left = document.getElementById("left-controller");
-            const right = document.getElementById("right-controller");
-            if (left) left.addEventListener("thumbstickmoved", this.onLeftThumbstick);
-            if (right) right.addEventListener("thumbstickmoved", this.onRightThumbstick);
-          };
-
-          this.unbindControllers = () => {
-            const left = document.getElementById("left-controller");
-            const right = document.getElementById("right-controller");
-            if (left) left.removeEventListener("thumbstickmoved", this.onLeftThumbstick);
-            if (right) right.removeEventListener("thumbstickmoved", this.onRightThumbstick);
-          };
-
-          this.el.sceneEl.addEventListener("enter-vr", this.bindControllers);
-          this.el.sceneEl.addEventListener("exit-vr", this.unbindControllers);
-          if (this.el.sceneEl.is("vr-mode")) this.bindControllers();
-        },
-
-        tick: function (_time, delta) {
-          if (!this.el.sceneEl.is("vr-mode")) return;
-          if (!this.moveX && !this.moveY) return;
-
-          if (!this.cameraEl) {
-            this.cameraEl = this.el.querySelector("[camera]");
-            if (!this.cameraEl) return;
-          }
-
-          this.cameraEl.object3D.getWorldQuaternion(this.worldQuat);
-          this.moveEuler.setFromQuaternion(this.worldQuat, "YXZ");
-          this.yawEuler.set(0, this.moveEuler.y, 0);
-
-          this.forward.set(0, 0, -1).applyEuler(this.yawEuler);
-          this.right.set(1, 0, 0).applyEuler(this.yawEuler);
-
-          const dt = delta / 1000;
-          this.el.object3D.position.addScaledVector(
-            this.forward,
-            -this.moveY * this.data.speed * dt,
-          );
-          this.el.object3D.position.addScaledVector(
-            this.right,
-            this.moveX * this.data.speed * dt,
-          );
-        },
-
-        remove: function () {
-          this.unbindControllers();
-          this.el.sceneEl.removeEventListener("enter-vr", this.bindControllers);
-          this.el.sceneEl.removeEventListener("exit-vr", this.unbindControllers);
-        },
-      });
-    </script>
+    <script crossorigin="anonymous" src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script src="/public/constellation.js"></script>
     <link data-trunk rel="copy-dir" href="public">
     <link data-trunk rel="rust" data-wasm-opt="z">
   </head>

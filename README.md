@@ -1,161 +1,145 @@
-# GraphMesh
+# MeshGraph
 
-GraphMesh is an interactive 3D knowledge graph prototype that demonstrates how
-semantic data can provide context, relationships, and navigable structure for a
-complex physical object.
-
-Using NASA's Sojourner rover as its subject, GraphMesh lets users explode the
-rover into selectable components, inspect graph-backed metadata, follow
-relationships between connected parts, and review the SPARQL queries driving the
-experience.
-
-**Developer:** [Mustakim Fire Masum](https://github.com/MustakimMasum)
-
-## Experience Highlights
-
-- Interactive assembled and exploded rover views
-- Selectable 3D components with semantic highlighting
-- Graph-backed component names, categories, purposes, power requirements, and
-  mission notes
-- Visual relationship highlighting and connection tethers
-- Oxigraph trace panel showing SPARQL queries, node hierarchy, and relationships
-- Desktop mouse, keyboard, zoom, and pan controls
-- WebXR capability detection, controller raycasting, and in-headset assembly
-- Graceful fallback to bundled demonstration coordinates if Oxigraph is
-  temporarily unavailable
+MeshGraph is a spatial research-citation explorer built with Rust, WebAssembly,
+Oxigraph, A-Frame, Three.js, WebXR, and MediaPipe. It ingests a DOI or arXiv
+identifier through OpenAlex and turns the resulting RDF citation network into an
+interactive 3D constellation.
 
 ## Architecture
 
-GraphMesh separates storage, application logic, and presentation into three
-layers.
+MeshGraph retains three isolated layers:
 
-### Knowledge Graph Layer
+1. **Knowledge graph** — Oxigraph persists `schema:ScholarlyArticle` resources,
+   `cito:cites` edges, publication dates, topics, abstracts, identifiers, and
+   open-access links in a named RDF graph.
+2. **Gateway** — Axum validates requests, reads OpenAlex, creates RDF through
+   Oxigraph RDF model types, submits SPARQL updates, and exposes typed citation,
+   co-citation, bibliographic-coupling, and paper APIs.
+3. **Spatial client** — Leptos CSR owns application state and semantic panels.
+   A custom A-Frame component owns a Three.js `InstancedMesh` for all nodes and
+   a single `LineSegments` buffer for all links.
 
-Oxigraph stores the rover graph as RDF and answers SPARQL queries. The included
-Turtle dataset models rover components, spatial offsets, metadata, and physical
-`connectedTo` relationships.
+The graph renderer does not create one DOM element per paper. Node selection is
+resolved with Three.js `instanceId` ray intersections, including WebXR controller
+rays.
 
-A one-shot Docker Compose service waits for Oxigraph to become available and
-automatically seeds the included graph.
+## API
 
-### Rust Gateway Layer
+### Ingest a citation neighborhood
 
-An Axum gateway provides a narrow HTTP API between the browser and Oxigraph. It
-constructs SPARQL queries, validates component identifiers, parses SPARQL JSON
-bindings into typed Rust structures, maps upstream failures to structured
-errors, and serves the compiled frontend.
+```http
+POST /api/v1/citations/ingest
+Content-Type: application/json
 
-Primary endpoints:
+{"doi":"10.48550/arXiv.1706.03762","depth":2}
+```
 
-- `GET /api/v1/health`
-- `GET /api/v1/structure`
-- `GET /api/v1/components/:component_name`
-- `GET /api/v1/components/:component_name/related`
+The `doi` field also accepts an arXiv ID, DOI URL, arXiv URL, or OpenAlex `W` ID.
+Depth is capped at 3 and each request is capped at 250 works to protect the free
+OpenAlex API and local database.
 
-### Spatial Presentation Layer
+### Read topology
 
-The frontend is a Leptos client-side application compiled from Rust to
-WebAssembly. A-Frame and Three.js render the rover and provide desktop and WebXR
-interaction.
+```http
+GET /api/v1/citations/graph
+GET /api/v1/citations/graph?mode=co-citation
+GET /api/v1/citations/graph?mode=bibliographic-coupling
+```
 
-Custom A-Frame components handle semantic highlighting, relationship tethers,
-camera controls, WebXR session state, and VR-only controls.
+The response is `{ "nodes": [...], "links": [...], "mode": "..." }`. Nodes
+include `id`, `title`, `year`, `topic`, and `citationCount`; weighted links expose
+the selected topology.
 
-## Technology Stack
+### Read a paper
 
-| Area | Technology |
-| --- | --- |
-| Knowledge graph | Oxigraph, RDF/Turtle, SPARQL |
-| Backend | Rust, Axum, Tokio |
-| HTTP and serialization | Reqwest, Serde, Serde JSON |
-| Frontend | Rust, Leptos CSR, WebAssembly |
-| 3D and XR | A-Frame, Three.js, WebXR |
-| Browser integration | `web-sys`, `gloo-net` |
-| Asset pipeline | STL, GLB, Node.js scripts |
-| Infrastructure | Docker, Docker Compose |
-| Build tooling | Cargo, Trunk |
-| Verification | Rust tests, Playwright |
+```http
+GET /api/v1/citations/paper/W2741809807
+```
 
-## Interaction
+The response contains RDF-backed metadata, abstract text, DOI, and the preferred
+open-access or landing-page URL supplied by OpenAlex.
 
-Click the assembled rover to explode it. In the exploded view:
+## Spatial rules
 
-- Click a component to highlight it and open its semantic metadata.
-- Review the Oxigraph trace beneath the semantic card.
-- Close the semantic card explicitly with its close button.
-- Use **Assemble Rover** at the bottom center to collapse the model.
+- Publication year is fixed to the local Z axis: older work is placed at negative
+  Z and newer work at positive Z.
+- Topics define X/Y cluster attractors. A bounded O(nodes + links) force pass
+  adjusts the cluster layout without quadratic pairwise repulsion.
+- Citation count controls node radius.
+- Citation nodes use one `THREE.InstancedMesh`; citation edges use one dynamic
+  `THREE.LineSegments` geometry.
+- Citation, co-citation, and bibliographic-coupling modes can be switched without
+  rebuilding the Leptos UI.
 
-Clicking the rover or empty scene does not assemble the rover or clear the
-current selection. In VR, use the in-headset assemble control.
+## Input modes
 
-## Run with Docker
+Desktop mouse/keyboard, WebXR controllers, and webcam gestures share the same
+scene:
+
+- **Open palm drag** rotates the constellation.
+- **Pinch** casts a Three.js ray and selects an instanced paper node.
+- **Two-hand spread** scales the constellation.
+- **Index sweep** filters visibility by publication year.
+- **WebXR controllers** raycast the instanced graph and use the left thumbstick
+  for locomotion.
+
+MediaPipe `HandLandmarker` runs in a module Web Worker. Frames use transferable
+`ImageBitmap` objects. Landmark coordinates use `SharedArrayBuffer` when the
+browser is cross-origin isolated, and transferred `ArrayBuffer` objects as a
+fallback. Raw frame-level landmarks never cross into Leptos/WASM; only macro
+events such as paper selection and year-filter changes do.
+
+The gateway sends `Cross-Origin-Opener-Policy: same-origin` and
+`Cross-Origin-Embedder-Policy: credentialless` so supported browsers can enable
+shared memory. Camera access requires `localhost` or HTTPS.
+
+## Run
+
+Optionally set `OPENALEX_EMAIL` to identify requests to the OpenAlex polite pool,
+then start the local stack:
 
 ```sh
 docker compose up --build
 ```
 
-Use `docker compose up -d --build` to run the stack in the background.
+Open `http://localhost:3000`. Oxigraph is exposed at `http://localhost:7878`.
+The Compose seed job loads a small research network so the scene is useful before
+the first live ingestion.
 
-Open `http://localhost:3000`. Oxigraph is available at
-`http://localhost:7878`, and the graph seed service loads the included Sojourner
-rover dataset automatically.
-
-## Local Development
-
-Install Rust, the WebAssembly target, and Trunk:
+For local development, install Trunk and the WASM target:
 
 ```sh
 rustup target add wasm32-unknown-unknown
 cargo install trunk --locked
-```
-
-Start Oxigraph and seed the graph:
-
-```sh
 docker compose up -d oxigraph_db graph_seed
-```
-
-Run the frontend and gateway in separate terminals:
-
-```sh
-trunk watch
+trunk build
 cargo run
 ```
 
-Then open `http://localhost:3000`.
+`trunk build` writes the CSR bundle to `dist/`; the Axum process serves that
+directory and the API on port 3000.
 
 ## Verification
 
 ```sh
 cargo fmt --check
 cargo check
+cargo check --target wasm32-unknown-unknown
 cargo test
 cargo clippy --all-targets --all-features -- -D warnings
+trunk build
 npm run test:webxr
 ```
 
-## Potential Applications
+Playwright tests expect a running MeshGraph stack at `http://127.0.0.1:3000`.
 
-The GraphMesh architecture can support:
+## Configuration
 
-- Museum and cultural heritage object exploration
-- Engineering assembly and maintenance documentation
-- Industrial equipment digital twins
-- Training simulations and spatial learning
-- Scientific instrument visualization
-- Semantic product catalogs
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `DATABASE_URL` | `http://localhost:7878/query` | Oxigraph SPARQL query endpoint |
+| `DATABASE_UPDATE_URL` | Derived as `/update` | Oxigraph SPARQL update endpoint |
+| `OPENALEX_EMAIL` | unset | Optional contact for OpenAlex requests |
 
-The rover is a focused demonstration subject. The underlying approach is
-designed to generalize to other graph-modeled physical systems.
-
-## Current Scope
-
-GraphMesh is a working prototype intended to demonstrate architecture,
-interaction, and knowledge graph integration. A production evolution could add
-authentication, graph authoring workflows, larger datasets, observability,
-continuous deployment, and public HTTPS hosting.
-
-The assembled rover uses the public-domain
-[Mars Sojourner Rover](https://www.printables.com/model/411486-mars-sojourner-rover)
-model reuploaded by Books from the original Blend Swap model by argonius.
-
+Generated `dist/` and `local_graph_store/` content should not be committed or
+edited manually.

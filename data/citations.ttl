@@ -1,0 +1,49 @@
+@prefix schema: <https://schema.org/> .
+@prefix cito: <http://purl.org/spar/cito/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix ex: <http://example.org/meshgraph/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://openalex.org/W1000000001>
+    a schema:ScholarlyArticle ;
+    schema:name "Attention Is All You Need" ;
+    dcterms:created "2017"^^xsd:gYear ;
+    schema:genre "article" ;
+    schema:about "Artificial intelligence" ;
+    schema:abstract "A sequence transduction architecture based entirely on attention mechanisms." ;
+    schema:identifier "https://doi.org/10.48550/arXiv.1706.03762" ;
+    schema:url <https://arxiv.org/pdf/1706.03762> ;
+    ex:citationCount "140000"^^xsd:integer ;
+    cito:cites <https://openalex.org/W1000000002>, <https://openalex.org/W1000000003> .
+
+<https://openalex.org/W1000000002>
+    a schema:ScholarlyArticle ;
+    schema:name "Neural Machine Translation by Jointly Learning to Align and Translate" ;
+    dcterms:created "2014"^^xsd:gYear ;
+    schema:genre "preprint" ;
+    schema:about "Natural language processing" ;
+    schema:identifier "https://doi.org/10.48550/arXiv.1409.0473" ;
+    schema:url <https://arxiv.org/pdf/1409.0473> ;
+    ex:citationCount "45000"^^xsd:integer ;
+    cito:cites <https://openalex.org/W1000000004> .
+
+<https://openalex.org/W1000000003>
+    a schema:ScholarlyArticle ;
+    schema:name "Effective Approaches to Attention-based Neural Machine Translation" ;
+    dcterms:created "2015"^^xsd:gYear ;
+    schema:genre "conference paper" ;
+    schema:about "Natural language processing" ;
+    schema:identifier "https://doi.org/10.48550/arXiv.1508.04025" ;
+    schema:url <https://arxiv.org/pdf/1508.04025> ;
+    ex:citationCount "21000"^^xsd:integer ;
+    cito:cites <https://openalex.org/W1000000002>, <https://openalex.org/W1000000004> .
+
+<https://openalex.org/W1000000004>
+    a schema:ScholarlyArticle ;
+    schema:name "Sequence to Sequence Learning with Neural Networks" ;
+    dcterms:created "2014"^^xsd:gYear ;
+    schema:genre "conference paper" ;
+    schema:about "Machine learning" ;
+    schema:identifier "https://doi.org/10.48550/arXiv.1409.3215" ;
+    schema:url <https://arxiv.org/pdf/1409.3215> ;
+    ex:citationCount "38000"^^xsd:integer .

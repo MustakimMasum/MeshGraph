@@ -21,8 +21,8 @@ services:
         do sleep 2; done;
         curl --fail --request PUT
         --header "Content-Type: text/turtle"
-        --data-binary @/seed/sojourner.ttl
-        "http://oxigraph_db:7878/store?default"
+        --data-binary @/seed/citations.ttl
+        "http://oxigraph_db:7878/store?graph=http%3A%2F%2Fexample.org%2Fmeshgraph%2Fgraphs%2Fcitations"
     restart: "no"
 
   axum_gateway:
@@ -33,6 +33,8 @@ services:
         condition: service_completed_successfully
     environment:
       DATABASE_URL: http://oxigraph_db:7878/query
+      DATABASE_UPDATE_URL: http://oxigraph_db:7878/update
+      OPENALEX_EMAIL: ${OPENALEX_EMAIL:-}
     ports:
       - "3000:3000"
     restart: unless-stopped

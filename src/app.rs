@@ -1,824 +1,426 @@
 use gloo_net::http::Request;
 use leptos::*;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
+use wasm_bindgen::{closure::Closure, JsCast, JsValue};
 use wasm_bindgen_futures::spawn_local;
-use web_sys::window;
+use web_sys::{window, CustomEvent, CustomEventInit, EventTarget};
 
-#[derive(Clone)]
-struct StructureLoad {
-    bindings: Vec<StructureBinding>,
-    notice: Option<String>,
-}
-
-#[derive(Clone, Debug, Deserialize)]
-struct StructureBinding {
-    #[serde(rename = "partName")]
-    part_name: SparqlValue,
-    x: SparqlValue,
-    y: SparqlValue,
-    z: SparqlValue,
-}
-
-#[derive(Clone, Debug, Deserialize)]
-struct SparqlValue {
-    value: String,
+#[derive(Clone, Debug, Default, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct PaperMetadata {
+    id: String,
+    title: String,
+    year: Option<i32>,
+    topic: Option<String>,
+    genre: Option<String>,
+    abstract_text: Option<String>,
+    doi: Option<String>,
+    pdf_url: Option<String>,
+    citation_count: u64,
 }
 
 #[derive(Clone, Debug, Default, Deserialize)]
-struct ComponentMetadata {
-    component_name: String,
-    display_name: String,
-    category: Option<String>,
-    purpose: Option<String>,
-    power_requirement: Option<String>,
-    mission_note: Option<String>,
+struct GraphStats {
+    nodes: usize,
+    links: usize,
+    mode: String,
 }
 
-async fn fetch_structure() -> Result<StructureLoad, String> {
-    let response = Request::get("/api/v1/structure")
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct IngestionSummary {
+    works_ingested: usize,
+    citation_links: usize,
+    truncated: bool,
+}
+
+#[derive(Serialize)]
+struct IngestRequest {
+    doi: String,
+    depth: u8,
+}
+
+async fn fetch_paper(id: &str) -> Result<PaperMetadata, String> {
+    let response = Request::get(&format!("/api/v1/citations/paper/{id}"))
         .send()
         .await
-        .map_err(|error| format!("Gateway request failed: {error}"))?;
-
+        .map_err(|error| format!("Paper request failed: {error}"))?;
     if !response.ok() {
-        return Ok(StructureLoad {
-            bindings: demo_structure(),
-            notice: Some("Oxigraph unavailable; using bundled demo coordinates.".to_owned()),
-        });
+        return Err(format!(
+            "Paper metadata returned HTTP {}",
+            response.status()
+        ));
     }
-
-    let bindings = response
-        .json::<Vec<StructureBinding>>()
+    response
+        .json::<PaperMetadata>()
         .await
-        .map_err(|error| format!("Invalid gateway response: {error}"))?;
+        .map_err(|error| format!("Invalid paper metadata: {error}"))
+}
 
-    Ok(StructureLoad {
-        bindings,
-        notice: None,
+async fn ingest_network(identifier: String, depth: u8) -> Result<IngestionSummary, String> {
+    let payload = serde_json::to_string(&IngestRequest {
+        doi: identifier,
+        depth,
     })
-}
-
-fn demo_structure() -> Vec<StructureBinding> {
-    [
-        ("BodyAssembly", "0.0", "-0.3", "0.0"),
-        ("Antenna", "-2.6", "-0.3", "0.0"),
-        ("RightSuspension", "0.0", "-0.9", "2.2"),
-        ("LeftSuspension", "0.0", "-0.9", "-2.2"),
-        ("WheelRearRight", "-1.4", "-1.0", "2.8"),
-        ("WheelMiddleRight", "0.0", "-1.0", "2.8"),
-        ("WheelFrontRight", "1.4", "-1.0", "2.8"),
-        ("WheelRearLeft", "-1.4", "-1.0", "-2.8"),
-        ("WheelMiddleLeft", "0.0", "-1.0", "-2.8"),
-        ("WheelFrontLeft", "1.4", "-1.0", "-2.8"),
-        ("Drill", "3.2", "-0.4", "0.0"),
-    ]
-    .into_iter()
-    .map(|(part_name, x, y, z)| StructureBinding {
-        part_name: SparqlValue {
-            value: part_name.to_owned(),
-        },
-        x: SparqlValue {
-            value: x.to_owned(),
-        },
-        y: SparqlValue {
-            value: y.to_owned(),
-        },
-        z: SparqlValue {
-            value: z.to_owned(),
-        },
-    })
-    .collect()
-}
-
-fn animate_components(components: &[StructureBinding], exploded: bool) {
-    let Some(document) = window().and_then(|window| window.document()) else {
-        return;
-    };
-
-    if let Some(assembled_rover) = document.get_element_by_id("assembled-rover") {
-        let _ = assembled_rover.set_attribute("visible", if exploded { "false" } else { "true" });
-    }
-    if let Some(graph_parts) = document.get_element_by_id("graph-parts") {
-        let _ = graph_parts.set_attribute("visible", if exploded { "true" } else { "false" });
-        let graph_description = components
-            .iter()
-            .map(|component| {
-                format!(
-                    "{}:{} {} {}",
-                    component.part_name.value,
-                    component.x.value,
-                    component.y.value,
-                    component.z.value
-                )
-            })
-            .collect::<Vec<_>>()
-            .join("|");
-        let _ = graph_parts.set_attribute("data-graph-parts", &graph_description);
-    }
-
-    let exploded_parts = [
-        ("ExplodedBody", "0 -0.9 0", "0 -0.9 0"),
-        ("ExplodedAntenna", "0 -0.9 0", "-2.6 -0.9 0"),
-        ("ExplodedRightWheelAssembly", "0 0 0", "0 0 1.3"),
-        ("ExplodedLeftWheelAssembly", "0 0 0", "0 0 -1.3"),
-        ("ExplodedDrill", "0 -0.4 0", "3.2 -0.4 0"),
-    ];
-
-    for (id, assembled_position, exploded_position) in exploded_parts {
-        let Some(element) = document.get_element_by_id(id) else {
-            continue;
-        };
-        let target = if exploded {
-            exploded_position
-        } else {
-            assembled_position
-        };
-        let animation =
-            format!("property: position; to: {target}; dur: 1100; easing: easeOutElastic;");
-        let _ = element.set_attribute("animation__position", &animation);
-    }
-}
-
-fn explode_rover(
-    is_exploded: ReadSignal<bool>,
-    set_exploded: WriteSignal<bool>,
-    components: ReadSignal<Vec<StructureBinding>>,
-) {
-    if is_exploded.get_untracked() {
-        return;
-    }
-
-    set_exploded.set(true);
-    animate_components(&components.get_untracked(), true);
-}
-
-fn set_semantic_selection(
-    previous_id: Option<&str>,
-    previous_related: &[String],
-    element_id: Option<&str>,
-) {
-    let Some(document) = window().and_then(|window| window.document()) else {
-        return;
-    };
-
-    if let Some(previous_id) = previous_id {
-        if let Some(previous) = document.get_element_by_id(previous_id) {
-            let _ = previous.set_attribute("semantic-highlight", "state: none");
-        }
-    }
-
-    for related_name in previous_related {
-        if let Ok(Some(related)) =
-            document.query_selector(&format!("[data-component-name='{}']", related_name))
-        {
-            let _ = related.set_attribute("semantic-highlight", "state: none");
-            let related_id = related.id();
-            if let Some(tether) = document.get_element_by_id(&format!("tether-{related_id}")) {
-                tether.remove();
-            }
-        }
-    }
-
-    let Some(element_id) = element_id else {
-        return;
-    };
-
-    if let Some(selected) = document.get_element_by_id(element_id) {
-        let _ = selected.set_attribute("semantic-highlight", "state: active");
-    }
-}
-
-fn set_related_highlights(element_id: &str, related_elements: &[String]) {
-    let Some(document) = window().and_then(|window| window.document()) else {
-        return;
-    };
-    let Some(scene) = document.get_element_by_id("rover-scene") else {
-        return;
-    };
-
-    for related_name in related_elements {
-        if let Ok(Some(related)) =
-            document.query_selector(&format!("[data-component-name='{}']", related_name))
-        {
-            let _ = related.set_attribute("semantic-highlight", "state: related");
-            let related_id = related.id();
-
-            if let Ok(tether) = document.create_element("a-entity") {
-                tether.set_id(&format!("tether-{related_id}"));
-                let _ = tether.set_attribute(
-                    "connection-tether",
-                    &format!("source: #{element_id}; target: #{related_id}; color: #ff9900"),
-                );
-                let _ = scene.append_child(&tether);
-            }
-        }
-    }
-}
-
-fn select_component(
-    component_name: &'static str,
-    element_id: &'static str,
-    selected_element: ReadSignal<Option<String>>,
-    set_selected_element: WriteSignal<Option<String>>,
-    set_metadata: WriteSignal<ComponentMetadata>,
-    related_elements: ReadSignal<Vec<String>>,
-    set_related_elements: WriteSignal<Vec<String>>,
-) {
-    let previous = selected_element.get_untracked();
-    let previous_related = related_elements.get_untracked();
-    set_semantic_selection(previous.as_deref(), &previous_related, Some(element_id));
-    set_selected_element.set(Some(element_id.to_owned()));
-    set_related_elements.set(vec![]);
-    set_metadata.set(ComponentMetadata {
-        component_name: component_name.to_owned(),
-        display_name: "Loading semantic context...".to_owned(),
-        ..ComponentMetadata::default()
-    });
-
-    spawn_local(async move {
-        let metadata = match Request::get(&format!("/api/v1/components/{component_name}"))
-            .send()
+    .map_err(|error| format!("Unable to prepare ingestion request: {error}"))?;
+    let response = Request::post("/api/v1/citations/ingest")
+        .header("content-type", "application/json")
+        .body(payload)
+        .map_err(|error| format!("Unable to build ingestion request: {error}"))?
+        .send()
+        .await
+        .map_err(|error| format!("Ingestion request failed: {error}"))?;
+    if !response.ok() {
+        let message = response
+            .text()
             .await
-        {
-            Ok(response) if response.ok() => response
-                .json::<ComponentMetadata>()
-                .await
-                .unwrap_or_else(|_| ComponentMetadata {
-                    component_name: component_name.to_owned(),
-                    display_name: "Metadata response could not be parsed".to_owned(),
-                    ..ComponentMetadata::default()
-                }),
-            _ => ComponentMetadata {
-                component_name: component_name.to_owned(),
-                display_name: "Semantic metadata unavailable".to_owned(),
-                ..ComponentMetadata::default()
-            },
-        };
-        set_metadata.set(metadata);
-
-        if let Ok(response) = Request::get(&format!("/api/v1/components/{component_name}/related"))
-            .send()
-            .await
-        {
-            if response.ok() {
-                if let Ok(related) = response.json::<Vec<String>>().await {
-                    set_related_highlights(element_id, &related);
-                    set_related_elements.set(related);
-                }
-            }
-        }
-    });
+            .unwrap_or_else(|_| "Unknown ingestion error".to_owned());
+        return Err(message);
+    }
+    response
+        .json::<IngestionSummary>()
+        .await
+        .map_err(|error| format!("Invalid ingestion response: {error}"))
 }
 
-fn assemble_rover(
-    set_exploded: WriteSignal<bool>,
-    components: ReadSignal<Vec<StructureBinding>>,
-    selected_element: ReadSignal<Option<String>>,
-    set_selected_element: WriteSignal<Option<String>>,
-    related_elements: ReadSignal<Vec<String>>,
-    set_related_elements: WriteSignal<Vec<String>>,
-) {
-    set_semantic_selection(
-        selected_element.get_untracked().as_deref(),
-        &related_elements.get_untracked(),
-        None,
-    );
-    set_selected_element.set(None);
-    set_related_elements.set(vec![]);
-    set_exploded.set(false);
-    animate_components(&components.get_untracked(), false);
-}
-
-fn component_breadcrumb(component_name: &str) -> Vec<String> {
-    let parent = match component_name {
-        "WheelFrontLeft" | "WheelMiddleLeft" | "WheelRearLeft" => Some("LeftSuspension"),
-        "WheelFrontRight" | "WheelMiddleRight" | "WheelRearRight" => Some("RightSuspension"),
-        _ => None,
+fn dispatch_macro_event(name: &str, detail: &str) {
+    let Some(window) = window() else {
+        return;
     };
+    let options = CustomEventInit::new();
+    options.set_detail(&JsValue::from_str(detail));
+    if let Ok(event) = CustomEvent::new_with_event_init_dict(name, &options) {
+        let _ = window.dispatch_event(&event);
+    }
+}
 
-    ["SojournerRover", parent.unwrap_or_default(), component_name]
-        .into_iter()
-        .filter(|segment| !segment.is_empty())
-        .map(str::to_owned)
-        .collect()
+fn shortened_title(title: &str) -> String {
+    const MAX_CHARS: usize = 72;
+    if title.chars().count() <= MAX_CHARS {
+        return title.to_owned();
+    }
+    format!("{}…", title.chars().take(MAX_CHARS).collect::<String>())
 }
 
 #[component]
 pub fn App() -> impl IntoView {
-    let (components, set_components) = create_signal(Vec::<StructureBinding>::new());
-    let (load_error, set_load_error) = create_signal(None::<String>);
-    let (is_exploded, set_exploded) = create_signal(false);
-    let (selected_element, set_selected_element) = create_signal(None::<String>);
-    let (metadata, set_metadata) = create_signal(ComponentMetadata::default());
-    let (related_elements, set_related_elements) = create_signal(Vec::<String>::new());
+    let (selected_paper, set_selected_paper) = create_signal::<Option<PaperMetadata>>(None);
+    let (paper_loading, set_paper_loading) = create_signal(false);
+    let (graph_stats, set_graph_stats) = create_signal(GraphStats::default());
+    let (graph_mode, set_graph_mode) = create_signal("citations".to_owned());
+    let (year_filter, set_year_filter) = create_signal("All publication years".to_owned());
+    let (gesture_status, set_gesture_status) = create_signal("Gesture camera is off".to_owned());
+    let (identifier, set_identifier) = create_signal(String::new());
+    let (depth, set_depth) = create_signal(1_u8);
+    let (ingesting, set_ingesting) = create_signal(false);
+    let (notice, set_notice) = create_signal::<Option<String>>(None);
 
-    let structure = create_local_resource(|| (), |_| fetch_structure());
-    create_effect(move |_| {
-        if let Some(result) = structure.get() {
-            match result {
-                Ok(load) => {
-                    set_components.set(load.bindings);
-                    set_load_error.set(load.notice);
+    if let Some(browser_window) = window() {
+        let event_target: EventTarget = browser_window.into();
+
+        let selected_callback =
+            Closure::<dyn FnMut(CustomEvent)>::new(move |event: CustomEvent| {
+                let id: String = match event.detail().as_string() {
+                    Some(value) => value,
+                    None => return,
+                };
+                set_paper_loading.set(true);
+                spawn_local(async move {
+                    match fetch_paper(&id).await {
+                        Ok(paper) => {
+                            set_selected_paper.set(Some(paper));
+                            set_notice.set(None);
+                        }
+                        Err(error) => set_notice.set(Some(error)),
+                    }
+                    set_paper_loading.set(false);
+                });
+            });
+        let stats_callback = Closure::<dyn FnMut(CustomEvent)>::new(move |event: CustomEvent| {
+            let payload: Option<String> = event.detail().as_string();
+            if let Some(payload) = payload {
+                if let Ok(stats) = serde_json::from_str::<GraphStats>(&payload) {
+                    set_graph_stats.set(stats);
                 }
-                Err(error) => set_load_error.set(Some(error)),
             }
+        });
+        let gesture_callback = Closure::<dyn FnMut(CustomEvent)>::new(move |event: CustomEvent| {
+            if let Some(status) = event.detail().as_string() {
+                set_gesture_status.set(status);
+            }
+        });
+        let filter_callback = Closure::<dyn FnMut(CustomEvent)>::new(move |event: CustomEvent| {
+            if let Some(filter) = event.detail().as_string() {
+                set_year_filter.set(filter);
+            }
+        });
+
+        let _ = event_target.add_event_listener_with_callback(
+            "citation-node-selected",
+            selected_callback.as_ref().unchecked_ref(),
+        );
+        let _ = event_target.add_event_listener_with_callback(
+            "citation-graph-loaded",
+            stats_callback.as_ref().unchecked_ref(),
+        );
+        let _ = event_target.add_event_listener_with_callback(
+            "citation-gesture-status",
+            gesture_callback.as_ref().unchecked_ref(),
+        );
+        let _ = event_target.add_event_listener_with_callback(
+            "citation-year-filter",
+            filter_callback.as_ref().unchecked_ref(),
+        );
+
+        on_cleanup(move || {
+            let _ = event_target.remove_event_listener_with_callback(
+                "citation-node-selected",
+                selected_callback.as_ref().unchecked_ref(),
+            );
+            let _ = event_target.remove_event_listener_with_callback(
+                "citation-graph-loaded",
+                stats_callback.as_ref().unchecked_ref(),
+            );
+            let _ = event_target.remove_event_listener_with_callback(
+                "citation-gesture-status",
+                gesture_callback.as_ref().unchecked_ref(),
+            );
+            let _ = event_target.remove_event_listener_with_callback(
+                "citation-year-filter",
+                filter_callback.as_ref().unchecked_ref(),
+            );
+        });
+    }
+
+    let ingest = move |_| {
+        let requested_identifier = identifier.get().trim().to_owned();
+        if requested_identifier.is_empty() || ingesting.get_untracked() {
+            set_notice.set(Some("Enter a DOI or arXiv identifier first.".to_owned()));
+            return;
         }
-    });
+        set_ingesting.set(true);
+        set_notice.set(Some(
+            "Reading the citation neighborhood from OpenAlex…".to_owned(),
+        ));
+        let requested_depth = depth.get_untracked();
+        spawn_local(async move {
+            match ingest_network(requested_identifier, requested_depth).await {
+                Ok(summary) => {
+                    let suffix = if summary.truncated {
+                        " The safety limit was reached."
+                    } else {
+                        ""
+                    };
+                    set_notice.set(Some(format!(
+                        "Ingested {} papers and {} citation links.{suffix}",
+                        summary.works_ingested, summary.citation_links
+                    )));
+                    dispatch_macro_event("citation-graph-reload", "");
+                }
+                Err(error) => set_notice.set(Some(error)),
+            }
+            set_ingesting.set(false);
+        });
+    };
 
     view! {
-        <main>
-            <div
-                style="position: fixed; z-index: 10; top: 1rem; left: 1rem; width: min(20rem, calc(100vw - 2rem)); box-sizing: border-box; padding: 0.85rem 1rem; color: #17324d; background: rgba(255, 255, 255, 0.82); border: 1px solid rgba(23, 50, 77, 0.15); border-radius: 0.5rem; font-family: monospace; font-size: 0.8rem; line-height: 1.5; box-shadow: 0 0.5rem 2rem rgba(23, 50, 77, 0.12);"
-            >
-                <strong style="display: block; font-size: 1.2rem;">"SOJOURNER ROVER"</strong>
-                <p style="margin: 0.35rem 0 0;">"Click the rover to toggle the exploded graph view."</p>
-                {move || load_error.get().map(|error| view! {
-                    <p style="margin: 0.35rem 0 0;">{error}</p>
-                })}
-            </div>
-            <div
-                style="position: fixed; z-index: 10; top: 1rem; right: 1rem; width: min(15rem, calc(100vw - 2rem)); box-sizing: border-box; padding: 0.85rem 1rem; color: #17324d; background: rgba(255, 255, 255, 0.82); border: 1px solid rgba(23, 50, 77, 0.15); border-radius: 0.5rem; font-family: monospace; font-size: 0.8rem; line-height: 1.5; box-shadow: 0 0.5rem 2rem rgba(23, 50, 77, 0.12);"
-            >
-                <strong style="display: block; margin-bottom: 0.35rem; font-size: 0.9rem;">"NAVIGATION"</strong>
-                <div>"W A S D  Move"</div>
-                <div>"E / C  Up / Down"</div>
-                <div>"Left Mouse  Look"</div>
-                <div>"Scroll  Zoom"</div>
-                <div>"Middle Mouse drag  Pan"</div>
-            </div>
-            <div
-                style="position: fixed; z-index: 11; right: 1rem; bottom: 1rem; display: flex; align-items: flex-end; flex-direction: column; gap: 0.35rem; font-family: monospace; font-size: 0.8rem;"
-            >
-                <button
-                    id="enter-vr-button"
-                    type="button"
-                    disabled=true
-                    aria-label="Enter VR"
-                    title="Enter VR"
-                    style="display: grid; place-items: center; width: 3rem; height: 3rem; padding: 0; border: 1px solid #17324d; border-radius: 0.5rem; color: #ffffff; background: #17324d; font: inherit; cursor: pointer;"
-                >
-                    <svg
-                        aria-hidden="true"
-                        viewBox="0 0 24 24"
-                        width="26"
-                        height="26"
-                        fill="currentColor"
-                    >
-                        <path
-                            fill-rule="evenodd"
-                            d="M4 5.5h16a2 2 0 0 1 2 2v8.25a2 2 0 0 1-2 2h-3.1a2 2 0 0 1-1.42-.59l-2.07-2.07a2 2 0 0 0-2.82 0l-2.07 2.07a2 2 0 0 1-1.42.59H4a2 2 0 0 1-2-2V7.5a2 2 0 0 1 2-2Zm4.25 8a2.75 2.75 0 1 0 0-5.5 2.75 2.75 0 0 0 0 5.5Zm7.5 0a2.75 2.75 0 1 0 0-5.5 2.75 2.75 0 0 0 0 5.5Z"
-                        ></path>
-                    </svg>
-                </button>
-                <span id="vr-status" style="color: #17324d; font-size: 0.75rem;">
-                    "Checking WebXR..."
-                </span>
-            </div>
-            <Show when=move || is_exploded.get()>
-                <button
-                    id="assemble-rover-button"
-                    type="button"
-                    on:click=move |_| {
-                        assemble_rover(
-                            set_exploded,
-                            components,
-                            selected_element,
-                            set_selected_element,
-                            related_elements,
-                            set_related_elements,
-                        )
-                    }
-                    style="position: fixed; z-index: 11; left: 50%; bottom: 1rem; transform: translateX(-50%); min-width: 10rem; padding: 0.75rem 1.1rem; border: 1px solid #17324d; border-radius: 0.5rem; color: #ffffff; background: #17324d; font-family: monospace; font-size: 0.8rem; font-weight: bold; cursor: pointer; box-shadow: 0 0.5rem 2rem rgba(23, 50, 77, 0.18);"
-                >
-                    "Assemble Rover"
-                </button>
-            </Show>
-            <Show when=move || selected_element.get().is_some()>
-                <div
-                    id="selection-panel-stack"
-                    style="position: fixed; z-index: 12; left: 1rem; top: 8.5rem; width: min(20rem, calc(100vw - 2rem)); max-height: calc(100vh - 9.5rem); display: flex; flex-direction: column; gap: 0.75rem; overflow-y: auto; padding-right: 0.25rem; box-sizing: border-box;"
-                >
-                <aside
-                    id="semantic-panel"
-                    style="position: relative; flex: none; width: 100%; box-sizing: border-box; padding: 0.85rem 1rem; color: #e6fff0; background: rgba(7, 27, 24, 0.94); border: 1px solid rgba(0, 255, 102, 0.45); border-radius: 0.5rem; font-family: monospace; font-size: 0.8rem; line-height: 1.5; box-shadow: 0 0.75rem 2.5rem rgba(7, 27, 24, 0.3); backdrop-filter: blur(0.5rem);"
-                >
-                    <button
-                        id="close-semantic-panel"
-                        type="button"
-                        aria-label="Close semantic context"
-                        on:click=move |_| {
-                            set_semantic_selection(
-                                selected_element.get_untracked().as_deref(),
-                                &related_elements.get_untracked(),
-                                None,
-                            );
-                            set_selected_element.set(None);
-                            set_related_elements.set(vec![]);
+        <main id="app-shell">
+            <header class="topbar">
+                <div class="brand-lockup">
+                    <span class="brand-mark">"M"</span>
+                    <div>
+                        <h1>"MeshGraph"</h1>
+                        <p>"Research Citation Constellation"</p>
+                    </div>
+                </div>
+                <form class="ingest-form" on:submit=move |event| {
+                    event.prevent_default();
+                    ingest(event);
+                }>
+                    <input
+                        aria-label="DOI or arXiv identifier"
+                        placeholder="DOI or arXiv ID"
+                        prop:value=identifier
+                        on:input=move |event| set_identifier.set(event_target_value(&event))
+                    />
+                    <select
+                        aria-label="Citation depth"
+                        on:change=move |event| {
+                            set_depth.set(event_target_value(&event).parse().unwrap_or(1));
                         }
-                        style="position: absolute; top: 0.65rem; right: 0.65rem; width: 1.75rem; height: 1.75rem; padding: 0; color: #80ffb0; background: transparent; border: 1px solid rgba(128, 255, 176, 0.45); border-radius: 0.3rem; font: inherit; cursor: pointer;"
                     >
-                        "X"
+                        <option value="1">"1 hop"</option>
+                        <option value="2">"2 hops"</option>
+                        <option value="3">"3 hops"</option>
+                    </select>
+                    <button type="submit" disabled=ingesting>
+                        {move || if ingesting.get() { "Mapping…" } else { "Map constellation" }}
                     </button>
-                    <div style="padding-right: 2.2rem;">
-                        <strong
-                            id="semantic-panel-title"
-                            style="display: block; color: #00ff66; font-size: 1rem; line-height: 1.4;"
-                        >
-                            {move || metadata.get().display_name}
-                        </strong>
-                        <div
-                            id="semantic-panel-id"
-                            style="margin-top: 0.25rem; color: #80ffb0; font-size: 0.75rem;"
-                        >
-                            {move || format!("ID  {}", metadata.get().component_name)}
-                        </div>
-                    </div>
-                    <div style="height: 1px; margin: 0.8rem 0; background: rgba(0, 255, 102, 0.3);"></div>
-                    <div id="semantic-panel-details" style="display: grid; gap: 0.65rem; font-size: 0.78rem; line-height: 1.45;">
-                        {move || metadata.get().category.map(|value| view! {
-                            <div><strong style="color: #80ffb0;">"TYPE  "</strong>{value}</div>
+                </form>
+                <button
+                    id="gesture-toggle"
+                    class="secondary-button"
+                    type="button"
+                    on:click=move |_| dispatch_macro_event("citation-gesture-toggle", "")
+                >
+                    "Hand gestures"
+                </button>
+            </header>
+
+            <section class="hud-panel graph-overview" aria-label="Graph overview">
+                <span class="eyebrow">"LIVE RDF TOPOLOGY"</span>
+                <strong>{move || format!("{} papers", graph_stats.get().nodes)}</strong>
+                <span>{move || format!("{} relationships", graph_stats.get().links)}</span>
+                <span>{move || format!("{} topology", graph_stats.get().mode)}</span>
+                <span>{move || year_filter.get()}</span>
+                <span class="gesture-state">{move || gesture_status.get()}</span>
+            </section>
+
+            <nav class="mode-switcher" aria-label="Topology mode">
+                {[
+                    ("citations", "Citations"),
+                    ("co-citation", "Co-citation"),
+                    ("bibliographic-coupling", "Coupling"),
+                ]
+                .into_iter()
+                .map(|(mode, label)| view! {
+                    <button
+                        type="button"
+                        class:active=move || graph_mode.get() == mode
+                        on:click=move |_| {
+                            set_graph_mode.set(mode.to_owned());
+                            set_selected_paper.set(None);
+                        }
+                    >{label}</button>
+                })
+                .collect_view()}
+            </nav>
+
+            <Show when=move || notice.get().is_some()>
+                <div class="notice" role="status">
+                    {move || notice.get().unwrap_or_default()}
+                    <button type="button" aria-label="Dismiss" on:click=move |_| set_notice.set(None)>
+                        "×"
+                    </button>
+                </div>
+            </Show>
+
+            <Show when=move || selected_paper.get().is_some() || paper_loading.get()>
+                <aside id="paper-panel" class="hud-panel paper-panel">
+                    <button
+                        class="panel-close"
+                        type="button"
+                        aria-label="Close paper details"
+                        on:click=move |_| {
+                            set_selected_paper.set(None);
+                            dispatch_macro_event("citation-selection-clear", "");
+                        }
+                    >"×"</button>
+                    <Show
+                        when=move || !paper_loading.get()
+                        fallback=|| view! { <p class="loading">"Resolving RDF metadata…"</p> }
+                    >
+                        {move || selected_paper.get().map(|paper| view! {
+                            <span class="eyebrow">{paper.id.clone()}</span>
+                            <h2>{paper.title.clone()}</h2>
+                            <div class="paper-facts">
+                                <span>{paper.year.map(|year| year.to_string()).unwrap_or_else(|| "Year unknown".to_owned())}</span>
+                                <span>{paper.topic.clone().unwrap_or_else(|| "Unclassified".to_owned())}</span>
+                                <span>{format!("{} citations", paper.citation_count)}</span>
+                            </div>
+                            <p>{paper.abstract_text.clone().unwrap_or_else(|| "No abstract is available in OpenAlex for this record.".to_owned())}</p>
+                            <div class="paper-links">
+                                <Show when={
+                                    let paper = paper.clone();
+                                    move || paper.pdf_url.is_some()
+                                }>
+                                    <a href=paper.pdf_url.clone().unwrap_or_default() target="_blank" rel="noreferrer">"Open paper"</a>
+                                </Show>
+                                <span>{paper.genre.clone().unwrap_or_else(|| "scholarly article".to_owned())}</span>
+                                <span>{paper.doi.clone().unwrap_or_default()}</span>
+                            </div>
                         })}
-                        {move || metadata.get().purpose.map(|value| view! {
-                            <div><strong style="color: #80ffb0;">"ROLE  "</strong>{value}</div>
-                        })}
-                        {move || metadata.get().power_requirement.map(|value| view! {
-                            <div><strong style="color: #80ffb0;">"POWER "</strong>{value}</div>
-                        })}
-                        {move || metadata.get().mission_note.map(|value| view! {
-                            <div><strong style="color: #80ffb0;">"LOG   "</strong>{value}</div>
-                        })}
-                    </div>
+                    </Show>
                 </aside>
-                <aside
-                    id="oxigraph-trace"
-                    style="position: relative; flex: none; width: 100%; box-sizing: border-box; padding: 0.9rem 1rem; color: rgba(23, 50, 77, 0.88); background: rgba(239, 255, 246, 0.94); border: 1px solid rgba(0, 166, 81, 0.2); border-radius: 0.5rem; font-family: monospace; font-size: 0.85rem; line-height: 1.55; box-shadow: 0 0.5rem 2rem rgba(23, 50, 77, 0.14); backdrop-filter: blur(0.4rem); pointer-events: none;"
-                >
-                <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.45rem;">
-                    <strong style="color: #17324d; font-size: 0.9rem; letter-spacing: 0.08em;">
-                        "OXIGRAPH"
-                    </strong>
-                    <span style="color: rgba(23, 50, 77, 0.68); font-size: 0.72rem;">"SPARQL RESULT GRAPH"</span>
-                </div>
-                <div
-                    id="oxigraph-breadcrumb"
-                    style="display: flex; flex-wrap: wrap; gap: 0.25rem; margin-bottom: 0.45rem; color: rgba(23, 50, 77, 0.72);"
-                >
-                    {move || {
-                        let component_name = selected_element
-                            .get()
-                            .map(|_| metadata.get().component_name)
-                            .unwrap_or_default();
-                        if component_name.is_empty() {
-                            view! { <span>"SojournerRover"</span> }.into_view()
-                        } else {
-                            component_breadcrumb(&component_name)
-                                .into_iter()
-                                .enumerate()
-                                .map(|(index, segment)| view! {
-                                    {if index > 0 {
-                                        view! { <span style="opacity: 0.45;">"›"</span> }.into_view()
-                                    } else {
-                                        ().into_view()
-                                    }}
-                                    <span>{segment}</span>
-                                })
-                                .collect_view()
-                                .into_view()
-                        }
-                    }}
-                </div>
-                <code
-                    id="oxigraph-query"
-                    style="display: block; margin-bottom: 0.45rem; color: rgba(23, 50, 77, 0.66); white-space: normal;"
-                >
-                    {move || {
-                        let component_name = selected_element
-                            .get()
-                            .map(|_| metadata.get().component_name)
-                            .unwrap_or_default();
-                        if component_name.is_empty() {
-                            "SELECT ?part ?x ?y ?z WHERE { SojournerRover hasPart ?part . ?part offsetX ?x ; offsetY ?y ; offsetZ ?z . }".to_owned()
-                        } else {
-                            format!("SELECT ?predicate ?value WHERE {{ {component_name} ?predicate ?value . }}")
-                        }
-                    }}
-                </code>
-                <div id="oxigraph-relationships" style="display: grid; gap: 0.18rem;">
-                    {move || {
-                        let selected_metadata = metadata.get();
-                        let component_name = selected_element
-                            .get()
-                            .map(|_| selected_metadata.component_name.clone())
-                            .unwrap_or_default();
-                        let related = related_elements.get();
-                        if component_name.is_empty() {
-                            view! {
-                                <span>"SojournerRover —hasPart→ "{components.get().len()}" nodes"</span>
-                            }.into_view()
-                        } else {
-                            let mut triples = Vec::new();
-                            if let Some(category) = selected_metadata.category {
-                                triples.push(format!("{component_name} —category→ {category}"));
-                            }
-                            if let Some(power) = selected_metadata.power_requirement {
-                                triples.push(format!("{component_name} —powerRequirement→ {power}"));
-                            }
-                            triples.extend(
-                                related
-                                .into_iter()
-                                .map(|related_name| format!("{component_name} —connectedTo→ {related_name}")),
-                            );
-                            if triples.is_empty() {
-                                triples.push(format!("{component_name} —querying→ relationships"));
-                            }
-                            triples
-                                .into_iter()
-                                .map(|triple| view! { <span>{triple}</span> })
-                                .collect_view()
-                                .into_view()
-                        }
-                    }}
-                </div>
-                </aside>
-                </div>
             </Show>
 
             <a-scene
-                id="rover-scene"
-                background="color: #e8edf2"
+                id="citation-scene"
+                background="color: #050914"
                 cursor="rayOrigin: mouse"
-                raycaster="objects: .clickable"
-                renderer="colorManagement: true; physicallyCorrectLights: true; exposure: 1.15"
+                raycaster="objects: .citation-graph"
+                renderer="colorManagement: true; antialias: true; physicallyCorrectLights: true"
                 webxr="requiredFeatures: local-floor; optionalFeatures: bounded-floor, hand-tracking; referenceSpaceType: local-floor"
-                vr-mode-ui="enabled: false"
-                webxr-launcher
+                vr-mode-ui="enabled: true"
+                gesture-controls="worker: /public/hand-worker.js; graph: #citation-graph; rig: #rig"
             >
                 <a-entity
-                    id="assembled-rover"
-                    class="clickable"
-                    position="0 -1.1 0"
-                    rotation="0 -25 0"
-                    scale="2.4 2.4 2.4"
-                    gltf-model="url(/public/models/sojourner-rover.glb)"
-                    shadow="cast: true; receive: true"
-                    on:click=move |_| explode_rover(is_exploded, set_exploded, components)
+                    id="citation-graph"
+                    class="citation-graph"
+                    position="0 1 -20"
+                    af-force-graph=move || format!(
+                        "endpoint: /api/v1/citations/graph?mode={}; maxNodes: 12000",
+                        graph_mode.get()
+                    )
                 ></a-entity>
-                <a-entity
-                    id="graph-parts"
-                    position="0 -0.2 0"
-                    rotation="0 -25 0"
-                    visible="false"
-                >
-                    <a-entity
-                        id="ExplodedBody"
-                        data-component-name="BodyAssembly"
-                        class="clickable"
-                        semantic-highlight="state: none"
-                        position="0 -0.9 0"
-                        scale="0.12 0.12 0.12"
-                        gltf-model="url(/public/models/rover-body.glb)"
-                        shadow="cast: true; receive: true"
-                        on:click=move |_| {
-                            select_component(
-                                "BodyAssembly",
-                                "ExplodedBody",
-                                selected_element,
-                                set_selected_element,
-                                set_metadata,
-                                related_elements,
-                                set_related_elements,
-                            )
-                        }
-                    ></a-entity>
-                    <a-entity
-                        id="ExplodedAntenna"
-                        data-component-name="Antenna"
-                        class="clickable"
-                        semantic-highlight="state: none"
-                        position="0 -0.9 0"
-                        scale="0.12 0.12 0.12"
-                        gltf-model="url(/public/models/rover-antenna.glb)"
-                        shadow="cast: true; receive: true"
-                        on:click=move |_| {
-                            select_component(
-                                "Antenna",
-                                "ExplodedAntenna",
-                                selected_element,
-                                set_selected_element,
-                                set_metadata,
-                                related_elements,
-                                set_related_elements,
-                            )
-                        }
-                    ></a-entity>
-                    <a-entity id="ExplodedRightWheelAssembly" position="0 0 0">
-                        <a-entity
-                            id="ExplodedRightSuspension"
-                            data-component-name="RightSuspension"
-                            class="clickable"
-                            semantic-highlight="state: none"
-                            position="0 -0.9 0.9"
-                            scale="0.1 0.1 0.1"
-                            gltf-model="url(/public/models/rover-suspension-netfabb.glb)"
-                            shadow="cast: true; receive: true"
-                            on:click=move |_| {
-                                select_component(
-                                    "RightSuspension",
-                                    "ExplodedRightSuspension",
-                                    selected_element,
-                                    set_selected_element,
-                                    set_metadata,
-                                    related_elements,
-                                    set_related_elements,
-                                )
-                            }
-                        ></a-entity>
-                        {["ExplodedWheelRR", "ExplodedWheelMR", "ExplodedWheelFR"]
-                            .into_iter()
-                            .zip(["-1.4 -1 1.5", "0 -1 1.5", "1.4 -1 1.5"])
-                            .zip(["WheelRearRight", "WheelMiddleRight", "WheelFrontRight"])
-                            .map(|((id, position), component_name)| view! {
-                            <a-entity
-                                id=id
-                                data-component-name=component_name
-                                class="clickable"
-                                semantic-highlight="state: none"
-                                position=position
-                                scale="2.4 2.4 2.4"
-                                gltf-model="url(/public/models/rover-wheel.glb)"
-                                shadow="cast: true; receive: true"
-                                on:click=move |_| {
-                                    select_component(
-                                        component_name,
-                                        id,
-                                        selected_element,
-                                        set_selected_element,
-                                        set_metadata,
-                                        related_elements,
-                                        set_related_elements,
-                                    )
-                                }
-                            ></a-entity>
-                        })
-                        .collect_view()}
-                    </a-entity>
-                    <a-entity id="ExplodedLeftWheelAssembly" position="0 0 0">
-                        <a-entity
-                            id="ExplodedLeftSuspension"
-                            data-component-name="LeftSuspension"
-                            class="clickable"
-                            semantic-highlight="state: none"
-                            position="0 -0.9 -0.9"
-                            scale="0.1 0.1 -0.1"
-                            gltf-model="url(/public/models/rover-suspension-netfabb.glb)"
-                            shadow="cast: true; receive: true"
-                            on:click=move |_| {
-                                select_component(
-                                    "LeftSuspension",
-                                    "ExplodedLeftSuspension",
-                                    selected_element,
-                                    set_selected_element,
-                                    set_metadata,
-                                    related_elements,
-                                    set_related_elements,
-                                )
-                            }
-                        ></a-entity>
-                        {["ExplodedWheelRL", "ExplodedWheelML", "ExplodedWheelFL"]
-                            .into_iter()
-                            .zip(["-1.4 -1 -1.5", "0 -1 -1.5", "1.4 -1 -1.5"])
-                            .zip(["WheelRearLeft", "WheelMiddleLeft", "WheelFrontLeft"])
-                            .map(|((id, position), component_name)| view! {
-                            <a-entity
-                                id=id
-                                data-component-name=component_name
-                                class="clickable"
-                                semantic-highlight="state: none"
-                                position=position
-                                scale="2.4 2.4 -2.4"
-                                gltf-model="url(/public/models/rover-wheel.glb)"
-                                shadow="cast: true; receive: true"
-                                on:click=move |_| {
-                                    select_component(
-                                        component_name,
-                                        id,
-                                        selected_element,
-                                        set_selected_element,
-                                        set_metadata,
-                                        related_elements,
-                                        set_related_elements,
-                                    )
-                                }
-                            ></a-entity>
-                        })
-                        .collect_view()}
-                    </a-entity>
-                    <a-entity
-                        id="ExplodedDrill"
-                        data-component-name="Drill"
-                        class="clickable"
-                        semantic-highlight="state: none"
-                        position="0 -0.4 0"
-                        scale="2.4 2.4 2.4"
-                        gltf-model="url(/public/models/rover-drill.glb)"
-                        shadow="cast: true; receive: true"
-                        on:click=move |_| {
-                            select_component(
-                                "Drill",
-                                "ExplodedDrill",
-                                selected_element,
-                                set_selected_element,
-                                set_metadata,
-                                related_elements,
-                                set_related_elements,
-                            )
-                        }
-                    ></a-entity>
-                </a-entity>
 
-                <a-plane
-                    class="clickable"
-                    position="0 -1.5 0"
-                    rotation="-90 0 0"
-                    width="40"
-                    height="40"
-                    material="color: #f7f8fa; roughness: 0.95; metalness: 0"
-                    shadow="receive: true"
-                ></a-plane>
-                <a-sky class="clickable" color="#e8edf2"></a-sky>
-                <a-light type="ambient" color="#dce8f5" intensity="1.15"></a-light>
-                <a-light
-                    type="directional"
-                    color="#fff4df"
-                    intensity="2.4"
-                    position="-4 7 5"
-                    shadow="cast: true"
-                ></a-light>
-                <a-light
-                    type="directional"
-                    color="#d9eaff"
-                    intensity="1.5"
-                    position="5 4 2"
-                ></a-light>
-                <a-light
-                    type="point"
-                    color="#ffffff"
-                    intensity="1.1"
-                    distance="18"
-                    position="0 5 -5"
-                ></a-light>
-                <a-entity id="camera-rig" position="5.5 1.65 -3.5" vr-locomotion>
+                <a-entity id="rig" position="0 1.6 7" vr-locomotion>
                     <a-camera
-                        initial-camera-look="pitch: -15; yaw: 120"
-                        camera="fov: 62"
+                        id="research-camera"
                         look-controls="pointerLockEnabled: false"
-                        wasd-controls="acceleration: 25"
-                        vertical-controls="speed: 3"
-                        viewport-controls="zoomSpeed: 0.0025; panSpeed: 0.004"
+                        wasd-controls="acceleration: 28"
+                        camera="fov: 65"
                     >
-                        <a-entity
-                            id="vr-assemble-control"
-                            class="clickable"
-                            vr-assemble-control=move || format!("active: {}", is_exploded.get())
-                            always-on-top
-                            position="0.7 -0.55 -2.4"
-                            on:click=move |_| {
-                                assemble_rover(
-                                    set_exploded,
-                                    components,
-                                    selected_element,
-                                    set_selected_element,
-                                    related_elements,
-                                    set_related_elements,
-                                )
-                            }
-                        >
-                            <a-plane
-                                width="0.48"
-                                height="0.14"
-                                material="color: #17324d; opacity: 0.9; transparent: true; depthTest: false"
-                            ></a-plane>
-                            <a-text
-                                position="0 0 0.01"
-                                align="center"
-                                width="0.42"
-                                color="#ffffff"
-                                value="ASSEMBLE"
-                            ></a-text>
-                        </a-entity>
+                        <Show when=move || selected_paper.get().is_some()>
+                            <a-entity id="spatial-paper-card" position="0.58 -0.35 -1.5">
+                                <a-plane
+                                    width="0.82"
+                                    height="0.3"
+                                    material="color: #071526; opacity: 0.94; transparent: true; depthTest: false"
+                                ></a-plane>
+                                <a-text
+                                    align="center"
+                                    anchor="center"
+                                    position="0 0.035 0.01"
+                                    width="0.72"
+                                    color="#e7f6ff"
+                                    value=move || selected_paper.get().map(|paper| shortened_title(&paper.title)).unwrap_or_default()
+                                ></a-text>
+                                <a-text
+                                    align="center"
+                                    anchor="center"
+                                    position="0 -0.09 0.011"
+                                    width="0.62"
+                                    color="#59e1ff"
+                                    value=move || selected_paper.get().map(|paper| format!(
+                                        "{}  •  {} citations",
+                                        paper.year.map(|year| year.to_string()).unwrap_or_else(|| "n.d.".to_owned()),
+                                        paper.citation_count
+                                    )).unwrap_or_default()
+                                ></a-text>
+                            </a-entity>
+                        </Show>
                     </a-camera>
                     <a-entity
                         id="left-controller"
                         laser-controls="hand: left"
-                        raycaster="objects: .clickable"
+                        raycaster="objects: .citation-graph"
                     ></a-entity>
                     <a-entity
                         id="right-controller"
                         laser-controls="hand: right"
-                        raycaster="objects: .clickable"
+                        raycaster="objects: .citation-graph"
                     ></a-entity>
                 </a-entity>
+
+                <a-entity light="type: ambient; color: #55708d; intensity: 0.8"></a-entity>
+                <a-entity light="type: directional; color: #bcecff; intensity: 1.3" position="-4 8 6"></a-entity>
+                <a-sky color="#050914"></a-sky>
             </a-scene>
+
+            <footer class="interaction-hint">
+                "PINCH SELECT · OPEN PALM ORBIT · TWO-HAND SPREAD ZOOM · INDEX SWEEP FILTER"
+            </footer>
         </main>
     }
 }
