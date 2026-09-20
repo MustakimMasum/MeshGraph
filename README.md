@@ -76,10 +76,10 @@ open-access or landing-page URL supplied by OpenAlex.
 Desktop mouse/keyboard, WebXR controllers, and webcam gestures share the same
 scene:
 
-- **Open palm drag** rotates the constellation.
-- **Pinch** casts a Three.js ray and selects an instanced paper node.
+- **Open palm drag** pans the constellation.
+- **Point** moves the on-screen hand reticle; **pinch** selects the node under it.
 - **Two-hand spread** scales the constellation.
-- **Index sweep** filters visibility by publication year.
+- **Horizontal hand swipe** rotates the constellation left or right.
 - **WebXR controllers** raycast the instanced graph and use the left thumbstick
   for locomotion.
 
@@ -151,10 +151,10 @@ per-request safety limit and take longer to complete.
 
 Select **Hand gestures** and grant camera access. Test each mapping:
 
-- Open-palm drag rotates the constellation.
+- Slow open-palm movement pans the constellation.
 - Pinching over a node selects that paper.
 - A two-hand spread zooms the constellation.
-- A horizontal index-finger sweep changes the publication-year filter.
+- A quick horizontal hand or index-finger swipe rotates the constellation.
 
 The HUD reports whether tracking is using `shared memory` or the
 `transferable buffers` fallback. Use `localhost` or HTTPS: camera access and

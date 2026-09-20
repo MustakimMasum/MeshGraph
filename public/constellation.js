@@ -308,7 +308,7 @@
 
   AFRAME.registerComponent("gesture-controls", {
     schema: {
-      worker: { default: "/public/hand-worker.js?v=0.10.35-2" },
+      worker: { default: "/public/hand-worker.js?v=0.10.35-4" },
       graph: { type: "selector" },
       rig: { type: "selector" },
     },
@@ -322,6 +322,10 @@
       this.handCount = -1;
       this.lastGestureKind = null;
       this.lastGestureStatusAt = 0;
+      this.hoveredInstanceId = null;
+      this.snappedNodeMesh = null;
+      this.pinchLockUntil = 0;
+      this.projectedNode = new THREE.Vector3();
       this.raycaster = new THREE.Raycaster();
       this.pointer = new THREE.Vector2();
       this.onToggle = () => (this.running || this.starting ? this.stop() : this.start());
@@ -434,6 +438,7 @@
       }
       if (message.type !== "result") return;
       this.framePending = false;
+      this.updatePointer(message.pointer);
       if (Number.isInteger(message.handCount) && message.handCount !== this.handCount) {
         this.handCount = message.handCount;
         const label = message.handCount === 1 ? "hand" : "hands";
@@ -451,23 +456,159 @@
       if (message.gesture) this.applyGesture(message.gesture);
     },
 
+    graphContext() {
+      const element = this.data.graph || this.el.querySelector("#citation-graph");
+      return {
+        element,
+        component: element?.components?.["af-force-graph"],
+        object: element?.object3D,
+      };
+    },
+
+    projectNodeToScreen(graph, instanceId, camera, width, height) {
+      const offset = instanceId * 3;
+      if (
+        !graph.positions ||
+        offset + 2 >= graph.positions.length ||
+        !graph.visible?.[instanceId]
+      ) {
+        return false;
+      }
+
+      this.projectedNode
+        .set(
+          graph.positions[offset],
+          graph.positions[offset + 1],
+          graph.positions[offset + 2],
+        )
+        .applyMatrix4(graph.nodeMesh.matrixWorld)
+        .project(camera);
+      if (this.projectedNode.z < -1 || this.projectedNode.z > 1) return false;
+
+      this.projectedNode.set(
+        (this.projectedNode.x * 0.5 + 0.5) * width,
+        (-this.projectedNode.y * 0.5 + 0.5) * height,
+        this.projectedNode.z,
+      );
+      return true;
+    },
+
+    nearestPointerNode(graph, camera, rawX, rawY, width, height) {
+      this.pointer.set((rawX / width) * 2 - 1, -((rawY / height) * 2 - 1));
+      this.raycaster.setFromCamera(this.pointer, camera);
+      const directHit = this.raycaster.intersectObject(graph.nodeMesh, false)[0];
+      if (
+        directHit &&
+        Number.isInteger(directHit.instanceId) &&
+        graph.visible?.[directHit.instanceId]
+      ) {
+        return directHit.instanceId;
+      }
+
+      const snapRadiusSquared = 38 * 38;
+      let nearest = null;
+      let nearestDistanceSquared = snapRadiusSquared;
+      for (let index = 0; index < graph.nodes.length; index += 1) {
+        if (!this.projectNodeToScreen(graph, index, camera, width, height)) continue;
+        const dx = this.projectedNode.x - rawX;
+        const dy = this.projectedNode.y - rawY;
+        const distanceSquared = dx * dx + dy * dy;
+        if (distanceSquared < nearestDistanceSquared) {
+          nearest = index;
+          nearestDistanceSquared = distanceSquared;
+        }
+      }
+      return nearest;
+    },
+
+    updatePointer(pointer) {
+      const reticle = document.querySelector("#gesture-pointer");
+      if (!reticle || !pointer) {
+        if (reticle) reticle.hidden = true;
+        this.hoveredInstanceId = null;
+        return;
+      }
+
+      const screenX = THREE.MathUtils.clamp(1 - pointer.x, 0, 1);
+      const screenY = THREE.MathUtils.clamp(pointer.y, 0, 1);
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      const rawX = screenX * width;
+      const rawY = screenY * height;
+      reticle.hidden = false;
+      reticle.classList.toggle("pinching", Boolean(pointer.pinching));
+
+      const { component: graph } = this.graphContext();
+      const camera = this.el.camera;
+      let displayX = rawX;
+      let displayY = rawY;
+      if (graph?.nodeMesh && camera) {
+        graph.nodeMesh.updateWorldMatrix(true, false);
+        camera.updateWorldMatrix(true, false);
+
+        if (this.snappedNodeMesh !== graph.nodeMesh) {
+          this.hoveredInstanceId = null;
+          this.snappedNodeMesh = graph.nodeMesh;
+        }
+
+        if (
+          Number.isInteger(this.hoveredInstanceId) &&
+          this.projectNodeToScreen(graph, this.hoveredInstanceId, camera, width, height)
+        ) {
+          const dx = this.projectedNode.x - rawX;
+          const dy = this.projectedNode.y - rawY;
+          const withinReleaseRadius = dx * dx + dy * dy <= 70 * 70;
+          if (withinReleaseRadius || pointer.pinching || performance.now() < this.pinchLockUntil) {
+            displayX = this.projectedNode.x;
+            displayY = this.projectedNode.y;
+          } else {
+            this.hoveredInstanceId = null;
+          }
+        } else {
+          this.hoveredInstanceId = null;
+        }
+
+        if (!Number.isInteger(this.hoveredInstanceId)) {
+          this.hoveredInstanceId = this.nearestPointerNode(
+            graph,
+            camera,
+            rawX,
+            rawY,
+            width,
+            height,
+          );
+          if (
+            Number.isInteger(this.hoveredInstanceId) &&
+            this.projectNodeToScreen(graph, this.hoveredInstanceId, camera, width, height)
+          ) {
+            displayX = this.projectedNode.x;
+            displayY = this.projectedNode.y;
+          }
+        }
+      } else {
+        this.hoveredInstanceId = null;
+      }
+
+      reticle.style.left = `${displayX}px`;
+      reticle.style.top = `${displayY}px`;
+      reticle.classList.toggle("hovering", Number.isInteger(this.hoveredInstanceId));
+    },
+
     applyGesture(gesture) {
       // Leptos may attach this scene component before its child entities exist,
       // causing A-Frame's selector schema to resolve to null. Resolve lazily once
       // the graph is present instead of silently discarding every gesture.
-      const graphElement = this.data.graph || this.el.querySelector("#citation-graph");
-      const graph = graphElement?.components?.["af-force-graph"];
-      const graphObject = graphElement?.object3D;
+      const { component: graph, object: graphObject } = this.graphContext();
       if (!graph || !graphObject) {
         emitMacro("citation-gesture-status", "Hand detected · graph controls unavailable");
         return;
       }
 
       const labels = {
-        palm_drag: "Open-palm orbit",
+        palm_pan: "Open-palm pan",
         pinch: "Pinch select",
         spread: "Two-hand zoom",
-        sweep: "Index sweep",
+        swipe: "Hand swipe rotate",
       };
       const now = performance.now();
       if (gesture.kind !== this.lastGestureKind || now - this.lastGestureStatusAt > 500) {
@@ -476,14 +617,23 @@
         this.lastGestureStatusAt = now;
       }
 
-      if (gesture.kind === "palm_drag") {
-        graphObject.rotation.y -= gesture.dx * 2.4;
-        graphObject.rotation.x = THREE.MathUtils.clamp(
-          graphObject.rotation.x + gesture.dy * 1.5,
-          -0.75,
-          0.75,
+      if (gesture.kind === "palm_pan") {
+        graphObject.position.x = THREE.MathUtils.clamp(
+          graphObject.position.x + gesture.dx * 12,
+          -12,
+          12,
+        );
+        graphObject.position.y = THREE.MathUtils.clamp(
+          graphObject.position.y - gesture.dy * 10,
+          -7,
+          10,
         );
       } else if (gesture.kind === "pinch") {
+        if (Number.isInteger(this.hoveredInstanceId)) {
+          this.pinchLockUntil = performance.now() + 400;
+          graph.selectInstance(this.hoveredInstanceId);
+          return;
+        }
         const camera = this.el.camera;
         if (!camera || !graph.nodeMesh) return;
         this.pointer.set((1 - gesture.x) * 2 - 1, -(gesture.y * 2 - 1));
@@ -494,8 +644,8 @@
         const factor = THREE.MathUtils.clamp(1 + gesture.delta * 1.8, 0.88, 1.12);
         graphObject.scale.multiplyScalar(factor);
         graphObject.scale.clampScalar(0.35, 3.5);
-      } else if (gesture.kind === "sweep") {
-        graph.setYearCutoff(1 - gesture.x);
+      } else if (gesture.kind === "swipe") {
+        graphObject.rotation.y += gesture.direction === "left" ? -0.45 : 0.45;
       }
     },
 
@@ -507,6 +657,9 @@
       this.captureStarted = false;
       this.handCount = 0;
       this.lastGestureKind = null;
+      this.snappedNodeMesh = null;
+      this.pinchLockUntil = 0;
+      this.updatePointer(null);
       this.workerInstance?.terminate();
       this.workerInstance = null;
       this.stream?.getTracks().forEach((track) => track.stop());

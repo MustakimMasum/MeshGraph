@@ -338,7 +338,7 @@ pub fn App() -> impl IntoView {
                 renderer="colorManagement: true; antialias: true; physicallyCorrectLights: true"
                 webxr="requiredFeatures: local-floor; optionalFeatures: bounded-floor, hand-tracking; referenceSpaceType: local-floor"
                 vr-mode-ui="enabled: true"
-                gesture-controls="worker: /public/hand-worker.js?v=0.10.35-2; graph: #citation-graph; rig: #rig"
+                gesture-controls="worker: /public/hand-worker.js?v=0.10.35-4; graph: #citation-graph; rig: #rig"
             >
                 <a-entity
                     id="citation-graph"
@@ -374,8 +374,10 @@ pub fn App() -> impl IntoView {
                 <a-sky color="#e8edf2"></a-sky>
             </a-scene>
 
+            <div id="gesture-pointer" hidden aria-hidden="true"></div>
+
             <footer class="interaction-hint">
-                "PINCH SELECT · OPEN PALM ORBIT · TWO-HAND SPREAD ZOOM · INDEX SWEEP FILTER"
+                "POINT + PINCH SELECT · OPEN PALM PAN · SWIPE ROTATE · TWO-HAND SPREAD ZOOM"
             </footer>
         </main>
     }

@@ -11,7 +11,8 @@ let previousPalm;
 let previousSpread;
 let previousIndex;
 let pinchActive = false;
-let lastSweepAt = 0;
+let lastSwipeAt = 0;
+let swipeCooldownUntil = 0;
 
 const distance = (left, right) =>
   Math.hypot(left.x - right.x, left.y - right.y, (left.z || 0) - (right.z || 0));
@@ -58,6 +59,19 @@ function flattenLandmarks(hands) {
   return output;
 }
 
+function pointerForHands(hands) {
+  if (hands.length !== 1) return null;
+  const hand = hands[0];
+  const thumbTip = hand[4];
+  const indexTip = hand[8];
+  const palmWidth = Math.max(distance(hand[5], hand[17]), 0.04);
+  return {
+    x: indexTip.x,
+    y: indexTip.y,
+    pinching: distance(thumbTip, indexTip) / palmWidth < 0.42,
+  };
+}
+
 function classifyGesture(hands, timestamp) {
   if (hands.length === 2) {
     const first = hands[0][9];
@@ -99,14 +113,29 @@ function classifyGesture(hands, timestamp) {
     (tip) => distance(hand[tip], wrist) > distance(hand[tip - 2], wrist) * 1.12,
   ).length;
   if (extended >= 4) {
-    const currentPalm = { x: hand[9].x, y: hand[9].y };
-    const gesture = previousPalm
-      ? {
-          kind: "palm_drag",
-          dx: currentPalm.x - previousPalm.x,
-          dy: currentPalm.y - previousPalm.y,
-        }
-      : null;
+    const currentPalm = { x: hand[9].x, y: hand[9].y, timestamp };
+    let gesture = null;
+    if (previousPalm) {
+      const elapsed = Math.max(1, timestamp - previousPalm.timestamp);
+      const screenDx = previousPalm.x - currentPalm.x;
+      const screenDy = currentPalm.y - previousPalm.y;
+      const horizontalVelocity = Math.abs(screenDx) / elapsed;
+      const isHorizontalSwipe =
+        Math.abs(screenDx) > 0.018 &&
+        horizontalVelocity > 0.00065 &&
+        Math.abs(screenDx) > Math.abs(screenDy) * 1.35;
+
+      if (isHorizontalSwipe && timestamp - lastSwipeAt > 320) {
+        lastSwipeAt = timestamp;
+        swipeCooldownUntil = timestamp + 260;
+        gesture = {
+          kind: "swipe",
+          direction: screenDx < 0 ? "left" : "right",
+        };
+      } else if (timestamp >= swipeCooldownUntil) {
+        gesture = { kind: "palm_pan", dx: screenDx, dy: screenDy };
+      }
+    }
     previousPalm = currentPalm;
     previousIndex = undefined;
     return gesture;
@@ -119,11 +148,13 @@ function classifyGesture(hands, timestamp) {
     const current = { x: indexTip.x, timestamp };
     if (previousIndex) {
       const elapsed = Math.max(1, timestamp - previousIndex.timestamp);
-      const velocity = Math.abs(current.x - previousIndex.x) / elapsed;
-      if (velocity > 0.00075 && timestamp - lastSweepAt > 180) {
-        lastSweepAt = timestamp;
+      const screenDx = previousIndex.x - current.x;
+      const velocity = Math.abs(screenDx) / elapsed;
+      if (velocity > 0.00075 && timestamp - lastSwipeAt > 320) {
+        lastSwipeAt = timestamp;
+        swipeCooldownUntil = timestamp + 260;
         previousIndex = current;
-        return { kind: "sweep", x: indexTip.x };
+        return { kind: "swipe", direction: screenDx < 0 ? "left" : "right" };
       }
     }
     previousIndex = current;
@@ -151,7 +182,7 @@ self.onmessage = async (event) => {
   const { frame, timestamp } = event.data;
   if (!handLandmarker) {
     frame.close();
-    postMessage({ type: "result", gesture: null });
+    postMessage({ type: "result", gesture: null, pointer: null, handCount: 0 });
     return;
   }
 
@@ -159,6 +190,7 @@ self.onmessage = async (event) => {
     const result = handLandmarker.detectForVideo(frame, timestamp);
     const hands = result.landmarks || [];
     const flattened = flattenLandmarks(hands);
+    const pointer = pointerForHands(hands);
     const gesture = classifyGesture(hands, timestamp);
     frame.close();
 
@@ -166,12 +198,13 @@ self.onmessage = async (event) => {
       sharedLandmarks.set(flattened);
       Atomics.store(sharedMeta, 1, hands.length);
       Atomics.add(sharedMeta, 0, 1);
-      postMessage({ type: "result", gesture, handCount: hands.length });
+      postMessage({ type: "result", gesture, pointer, handCount: hands.length });
     } else {
       postMessage(
         {
           type: "result",
           gesture,
+          pointer,
           handCount: hands.length,
           landmarksBuffer: flattened.buffer,
         },
@@ -181,6 +214,6 @@ self.onmessage = async (event) => {
   } catch (error) {
     frame.close();
     postMessage({ type: "error", message: `Hand tracking frame failed: ${error.message || error}` });
-    postMessage({ type: "result", gesture: null });
+    postMessage({ type: "result", gesture: null, pointer: null, handCount: 0 });
   }
 };
