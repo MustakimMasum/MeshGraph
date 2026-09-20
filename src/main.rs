@@ -25,11 +25,11 @@ mod gateway {
 
     const DEFAULT_DATABASE_URL: &str = "http://localhost:7878/query";
     const STRUCTURE_QUERY: &str = r#"
-PREFIX ex: <http://example.org/cadmus/>
+PREFIX ex: <http://example.org/meshgraph/>
 SELECT ?partName ?x ?y ?z WHERE {
     ex:SojournerRover ex:hasPart ?part .
     ?part ex:offsetX ?x ; ex:offsetY ?y ; ex:offsetZ ?z .
-    BIND(STRAFTER(STR(?part), "http://example.org/cadmus/") AS ?partName)
+    BIND(STRAFTER(STR(?part), "http://example.org/meshgraph/") AS ?partName)
 }
 ORDER BY ?partName
 "#;
@@ -158,7 +158,7 @@ ORDER BY ?partName
 
         let address = SocketAddr::from(([0, 0, 0, 0], 3000));
         let listener = tokio::net::TcpListener::bind(address).await?;
-        println!("Cadmus gateway listening on http://localhost:3000");
+        println!("MeshGraph gateway listening on http://localhost:3000");
         axum::serve(listener, app).await?;
         Ok(())
     }
@@ -257,11 +257,11 @@ ORDER BY ?partName
 
         let query = format!(
             r#"
-PREFIX ex: <http://example.org/cadmus/>
+PREFIX ex: <http://example.org/meshgraph/>
 SELECT DISTINCT ?relatedPart WHERE {{
     BIND(ex:{component_name} AS ?part)
     {{ ?part ex:connectedTo ?related }} UNION {{ ?related ex:connectedTo ?part }}
-    BIND(STRAFTER(STR(?related), "http://example.org/cadmus/") AS ?relatedPart)
+    BIND(STRAFTER(STR(?related), "http://example.org/meshgraph/") AS ?relatedPart)
 }}
 "#
         );
@@ -304,7 +304,7 @@ SELECT DISTINCT ?relatedPart WHERE {{
 
         Some(format!(
             r#"
-PREFIX ex: <http://example.org/cadmus/>
+PREFIX ex: <http://example.org/meshgraph/>
 SELECT ?displayName ?category ?purpose ?powerRequirement ?missionNote WHERE {{
     BIND(ex:{component_name} AS ?part)
     OPTIONAL {{ ?part ex:displayName ?displayName . }}
@@ -392,7 +392,7 @@ SELECT ?displayName ?category ?purpose ?powerRequirement ?missionNote WHERE {{
 #[tokio::main]
 async fn main() {
     if let Err(error) = gateway::run().await {
-        eprintln!("Cadmus gateway failed: {error}");
+        eprintln!("MeshGraph gateway failed: {error}");
         std::process::exit(1);
     }
 }

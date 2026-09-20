@@ -18,8 +18,8 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY --from=builder /app/target/release/cadmus_gateway /usr/local/bin/cadmus_gateway
+COPY --from=builder /app/target/release/meshgraph_gateway /usr/local/bin/meshgraph_gateway
 COPY --from=builder /app/dist ./dist
 
 EXPOSE 3000
-CMD ["cadmus_gateway"]
+CMD ["meshgraph_gateway"]

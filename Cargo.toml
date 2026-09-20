@@ -1,5 +1,5 @@
 [package]
-name = "cadmus_gateway"
+name = "meshgraph_gateway"
 version = "0.1.0"
 edition = "2021"
 

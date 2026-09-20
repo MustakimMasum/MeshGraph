@@ -1,5 +1,5 @@
 {
-  "name": "cadmus-webxr-tests",
+  "name": "meshgraph-webxr-tests",
   "private": true,
   "scripts": {
     "demo:record": "node scripts/record-demo.mjs",

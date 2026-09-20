@@ -68,7 +68,7 @@ for (let triangle = 0; triangle < triangleCount; triangle += 1) {
 
 const binary = Buffer.concat([positions, normals]);
 const gltf = {
-  asset: { version: "2.0", generator: "Cadmus STL to GLB converter" },
+  asset: { version: "2.0", generator: "MeshGraph STL to GLB converter" },
   scene: 0,
   scenes: [{ nodes: [0] }],
   nodes: [{ mesh: 0 }],

@@ -1,4 +1,4 @@
-@prefix ex: <http://example.org/cadmus/> .
+@prefix ex: <http://example.org/meshgraph/> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 ex:SojournerRover

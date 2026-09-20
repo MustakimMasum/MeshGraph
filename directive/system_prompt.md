@@ -36,7 +36,7 @@ graphmesh-local-cluster/
 Generate a dual-targeted Cargo workspace dependency layout with these explicitly configured crate blocks:
 ```toml
 [package]
-name = "cadmus_gateway"
+name = "meshgraph_gateway"
 version = "0.1.0"
 edition = "2021"
 
@@ -72,11 +72,11 @@ codegen-units = 1
     2. Construct a standard `reqwest::Client` request block.
     3. Issue a POST request to Oxigraph passing a raw SPARQL query payload string:
        ```sparql
-       PREFIX ex: [http://example.org/cadmus/](http://example.org/cadmus/)
+       PREFIX ex: [http://example.org/meshgraph/](http://example.org/meshgraph/)
        SELECT ?partName ?x ?y ?z WHERE {
-           [http://example.org/cadmus/SojournerRover](http://example.org/cadmus/SojournerRover) [http://example.org/cadmus/hasPart](http://example.org/cadmus/hasPart) ?part .
+           [http://example.org/meshgraph/SojournerRover](http://example.org/meshgraph/SojournerRover) [http://example.org/meshgraph/hasPart](http://example.org/meshgraph/hasPart) ?part .
            ?part ex:offsetX ?x ; ex:offsetY ?y ; ex:offsetZ ?z .
-           BIND(STRAFTER(STR(?part), "[http://example.org/cadmus/](http://example.org/cadmus/)"), AS ?partName)
+           BIND(STRAFTER(STR(?part), "[http://example.org/meshgraph/](http://example.org/meshgraph/)"), AS ?partName)
        }
        ```
     4. Enforce appropriate headers: `Content-Type: application/sparql-query` and `Accept: application/sparql-results+json`.
