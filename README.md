@@ -83,7 +83,7 @@ scene:
 - **WebXR controllers** raycast the instanced graph and use the left thumbstick
   for locomotion.
 
-MediaPipe `HandLandmarker` runs in a module Web Worker. Frames use transferable
+MediaPipe `HandLandmarker` runs in a dedicated Web Worker. Frames use transferable
 `ImageBitmap` objects. Landmark coordinates use `SharedArrayBuffer` when the
 browser is cross-origin isolated, and transferred `ArrayBuffer` objects as a
 fallback. Raw frame-level landmarks never cross into Leptos/WASM; only macro
@@ -106,6 +106,18 @@ Open `http://localhost:3000`. Oxigraph is exposed at `http://localhost:7878`.
 The Compose seed job loads a small research network so the scene is useful before
 the first live ingestion.
 
+Wait for the gateway to report:
+
+```text
+MeshGraph gateway listening on http://localhost:3000
+```
+
+Stop the stack with:
+
+```sh
+docker compose down
+```
+
 For local development, install Trunk and the WASM target:
 
 ```sh
@@ -119,7 +131,85 @@ cargo run
 `trunk build` writes the CSR bundle to `dist/`; the Axum process serves that
 directory and the API on port 3000.
 
+## Manual testing
+
+### Constellation and ingestion
+
+After opening `http://localhost:3000`, confirm that the seeded constellation is
+visible, then:
+
+1. Click a colored paper node and confirm that its metadata panel opens.
+2. Switch between **Citations**, **Co-citation**, and **Coupling**.
+3. Use the mouse to look around and WASD to move through the scene.
+4. Enter `arXiv:1706.03762`, choose `1 hop`, and select **Map constellation**.
+5. Confirm that the paper and relationship totals update after ingestion.
+
+Start with depth 0 or 1 when testing. Higher depths can approach the 250-work
+per-request safety limit and take longer to complete.
+
+### Webcam gestures
+
+Select **Hand gestures** and grant camera access. Test each mapping:
+
+- Open-palm drag rotates the constellation.
+- Pinching over a node selects that paper.
+- A two-hand spread zooms the constellation.
+- A horizontal index-finger sweep changes the publication-year filter.
+
+The HUD reports whether tracking is using `shared memory` or the
+`transferable buffers` fallback. Use `localhost` or HTTPS: camera access and
+cross-origin isolated shared memory are not generally available from an insecure
+LAN address.
+
+### WebXR
+
+With a headset connected and its runtime running, open MeshGraph in Chrome or
+Edge and use the VR button in the lower-right corner. Point either controller at
+a paper and pull the trigger to select it. The left thumbstick controls
+locomotion.
+
+### API smoke tests with PowerShell
+
+Read the direct citation graph:
+
+```powershell
+Invoke-RestMethod http://localhost:3000/api/v1/citations/graph
+```
+
+Read a derived topology:
+
+```powershell
+Invoke-RestMethod "http://localhost:3000/api/v1/citations/graph?mode=co-citation"
+```
+
+Exercise the live OpenAlex-to-RDF ingestion path:
+
+```powershell
+$body = @{
+    doi = "arXiv:1706.03762"
+    depth = 0
+} | ConvertTo-Json
+
+$result = Invoke-RestMethod `
+    -Method Post `
+    -Uri http://localhost:3000/api/v1/citations/ingest `
+    -ContentType "application/json" `
+    -Body $body
+
+$result
+Invoke-RestMethod "http://localhost:3000/api/v1/citations/paper/$($result.seedId)"
+```
+
 ## Verification
+
+On a fresh checkout, install the browser-test dependencies first:
+
+```sh
+npm ci
+```
+
+Keep the MeshGraph stack running while executing the Playwright suite, because
+the tests connect to `http://127.0.0.1:3000`.
 
 ```sh
 cargo fmt --check
@@ -131,7 +221,15 @@ trunk build
 npm run test:webxr
 ```
 
-Playwright tests expect a running MeshGraph stack at `http://127.0.0.1:3000`.
+The Playwright coverage checks instanced rendering, temporal Z placement, paper
+selection, topology switching, year filtering, and WebXR controller setup.
+
+If the scene is empty or a service is unavailable, inspect the stack with:
+
+```sh
+docker compose ps
+docker compose logs graph_seed oxigraph_db axum_gateway
+```
 
 ## Configuration
 

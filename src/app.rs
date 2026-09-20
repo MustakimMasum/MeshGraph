@@ -8,13 +8,10 @@ use web_sys::{window, CustomEvent, CustomEventInit, EventTarget};
 #[derive(Clone, Debug, Default, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct PaperMetadata {
-    id: String,
     title: String,
     year: Option<i32>,
     topic: Option<String>,
-    genre: Option<String>,
     abstract_text: Option<String>,
-    doi: Option<String>,
     pdf_url: Option<String>,
     citation_count: u64,
 }
@@ -92,14 +89,6 @@ fn dispatch_macro_event(name: &str, detail: &str) {
     if let Ok(event) = CustomEvent::new_with_event_init_dict(name, &options) {
         let _ = window.dispatch_event(&event);
     }
-}
-
-fn shortened_title(title: &str) -> String {
-    const MAX_CHARS: usize = 72;
-    if title.chars().count() <= MAX_CHARS {
-        return title.to_owned();
-    }
-    format!("{}…", title.chars().take(MAX_CHARS).collect::<String>())
 }
 
 #[component]
@@ -227,7 +216,6 @@ pub fn App() -> impl IntoView {
         <main id="app-shell">
             <header class="topbar">
                 <div class="brand-lockup">
-                    <span class="brand-mark">"M"</span>
                     <div>
                         <h1>"MeshGraph"</h1>
                         <p>"Research Citation Constellation"</p>
@@ -321,7 +309,7 @@ pub fn App() -> impl IntoView {
                         fallback=|| view! { <p class="loading">"Resolving RDF metadata…"</p> }
                     >
                         {move || selected_paper.get().map(|paper| view! {
-                            <span class="eyebrow">{paper.id.clone()}</span>
+                            <span class="eyebrow">"Article"</span>
                             <h2>{paper.title.clone()}</h2>
                             <div class="paper-facts">
                                 <span>{paper.year.map(|year| year.to_string()).unwrap_or_else(|| "Year unknown".to_owned())}</span>
@@ -336,8 +324,6 @@ pub fn App() -> impl IntoView {
                                 }>
                                     <a href=paper.pdf_url.clone().unwrap_or_default() target="_blank" rel="noreferrer">"Open paper"</a>
                                 </Show>
-                                <span>{paper.genre.clone().unwrap_or_else(|| "scholarly article".to_owned())}</span>
-                                <span>{paper.doi.clone().unwrap_or_default()}</span>
                             </div>
                         })}
                     </Show>
@@ -346,13 +332,13 @@ pub fn App() -> impl IntoView {
 
             <a-scene
                 id="citation-scene"
-                background="color: #050914"
+                background="color: #e8edf2"
                 cursor="rayOrigin: mouse"
                 raycaster="objects: .citation-graph"
                 renderer="colorManagement: true; antialias: true; physicallyCorrectLights: true"
                 webxr="requiredFeatures: local-floor; optionalFeatures: bounded-floor, hand-tracking; referenceSpaceType: local-floor"
                 vr-mode-ui="enabled: true"
-                gesture-controls="worker: /public/hand-worker.js; graph: #citation-graph; rig: #rig"
+                gesture-controls="worker: /public/hand-worker.js?v=0.10.35-2; graph: #citation-graph; rig: #rig"
             >
                 <a-entity
                     id="citation-graph"
@@ -370,37 +356,7 @@ pub fn App() -> impl IntoView {
                         look-controls="pointerLockEnabled: false"
                         wasd-controls="acceleration: 28"
                         camera="fov: 65"
-                    >
-                        <Show when=move || selected_paper.get().is_some()>
-                            <a-entity id="spatial-paper-card" position="0.58 -0.35 -1.5">
-                                <a-plane
-                                    width="0.82"
-                                    height="0.3"
-                                    material="color: #071526; opacity: 0.94; transparent: true; depthTest: false"
-                                ></a-plane>
-                                <a-text
-                                    align="center"
-                                    anchor="center"
-                                    position="0 0.035 0.01"
-                                    width="0.72"
-                                    color="#e7f6ff"
-                                    value=move || selected_paper.get().map(|paper| shortened_title(&paper.title)).unwrap_or_default()
-                                ></a-text>
-                                <a-text
-                                    align="center"
-                                    anchor="center"
-                                    position="0 -0.09 0.011"
-                                    width="0.62"
-                                    color="#59e1ff"
-                                    value=move || selected_paper.get().map(|paper| format!(
-                                        "{}  •  {} citations",
-                                        paper.year.map(|year| year.to_string()).unwrap_or_else(|| "n.d.".to_owned()),
-                                        paper.citation_count
-                                    )).unwrap_or_default()
-                                ></a-text>
-                            </a-entity>
-                        </Show>
-                    </a-camera>
+                    ></a-camera>
                     <a-entity
                         id="left-controller"
                         laser-controls="hand: left"
@@ -413,9 +369,9 @@ pub fn App() -> impl IntoView {
                     ></a-entity>
                 </a-entity>
 
-                <a-entity light="type: ambient; color: #55708d; intensity: 0.8"></a-entity>
-                <a-entity light="type: directional; color: #bcecff; intensity: 1.3" position="-4 8 6"></a-entity>
-                <a-sky color="#050914"></a-sky>
+                <a-entity light="type: ambient; color: #dce8f5; intensity: 1.15"></a-entity>
+                <a-entity light="type: directional; color: #fff4df; intensity: 1.6" position="-4 8 6"></a-entity>
+                <a-sky color="#e8edf2"></a-sky>
             </a-scene>
 
             <footer class="interaction-hint">

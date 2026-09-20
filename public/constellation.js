@@ -145,7 +145,7 @@
         new THREE.BufferAttribute(linkPositions, 3).setUsage(THREE.DynamicDrawUsage),
       );
       const linkMaterial = new THREE.LineBasicMaterial({
-        color: graph.mode === "citations" ? 0x2d708e : 0x9b63ff,
+        color: graph.mode === "citations" ? 0x54758e : 0x765ca8,
         transparent: true,
         opacity: 0.3,
         depthWrite: false,
@@ -166,7 +166,7 @@
 
     topicColor(topic) {
       const color = new THREE.Color();
-      color.setHSL((hash(topic) % 360) / 360, 0.72, 0.58);
+      color.setHSL((hash(topic) % 360) / 360, 0.68, 0.42);
       return color;
     },
 
@@ -261,7 +261,7 @@
       if (!this.nodes[index] || !this.visible[index]) return;
       this.clearSelection();
       this.selectedIndex = index;
-      this.nodeMesh.setColorAt(index, new THREE.Color(0xffffff));
+      this.nodeMesh.setColorAt(index, new THREE.Color(0x17324d));
       this.nodeMesh.instanceColor.needsUpdate = true;
       emitMacro("citation-node-selected", this.nodes[index].id);
     },
@@ -308,39 +308,70 @@
 
   AFRAME.registerComponent("gesture-controls", {
     schema: {
-      worker: { default: "/public/hand-worker.js" },
+      worker: { default: "/public/hand-worker.js?v=0.10.35-2" },
       graph: { type: "selector" },
       rig: { type: "selector" },
     },
 
     init() {
       this.running = false;
+      this.starting = false;
       this.framePending = false;
+      this.captureStarted = false;
+      this.startToken = 0;
+      this.handCount = -1;
+      this.lastGestureKind = null;
+      this.lastGestureStatusAt = 0;
       this.raycaster = new THREE.Raycaster();
       this.pointer = new THREE.Vector2();
-      this.onToggle = () => (this.running ? this.stop() : this.start());
+      this.onToggle = () => (this.running || this.starting ? this.stop() : this.start());
       window.addEventListener("citation-gesture-toggle", this.onToggle);
     },
 
     async start() {
+      if (this.running || this.starting) return;
+      this.starting = true;
+      this.handCount = -1;
+      const startToken = ++this.startToken;
+
       try {
+        if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
+          throw new Error("Camera access requires HTTPS or localhost");
+        }
         emitMacro("citation-gesture-status", "Requesting camera access…");
-        this.stream = await navigator.mediaDevices.getUserMedia({
+        const stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: "user", width: 640, height: 480, frameRate: 30 },
           audio: false,
         });
+        if (startToken !== this.startToken) {
+          stream.getTracks().forEach((track) => track.stop());
+          return;
+        }
+        this.stream = stream;
         this.video = document.createElement("video");
         this.video.muted = true;
         this.video.playsInline = true;
         this.video.srcObject = this.stream;
         await this.video.play();
+        if (startToken !== this.startToken) {
+          stream.getTracks().forEach((track) => track.stop());
+          if (this.stream === stream) this.stream = null;
+          return;
+        }
 
-        this.workerInstance = new Worker(this.data.worker, { type: "module" });
-        this.workerInstance.onmessage = (event) => this.onWorkerMessage(event.data);
-        this.workerInstance.onerror = (event) => {
-          console.error("MeshGraph hand worker failed", event);
-          emitMacro("citation-gesture-status", "Hand tracking failed to initialize");
-          this.stop();
+        // Keep the worker bootstrap same-origin and classic. MediaPipe is loaded with
+        // import() inside the worker, where failures can be reported instead of
+        // surfacing as an opaque module-worker error in Chromium.
+        const worker = new Worker(this.data.worker);
+        this.workerInstance = worker;
+        worker.onmessage = (event) => this.onWorkerMessage(event.data);
+        worker.onerror = (event) => {
+          if (this.workerInstance !== worker) return;
+          const details = [event.message, event.filename, event.lineno]
+            .filter(Boolean)
+            .join(" · ");
+          console.error("MeshGraph hand worker failed", details || "Unknown worker error");
+          this.stop(details ? `Hand tracking failed: ${details}` : "Hand tracking failed to initialize");
         };
 
         if (crossOriginIsolated && typeof SharedArrayBuffer !== "undefined") {
@@ -352,13 +383,21 @@
           this.transport = "transferable buffers";
         }
         this.running = true;
+        this.starting = false;
         this.lastFrameAt = 0;
-        emitMacro("citation-gesture-status", `Hand tracking active · ${this.transport}`);
-        requestAnimationFrame((time) => this.captureFrame(time));
+        emitMacro("citation-gesture-status", "Loading hand tracking…");
       } catch (error) {
         console.error("Unable to start gesture input", error);
-        emitMacro("citation-gesture-status", "Camera permission or MediaPipe unavailable");
-        this.stop();
+        if (startToken !== this.startToken) return;
+        const status =
+          error?.name === "NotAllowedError"
+            ? "Camera access was denied"
+            : error?.name === "NotFoundError"
+              ? "No camera was found"
+              : error?.name === "NotReadableError"
+                ? "Camera is already in use"
+                : error?.message || "Camera or MediaPipe unavailable";
+        this.stop(status);
       }
     },
 
@@ -380,15 +419,31 @@
 
     onWorkerMessage(message) {
       if (message.type === "ready") {
+        if (!this.running) return;
         emitMacro("citation-gesture-status", `Hand tracking active · ${this.transport}`);
+        if (!this.captureStarted) {
+          this.captureStarted = true;
+          requestAnimationFrame((time) => this.captureFrame(time));
+        }
         return;
       }
       if (message.type === "error") {
-        emitMacro("citation-gesture-status", message.message);
+        if (message.fatal) this.stop(message.message);
+        else emitMacro("citation-gesture-status", message.message);
         return;
       }
       if (message.type !== "result") return;
       this.framePending = false;
+      if (Number.isInteger(message.handCount) && message.handCount !== this.handCount) {
+        this.handCount = message.handCount;
+        const label = message.handCount === 1 ? "hand" : "hands";
+        emitMacro(
+          "citation-gesture-status",
+          message.handCount
+            ? `Hand tracking active · ${message.handCount} ${label} detected`
+            : "Hand tracking active · show a hand to the camera",
+        );
+      }
       if (message.landmarksBuffer) {
         // The transferable fallback remains on the JS side; raw landmarks never cross into WASM.
         this.latestLandmarks = new Float32Array(message.landmarksBuffer);
@@ -397,9 +452,29 @@
     },
 
     applyGesture(gesture) {
-      const graph = this.data.graph?.components["af-force-graph"];
-      const graphObject = this.data.graph?.object3D;
-      if (!graph || !graphObject) return;
+      // Leptos may attach this scene component before its child entities exist,
+      // causing A-Frame's selector schema to resolve to null. Resolve lazily once
+      // the graph is present instead of silently discarding every gesture.
+      const graphElement = this.data.graph || this.el.querySelector("#citation-graph");
+      const graph = graphElement?.components?.["af-force-graph"];
+      const graphObject = graphElement?.object3D;
+      if (!graph || !graphObject) {
+        emitMacro("citation-gesture-status", "Hand detected · graph controls unavailable");
+        return;
+      }
+
+      const labels = {
+        palm_drag: "Open-palm orbit",
+        pinch: "Pinch select",
+        spread: "Two-hand zoom",
+        sweep: "Index sweep",
+      };
+      const now = performance.now();
+      if (gesture.kind !== this.lastGestureKind || now - this.lastGestureStatusAt > 500) {
+        emitMacro("citation-gesture-status", labels[gesture.kind] || "Gesture recognized");
+        this.lastGestureKind = gesture.kind;
+        this.lastGestureStatusAt = now;
+      }
 
       if (gesture.kind === "palm_drag") {
         graphObject.rotation.y -= gesture.dx * 2.4;
@@ -424,16 +499,21 @@
       }
     },
 
-    stop() {
+    stop(status = "Gesture camera is off") {
+      this.startToken += 1;
       this.running = false;
+      this.starting = false;
       this.framePending = false;
+      this.captureStarted = false;
+      this.handCount = 0;
+      this.lastGestureKind = null;
       this.workerInstance?.terminate();
       this.workerInstance = null;
       this.stream?.getTracks().forEach((track) => track.stop());
       this.stream = null;
       if (this.video) this.video.srcObject = null;
       this.video = null;
-      emitMacro("citation-gesture-status", "Gesture camera is off");
+      emitMacro("citation-gesture-status", status);
     },
 
     remove() {

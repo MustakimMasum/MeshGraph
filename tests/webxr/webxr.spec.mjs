@@ -96,7 +96,7 @@ test("instanced ray selection crosses into Leptos as a macro event", async ({ pa
 
   await expect(page.locator("#paper-panel h2")).toHaveText("Middle graph paper");
   await expect(page.locator("#paper-panel")).toContainText("120 citations");
-  await expect(page.locator("#spatial-paper-card")).toBeAttached();
+  await expect(page.locator("#spatial-paper-card")).toHaveCount(0);
   await page.locator(".panel-close").click();
   await expect(page.locator("#paper-panel")).toHaveCount(0);
 });

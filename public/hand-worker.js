@@ -1,7 +1,6 @@
-import {
-  FilesetResolver,
-  HandLandmarker,
-} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/+esm";
+const MEDIAPIPE_VERSION = "0.10.35";
+const MEDIAPIPE_MODULE_URL =
+  `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MEDIAPIPE_VERSION}/vision_bundle.mjs`;
 
 const MAX_FLOATS = 126;
 let handLandmarker;
@@ -24,8 +23,9 @@ async function initialize(sharedBuffer) {
   }
   if (!initialization) {
     initialization = (async () => {
+      const { FilesetResolver, HandLandmarker } = await import(MEDIAPIPE_MODULE_URL);
       const files = await FilesetResolver.forVisionTasks(
-        "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/wasm",
+        `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MEDIAPIPE_VERSION}/wasm`,
       );
       handLandmarker = await HandLandmarker.createFromOptions(files, {
         baseOptions: {
@@ -140,6 +140,7 @@ self.onmessage = async (event) => {
     } catch (error) {
       postMessage({
         type: "error",
+        fatal: true,
         message: `MediaPipe initialization failed: ${error.message || error}`,
       });
     }
