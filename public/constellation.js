@@ -149,10 +149,17 @@
         0.34,
         1 - THREE.MathUtils.clamp(this.nodes.length / 500, 0, 1),
       );
-      const geometry = new THREE.IcosahedronGeometry(nodeGeometryRadius, 1);
-      const material = new THREE.MeshBasicMaterial({
-        transparent: true,
-        opacity: 0.96,
+      const geometryDetail =
+        this.nodes.length > 2500 ? 0 : this.nodes.length > 500 ? 1 : 2;
+      const geometry = new THREE.IcosahedronGeometry(
+        nodeGeometryRadius,
+        geometryDetail,
+      );
+      const material = new THREE.MeshPhongMaterial({
+        color: 0xffffff,
+        specular: 0x526675,
+        shininess: 12,
+        flatShading: false,
         toneMapped: false,
       });
       this.nodeMesh = new THREE.InstancedMesh(geometry, material, this.nodes.length);
