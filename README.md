@@ -112,8 +112,18 @@ docker compose up --build
 ```
 
 Open `http://localhost:3000`. Oxigraph is exposed at `http://localhost:7878`.
-The Compose seed job loads a small research network so the scene is useful before
-the first live ingestion.
+The Compose seed job loads a 50-paper BERT citation neighborhood so the scene is
+useful before the first live ingestion. The checked-in Turtle file contains the
+seed paper plus 49 highly connected references and citing papers, along with
+every citation relationship among those papers.
+
+Regenerate the checked-in network from current OpenAlex data with:
+
+```sh
+npm run seed:generate
+```
+
+Set `OPENALEX_EMAIL` first if you want the generator to identify its requests.
 
 For Leap Motion input on Windows, start the host-side Hyperion bridge in a
 separate terminal. It must run on the Windows host rather than inside Docker so

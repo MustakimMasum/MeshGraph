@@ -1,49 +1,593 @@
+# Generated from OpenAlex by scripts/generate-citation-seed.mjs.
+# Seed: BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding
+# 50 papers and 253 citation relationships.
+
 @prefix schema: <https://schema.org/> .
 @prefix cito: <http://purl.org/spar/cito/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix ex: <http://example.org/meshgraph/> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-<https://openalex.org/W1000000001>
+<https://openalex.org/W2963341956>
     a schema:ScholarlyArticle ;
-    schema:name "Attention Is All You Need" ;
-    dcterms:created "2017"^^xsd:gYear ;
-    schema:genre "article" ;
-    schema:about "Artificial intelligence" ;
-    schema:abstract "A sequence transduction architecture based entirely on attention mechanisms." ;
-    schema:identifier "https://doi.org/10.48550/arXiv.1706.03762" ;
-    schema:url <https://arxiv.org/pdf/1706.03762> ;
-    ex:citationCount "140000"^^xsd:integer ;
-    cito:cites <https://openalex.org/W1000000002>, <https://openalex.org/W1000000003> .
+    schema:name "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding" ;
+    dcterms:created "2019"^^xsd:gYear ;
+    schema:genre "conference-paper" ;
+    schema:about "Topic Modeling" ;
+    schema:abstract "Jacob Devlin, Ming-Wei Chang, Kenton Lee, Kristina Toutanova. Proceedings of the 2019 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies, Volume 1 (Long and Short Papers). 2019." ;
+    schema:identifier "https://doi.org/10.18653/v1/n19-1423" ;
+    schema:url <https://doi.org/10.18653/v1/n19-1423> ;
+    ex:citationCount "33774"^^xsd:integer ;
+    cito:cites <https://openalex.org/W131533222>, <https://openalex.org/W1486649854>, <https://openalex.org/W1566289585>, <https://openalex.org/W1599016936>, <https://openalex.org/W1840435438>, <https://openalex.org/W2108598243>, <https://openalex.org/W2117130368>, <https://openalex.org/W2131744502>, <https://openalex.org/W2153579005>, <https://openalex.org/W2158139315>, <https://openalex.org/W2170973209>, <https://openalex.org/W2250539671>, <https://openalex.org/W2251939518>, <https://openalex.org/W2891602716>, <https://openalex.org/W2963748441>, <https://openalex.org/W2963918774> ;
+    ex:isSeed true .
 
-<https://openalex.org/W1000000002>
+<https://openalex.org/W2250539671>
     a schema:ScholarlyArticle ;
-    schema:name "Neural Machine Translation by Jointly Learning to Align and Translate" ;
+    schema:name "Glove: Global Vectors for Word Representation" ;
+    dcterms:created "2014"^^xsd:gYear ;
+    schema:genre "conference-paper" ;
+    schema:about "Topic Modeling" ;
+    schema:abstract "Recent methods for learning vector space representations of words have succeeded in capturing fine-grained semantic and syntactic regularities using vector arith-metic, but the origin of these regularities has remained opaque. We analyze and make explicit the model properties needed for such regularities to emerge in word vectors. The result is a new global log-bilinear regression model that combines the advantages of the two major model families in the literature: global matrix factorization and local context window methods. Our model efficiently leverages statistical information by training only on the nonzero elements in a word-word co-occurrence matrix, rather than on the en-tire sparse matrix or on individual context windows in a large corpus. The model pro-duces a vector space with meaningful sub-structure, as evidenced by its performance of 75 % on a recent word analogy task. It also outperforms related models on simi-larity tasks and named entity recognition. 1" ;
+    schema:identifier "https://doi.org/10.3115/v1/d14-1162" ;
+    ex:citationCount "34117"^^xsd:integer ;
+    cito:cites <https://openalex.org/W2117130368>, <https://openalex.org/W2153579005>, <https://openalex.org/W2158139315> .
+
+<https://openalex.org/W2965373594>
+    a schema:ScholarlyArticle ;
+    schema:name "HISTORIAE, History of Socio-Cultural Transformation as Linguistic Data Science. A Humanities Use Case" ;
+    dcterms:created "2019"^^xsd:gYear ;
+    schema:genre "preprint" ;
+    schema:about "Topic Modeling" ;
+    schema:abstract "Given a combinatorial optimisation problem, there are typically multiple ways of modelling it for presentation to an automated solver. Choosing the right combination of model and target solver can have a significant impact on the effectiveness of the solving process. The best combination of model and solver can also be instance-dependent: there may not exist a single combination that works best for all instances of the same problem. We consider the task of building machine learning models to automatically select the best combination for a problem instance. Critical to the learning process is to define instance features, which serve as input to the selection model. Our contribution is the automatic learning of instance features directly from the high-level representation of a problem instance using a transformer encoder. We evaluate the performance of our approach using the Essence modelling language via a case study of three problem classes." ;
+    schema:identifier "https://doi.org/10.4230/lipics.cp.2025.31" ;
+    schema:url <https://arxiv.org/pdf/1907.11692> ;
+    ex:citationCount "17511"^^xsd:integer ;
+    cito:cites <https://openalex.org/W131533222>, <https://openalex.org/W1566289585>, <https://openalex.org/W1599016936>, <https://openalex.org/W1840435438>, <https://openalex.org/W2170973209>, <https://openalex.org/W2251939518>, <https://openalex.org/W2914120296>, <https://openalex.org/W2963341956>, <https://openalex.org/W2963748441> .
+
+<https://openalex.org/W2981852735>
+    a schema:ScholarlyArticle ;
+    schema:name "Exploring the Limits of Transfer Learning with a Unified Text-to-Text Transformer" ;
+    dcterms:created "2019"^^xsd:gYear ;
+    schema:genre "preprint" ;
+    schema:about "Topic Modeling" ;
+    schema:abstract "Transfer learning, where a model is first pre-trained on a data-rich task before being fine-tuned on a downstream task, has emerged as a powerful technique in natural language processing (NLP). The effectiveness of transfer learning has given rise to a diversity of approaches, methodology, and practice. In this paper, we explore the landscape of transfer learning techniques for NLP by introducing a unified framework that converts all text-based language problems into a text-to-text format. Our systematic study compares pre-training objectives, architectures, unlabeled data sets, transfer approaches, and other factors on dozens of language understanding tasks. By combining the insights from our exploration with scale and our new ``Colossal Clean Crawled Corpus'', we achieve state-of-the-art results on many benchmarks covering summarization, question answering, text classification, and more. To facilitate future work on transfer learning for NLP, we release our data set, pre-trained models, and code." ;
+    schema:identifier "https://doi.org/10.48550/arxiv.1910.10683" ;
+    schema:url <https://arxiv.org/pdf/1910.10683> ;
+    ex:citationCount "3702"^^xsd:integer ;
+    cito:cites <https://openalex.org/W131533222>, <https://openalex.org/W1486649854>, <https://openalex.org/W1566289585>, <https://openalex.org/W1599016936>, <https://openalex.org/W2108598243>, <https://openalex.org/W2153579005>, <https://openalex.org/W2170973209>, <https://openalex.org/W2250539671>, <https://openalex.org/W2251939518>, <https://openalex.org/W2914120296>, <https://openalex.org/W2950813464>, <https://openalex.org/W2963341956>, <https://openalex.org/W2963748441>, <https://openalex.org/W2965373594>, <https://openalex.org/W2970771982>, <https://openalex.org/W2978017171> .
+
+<https://openalex.org/W3195577433>
+    a schema:ScholarlyArticle ;
+    schema:name "On the Opportunities and Risks of Foundation Models" ;
+    dcterms:created "2021"^^xsd:gYear ;
+    schema:genre "preprint" ;
+    schema:about "Domain Adaptation and Few-Shot Learning" ;
+    schema:abstract "AI is undergoing a paradigm shift with the rise of models (e.g., BERT, DALL-E, GPT-3) that are trained on broad data at scale and are adaptable to a wide range of downstream tasks. We call these models foundation models to underscore their critically central yet incomplete character. This report provides a thorough account of the opportunities and risks of foundation models, ranging from their capabilities (e.g., language, vision, robotics, reasoning, human interaction) and technical principles(e.g., model architectures, training procedures, data, systems, security, evaluation, theory) to their applications (e.g., law, healthcare, education) and societal impact (e.g., inequity, misuse, economic and environmental impact, legal and ethical considerations). Though foundation models are based on standard deep learning and transfer learning, their scale results in new emergent capabilities,and their effectiveness across so many tasks incentivizes homogenization. Homogenization provides powerful leverage but demands caution, as the defects of the foundation model are inherited by all the adapted models downstream. Despite the impending widespread deployment of foundation models, we currently lack a clear understanding of how they work, when they fail, and what they are even capable of due to their emergent properties. To tackle these questions, we believe much of the critical research on foundation models will require deep interdisciplinary collaboration commensurate with their fundamentally sociotechnical nature." ;
+    schema:identifier "https://doi.org/10.48550/arxiv.2108.07258" ;
+    schema:url <https://arxiv.org/pdf/2108.07258> ;
+    ex:citationCount "2292"^^xsd:integer ;
+    cito:cites <https://openalex.org/W2108598243>, <https://openalex.org/W2117130368>, <https://openalex.org/W2158139315>, <https://openalex.org/W2170973209>, <https://openalex.org/W2250539671>, <https://openalex.org/W2911489562>, <https://openalex.org/W2963341956>, <https://openalex.org/W2963748441>, <https://openalex.org/W2964110616>, <https://openalex.org/W2965373594>, <https://openalex.org/W2970231061>, <https://openalex.org/W2970476646>, <https://openalex.org/W2978017171>, <https://openalex.org/W3015468748>, <https://openalex.org/W3030163527>, <https://openalex.org/W3035524453>, <https://openalex.org/W3135367836>, <https://openalex.org/W3168867926>, <https://openalex.org/W3169483174> .
+
+<https://openalex.org/W3030163527>
+    a schema:ScholarlyArticle ;
+    schema:name "Language Models are Few-Shot Learners" ;
+    dcterms:created "2020"^^xsd:gYear ;
+    schema:genre "preprint" ;
+    schema:about "Topic Modeling" ;
+    schema:abstract "Recent work has demonstrated substantial gains on many NLP tasks and benchmarks by pre-training on a large corpus of text followed by fine-tuning on a specific task. While typically task-agnostic in architecture, this method still requires task-specific fine-tuning datasets of thousands or tens of thousands of examples. By contrast, humans can generally perform a new language task from only a few examples or from simple instructions - something which current NLP systems still largely struggle to do. Here we show that scaling up language models greatly improves task-agnostic, few-shot performance, sometimes even reaching competitiveness with prior state-of-the-art fine-tuning approaches. Specifically, we train GPT-3, an autoregressive language model with 175 billion parameters, 10x more than any previous non-sparse language model, and test its performance in the few-shot setting. For all tasks, GPT-3 is applied without any gradient updates or fine-tuning, with tasks and few-shot demonstrations specified purely via text interaction with the model. GPT-3 achieves strong performance on many NLP datasets, including translation, question-answering, and cloze tasks, as well as several tasks that require on-the-fly reasoning or domain adaptation, such as unscrambling words, using a novel word in a sentence, or performing 3-digit arithmetic. At the same time, we also identify some datasets where GPT-3's few-shot learning still struggles, as well as some datasets where GPT-3 faces methodological issues related to training on large web corpora. Finally, we find that GPT-3 can generate samples of news articles which human evaluators have difficulty distinguishing from articles written by humans. We discuss broader societal impacts of this finding and of GPT-3 in general." ;
+    schema:identifier "https://doi.org/10.48550/arxiv.2005.14165" ;
+    schema:url <https://arxiv.org/pdf/2005.14165> ;
+    ex:citationCount "3012"^^xsd:integer ;
+    cito:cites <https://openalex.org/W1599016936>, <https://openalex.org/W2170973209>, <https://openalex.org/W2250539671>, <https://openalex.org/W2914120296>, <https://openalex.org/W2962369866>, <https://openalex.org/W2963341956>, <https://openalex.org/W2965373594>, <https://openalex.org/W2978017171>, <https://openalex.org/W3027879771> .
+
+<https://openalex.org/W2108598243>
+    a schema:ScholarlyArticle ;
+    schema:name "ImageNet: A large-scale hierarchical image database" ;
+    dcterms:created "2009"^^xsd:gYear ;
+    schema:genre "conference-paper" ;
+    schema:about "Advanced Image and Video Retrieval Techniques" ;
+    schema:abstract "The explosion of image data on the Internet has the potential to foster more sophisticated and robust models and algorithms to index, retrieve, organize and interact with images and multimedia data. But exactly how such data can be harnessed and organized remains a critical problem. We introduce here a new database called “ImageNet”, a large-scale ontology of images built upon the backbone of the WordNet structure. ImageNet aims to populate the majority of the 80,000 synsets of WordNet with an average of 500–1000 clean and full resolution images. This will result in tens of millions of annotated images organized by the semantic hierarchy of WordNet. This paper offers a detailed analysis of ImageNet in its current state: 12 subtrees with 5247 synsets and 3.2 million images in total. We show that ImageNet is much larger in scale and diversity and much more accurate than the current image datasets. Constructing such a large-scale database is a challenging task. We describe the data collection scheme with Amazon Mechanical Turk. Lastly, we illustrate the usefulness of ImageNet through three simple applications in object recognition, image classification and automatic object clustering. We hope that the scale, accuracy, diversity and hierarchical structure of ImageNet can offer unparalleled opportunities to researchers in the computer vision community and beyond." ;
+    schema:identifier "https://doi.org/10.1109/cvpr.2009.5206848" ;
+    ex:citationCount "63422"^^xsd:integer .
+
+<https://openalex.org/W2153579005>
+    a schema:ScholarlyArticle ;
+    schema:name "Distributed Representations of Words and Phrases and their Compositionality" ;
+    dcterms:created "2013"^^xsd:gYear ;
+    schema:genre "preprint" ;
+    schema:about "Natural Language Processing Techniques" ;
+    schema:abstract "The recently introduced continuous Skip-gram model is an efficient method for learning high-quality distributed vector representations that capture a large number of precise syntactic and semantic word relationships. In this paper we present several extensions that improve both the quality of the vectors and the training speed. By subsampling of the frequent words we obtain significant speedup and also learn more regular word representations. We also describe a simple alternative to the hierarchical softmax called negative sampling. An inherent limitation of word representations is their indifference to word order and their inability to represent idiomatic phrases. For example, the meanings of \"Canada\" and \"Air\" cannot be easily combined to obtain \"Air Canada\". Motivated by this example, we present a simple method for finding phrases in text, and show that learning good vector representations for millions of phrases is possible." ;
+    schema:identifier "https://doi.org/10.48550/arxiv.1310.4546" ;
+    schema:url <https://arxiv.org/pdf/1310.4546> ;
+    ex:citationCount "18034"^^xsd:integer ;
+    cito:cites <https://openalex.org/W2117130368>, <https://openalex.org/W2158139315> .
+
+<https://openalex.org/W2170973209>
+    a schema:ScholarlyArticle ;
+    schema:name "Semi-supervised Sequence Learning" ;
+    dcterms:created "2015"^^xsd:gYear ;
+    schema:genre "preprint" ;
+    schema:about "Topic Modeling" ;
+    schema:abstract "We present two approaches that use unlabeled data to improve sequence learning with recurrent networks. The first approach is to predict what comes next in a sequence, which is a conventional language model in natural language processing. The second approach is to use a sequence autoencoder, which reads the input sequence into a vector and predicts the input sequence again. These two algorithms can be used as a \"pretraining\" step for a later supervised sequence learning algorithm. In other words, the parameters obtained from the unsupervised step can be used as a starting point for other supervised training models. In our experiments, we find that long short term memory recurrent networks after being pretrained with the two approaches are more stable and generalize better. With pretraining, we are able to train long short term memory recurrent networks up to a few hundred timesteps, thereby achieving strong performance in many text classification tasks, such as IMDB, DBpedia and 20 Newsgroups." ;
+    schema:identifier "https://doi.org/10.48550/arxiv.1511.01432" ;
+    schema:url <https://arxiv.org/pdf/1511.01432> ;
+    ex:citationCount "487"^^xsd:integer ;
+    cito:cites <https://openalex.org/W2131744502>, <https://openalex.org/W2251939518> .
+
+<https://openalex.org/W2251939518>
+    a schema:ScholarlyArticle ;
+    schema:name "Recursive Deep Models for Semantic Compositionality Over a Sentiment Treebank" ;
+    dcterms:created "2013"^^xsd:gYear ;
+    schema:genre "conference-paper" ;
+    schema:about "Topic Modeling" ;
+    schema:abstract "Richard Socher, Alex Perelygin, Jean Wu, Jason Chuang, Christopher D. Manning, Andrew Ng, Christopher Potts. Proceedings of the 2013 Conference on Empirical Methods in Natural Language Processing. 2013." ;
+    schema:identifier "https://doi.org/10.18653/v1/d13-1170" ;
+    schema:url <https://aclanthology.org/D13-1170.pdf> ;
+    ex:citationCount "6875"^^xsd:integer ;
+    cito:cites <https://openalex.org/W2117130368> .
+
+<https://openalex.org/W3135367836>
+    a schema:ScholarlyArticle ;
+    schema:name "Learning Transferable Visual Models From Natural Language Supervision" ;
+    dcterms:created "2021"^^xsd:gYear ;
+    schema:genre "preprint" ;
+    schema:about "Multimodal Machine Learning Applications" ;
+    schema:abstract "State-of-the-art computer vision systems are trained to predict a fixed set of predetermined object categories. This restricted form of supervision limits their generality and usability since additional labeled data is needed to specify any other visual concept. Learning directly from raw text about images is a promising alternative which leverages a much broader source of supervision. We demonstrate that the simple pre-training task of predicting which caption goes with which image is an efficient and scalable way to learn SOTA image representations from scratch on a dataset of 400 million (image, text) pairs collected from the internet. After pre-training, natural language is used to reference learned visual concepts (or describe new ones) enabling zero-shot transfer of the model to downstream tasks. We study the performance of this approach by benchmarking on over 30 different existing computer vision datasets, spanning tasks such as OCR, action recognition in videos, geo-localization, and many types of fine-grained object classification. The model transfers non-trivially to most tasks and is often competitive with a fully supervised baseline without the need for any dataset specific training. For instance, we match the accuracy of the original ResNet-50 on ImageNet zero-shot without needing to use any of the 1.28 million training examples it was trained on. We release our code and pre-trained model weights at https://github.com/OpenAI/CLIP." ;
+    schema:identifier "https://doi.org/10.48550/arxiv.2103.00020" ;
+    schema:url <https://arxiv.org/pdf/2103.00020> ;
+    ex:citationCount "5294"^^xsd:integer ;
+    cito:cites <https://openalex.org/W2108598243>, <https://openalex.org/W2131744502>, <https://openalex.org/W2153579005>, <https://openalex.org/W2170973209>, <https://openalex.org/W2250539671>, <https://openalex.org/W2251939518>, <https://openalex.org/W2963341956>, <https://openalex.org/W2981852735>, <https://openalex.org/W3030163527>, <https://openalex.org/W3035524453>, <https://openalex.org/W3094502228> .
+
+<https://openalex.org/W2117130368>
+    a schema:ScholarlyArticle ;
+    schema:name "A unified architecture for natural language processing" ;
+    dcterms:created "2008"^^xsd:gYear ;
+    schema:genre "conference-paper" ;
+    schema:about "Topic Modeling" ;
+    schema:abstract "We describe a single convolutional neural network architecture that, given a sentence, outputs a host of language processing predictions: part-of-speech tags, chunks, named entity tags, semantic roles, semantically similar words and the likelihood that the sentence makes sense (grammatically and semantically) using a language model. The entire network is trained jointly on all these tasks using weight-sharing, an instance of multitask learning. All the tasks use labeled data except the language model which is learnt from unlabeled text and represents a novel form of semi-supervised learning for the shared tasks. We show how both multitask learning and semi-supervised learning improve the generalization of the shared tasks, resulting in state-of-the-art-performance." ;
+    schema:identifier "https://doi.org/10.1145/1390156.1390177" ;
+    ex:citationCount "5224"^^xsd:integer .
+
+<https://openalex.org/W2963918774>
+    a schema:ScholarlyArticle ;
+    schema:name "Supervised Learning of Universal Sentence Representations from Natural\\n Language Inference Data" ;
+    dcterms:created "2017"^^xsd:gYear ;
+    schema:genre "preprint" ;
+    schema:about "Topic Modeling" ;
+    schema:abstract "Many modern NLP systems rely on word embeddings, previously trained in an\\nunsupervised manner on large corpora, as base features. Efforts to obtain\\nembeddings for larger chunks of text, such as sentences, have however not been\\nso successful. Several attempts at learning unsupervised representations of\\nsentences have not reached satisfactory enough performance to be widely\\nadopted. In this paper, we show how universal sentence representations trained\\nusing the supervised data of the Stanford Natural Language Inference datasets\\ncan consistently outperform unsupervised methods like SkipThought vectors on a\\nwide range of transfer tasks. Much like how computer vision uses ImageNet to\\nobtain features, which can then be transferred to other tasks, our work tends\\nto indicate the suitability of natural language inference for transfer learning\\nto other NLP tasks. Our encoder is publicly available.\\n" ;
+    schema:identifier "https://doi.org/10.48550/arxiv.1705.02364" ;
+    schema:url <https://arxiv.org/pdf/1705.02364> ;
+    ex:citationCount "2077"^^xsd:integer ;
+    cito:cites <https://openalex.org/W1486649854>, <https://openalex.org/W1566289585>, <https://openalex.org/W1840435438>, <https://openalex.org/W2108598243>, <https://openalex.org/W2117130368>, <https://openalex.org/W2131744502>, <https://openalex.org/W2153579005>, <https://openalex.org/W2250539671> .
+
+<https://openalex.org/W2963748441>
+    a schema:ScholarlyArticle ;
+    schema:name "SQuAD: 100,000+ Questions for Machine Comprehension of Text" ;
+    dcterms:created "2016"^^xsd:gYear ;
+    schema:genre "conference-paper" ;
+    schema:about "Topic Modeling" ;
+    schema:abstract "We present the Stanford Question Answering Dataset (SQuAD), a new reading comprehension dataset consisting of 100,000+ questions posed by crowdworkers on a set of Wikipedia articles, where the answer to each question is a segment of text from the corresponding reading passage. We analyze the dataset to understand the types of reasoning required to answer the questions, leaning heavily on dependency and constituency trees. We build a strong logistic regression model, which achieves an F1 score of 51.0%, a significant improvement over a simple baseline (20%). However, human performance (86.8%) is much higher, indicating that the dataset presents a good challenge problem for future research. The dataset is freely available at https://stanford-qa.com" ;
+    schema:identifier "https://doi.org/10.18653/v1/d16-1264" ;
+    schema:url <https://aclanthology.org/D16-1264.pdf> ;
+    ex:citationCount "6439"^^xsd:integer ;
+    cito:cites <https://openalex.org/W2108598243> .
+
+<https://openalex.org/W3156636935>
+    a schema:ScholarlyArticle ;
+    schema:name "SimCSE: Simple Contrastive Learning of Sentence Embeddings" ;
+    dcterms:created "2021"^^xsd:gYear ;
+    schema:genre "conference-paper" ;
+    schema:about "Topic Modeling" ;
+    schema:abstract "This paper presents SimCSE, a simple contrastive learning framework that greatly advances the state-of-the-art sentence embeddings.We first describe an unsupervised approach, which takes an input sentence and predicts itself in a contrastive objective, with only standard dropout used as noise.This simple method works surprisingly well, performing on par with previous supervised counterparts.We find that dropout acts as minimal data augmentation and removing it leads to a representation collapse.Then, we propose a supervised approach, which incorporates annotated pairs from natural language inference datasets into our contrastive learning framework, by using \"entailment\" pairs as positives and \"contradiction\" pairs as hard negatives.We evaluate SimCSE on standard semantic textual similarity (STS) tasks, and our unsupervised and supervised models using BERT base achieve an average of 76.3% and 81.6% Spearman's correlation respectively, a 4.2% and 2.2% improvement compared to previous best results.We also show-both theoretically and empirically-that contrastive learning objective regularizes pre-trained embeddings' anisotropic space to be more uniform, and it better aligns positive pairs when supervised signals are available.1" ;
+    schema:identifier "https://doi.org/10.18653/v1/2021.emnlp-main.552" ;
+    schema:url <https://aclanthology.org/2021.emnlp-main.552.pdf> ;
+    ex:citationCount "2674"^^xsd:integer ;
+    cito:cites <https://openalex.org/W131533222>, <https://openalex.org/W1486649854>, <https://openalex.org/W1840435438>, <https://openalex.org/W2153579005>, <https://openalex.org/W2250539671>, <https://openalex.org/W2251939518>, <https://openalex.org/W2963341956>, <https://openalex.org/W2963918774>, <https://openalex.org/W2965373594>, <https://openalex.org/W2970641574> .
+
+<https://openalex.org/W2936695845>
+    a schema:ScholarlyArticle ;
+    schema:name "BERTScore: Evaluating Text Generation with BERT" ;
+    dcterms:created "2019"^^xsd:gYear ;
+    schema:genre "preprint" ;
+    schema:about "Topic Modeling" ;
+    schema:abstract "We propose BERTScore, an automatic evaluation metric for text generation. Analogously to common metrics, BERTScore computes a similarity score for each token in the candidate sentence with each token in the reference sentence. However, instead of exact matches, we compute token similarity using contextual embeddings. We evaluate using the outputs of 363 machine translation and image captioning systems. BERTScore correlates better with human judgments and provides stronger model selection performance than existing metrics. Finally, we use an adversarial paraphrase detection task to show that BERTScore is more robust to challenging examples when compared to existing metrics." ;
+    schema:identifier "https://doi.org/10.48550/arxiv.1904.09675" ;
+    schema:url <https://arxiv.org/pdf/1904.09675> ;
+    ex:citationCount "2072"^^xsd:integer ;
+    cito:cites <https://openalex.org/W131533222>, <https://openalex.org/W2153579005>, <https://openalex.org/W2250539671>, <https://openalex.org/W2914120296>, <https://openalex.org/W2950813464>, <https://openalex.org/W2963341956>, <https://openalex.org/W2965373594>, <https://openalex.org/W2970771982> .
+
+<https://openalex.org/W2914120296>
+    a schema:ScholarlyArticle ;
+    schema:name "Cross-lingual Language Model Pretraining" ;
+    dcterms:created "2019"^^xsd:gYear ;
+    schema:genre "preprint" ;
+    schema:about "Topic Modeling" ;
+    schema:abstract "Recent studies have demonstrated the efficiency of generative pretraining for English natural language understanding. In this work, we extend this approach to multiple languages and show the effectiveness of cross-lingual pretraining. We propose two methods to learn cross-lingual language models (XLMs): one unsupervised that only relies on monolingual data, and one supervised that leverages parallel data with a new cross-lingual language model objective. We obtain state-of-the-art results on cross-lingual classification, unsupervised and supervised machine translation. On XNLI, our approach pushes the state of the art by an absolute gain of 4.9% accuracy. On unsupervised machine translation, we obtain 34.3 BLEU on WMT'16 German-English, improving the previous state of the art by more than 9 BLEU. On supervised machine translation, we obtain a new state of the art of 38.5 BLEU on WMT'16 Romanian-English, outperforming the previous best approach by more than 4 BLEU. Our code and pretrained models will be made publicly available." ;
+    schema:identifier "https://doi.org/10.48550/arxiv.1901.07291" ;
+    schema:url <https://arxiv.org/pdf/1901.07291> ;
+    ex:citationCount "1623"^^xsd:integer ;
+    cito:cites <https://openalex.org/W2251939518>, <https://openalex.org/W2963341956> .
+
+<https://openalex.org/W2962369866>
+    a schema:ScholarlyArticle ;
+    schema:name "Unsupervised Data Augmentation for Consistency Training" ;
+    dcterms:created "2019"^^xsd:gYear ;
+    schema:genre "preprint" ;
+    schema:about "Domain Adaptation and Few-Shot Learning" ;
+    schema:abstract "Semi-supervised learning lately has shown much promise in improving deep learning models when labeled data is scarce. Common among recent approaches is the use of consistency training on a large amount of unlabeled data to constrain model predictions to be invariant to input noise. In this work, we present a new perspective on how to effectively noise unlabeled examples and argue that the quality of noising, specifically those produced by advanced data augmentation methods, plays a crucial role in semi-supervised learning. By substituting simple noising operations with advanced data augmentation methods such as RandAugment and back-translation, our method brings substantial improvements across six language and three vision tasks under the same consistency training framework. On the IMDb text classification dataset, with only 20 labeled examples, our method achieves an error rate of 4.20, outperforming the state-of-the-art model trained on 25,000 labeled examples. On a standard semi-supervised learning benchmark, CIFAR-10, our method outperforms all previous approaches and achieves an error rate of 5.43 with only 250 examples. Our method also combines well with transfer learning, e.g., when finetuning from BERT, and yields improvements in high-data regime, such as ImageNet, whether when there is only 10% labeled data or when a full labeled set with 1.3M extra unlabeled examples is used. Code is available at https://github.com/google-research/uda." ;
+    schema:identifier "https://doi.org/10.48550/arxiv.1904.12848" ;
+    schema:url <https://arxiv.org/pdf/1904.12848> ;
+    ex:citationCount "1622"^^xsd:integer ;
+    cito:cites <https://openalex.org/W2108598243>, <https://openalex.org/W2117130368>, <https://openalex.org/W2153579005>, <https://openalex.org/W2170973209>, <https://openalex.org/W2250539671>, <https://openalex.org/W2963341956> .
+
+<https://openalex.org/W3094502228>
+    a schema:ScholarlyArticle ;
+    schema:name "An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale" ;
+    dcterms:created "2020"^^xsd:gYear ;
+    schema:genre "preprint" ;
+    schema:about "Advanced Neural Network Applications" ;
+    schema:abstract "While the Transformer architecture has become the de-facto standard for natural language processing tasks, its applications to computer vision remain limited. In vision, attention is either applied in conjunction with convolutional networks, or used to replace certain components of convolutional networks while keeping their overall structure in place. We show that this reliance on CNNs is not necessary and a pure transformer applied directly to sequences of image patches can perform very well on image classification tasks. When pre-trained on large amounts of data and transferred to multiple mid-sized or small image recognition benchmarks (ImageNet, CIFAR-100, VTAB, etc.), Vision Transformer (ViT) attains excellent results compared to state-of-the-art convolutional networks while requiring substantially fewer computational resources to train." ;
+    schema:identifier "https://doi.org/10.48550/arxiv.2010.11929" ;
+    schema:url <https://arxiv.org/pdf/2010.11929> ;
+    ex:citationCount "22044"^^xsd:integer ;
+    cito:cites <https://openalex.org/W2108598243>, <https://openalex.org/W2963341956>, <https://openalex.org/W3030163527>, <https://openalex.org/W3035524453> .
+
+<https://openalex.org/W2970641574>
+    a schema:ScholarlyArticle ;
+    schema:name "Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks" ;
+    dcterms:created "2019"^^xsd:gYear ;
+    schema:genre "conference-paper" ;
+    schema:about "Topic Modeling" ;
+    schema:abstract "Nils Reimers, Iryna Gurevych. Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP). 2019." ;
+    schema:identifier "https://doi.org/10.18653/v1/d19-1410" ;
+    schema:url <https://www.aclweb.org/anthology/D19-1410.pdf> ;
+    ex:citationCount "11995"^^xsd:integer ;
+    cito:cites <https://openalex.org/W1486649854>, <https://openalex.org/W1840435438>, <https://openalex.org/W2250539671>, <https://openalex.org/W2251939518>, <https://openalex.org/W2936695845>, <https://openalex.org/W2963341956>, <https://openalex.org/W2963918774>, <https://openalex.org/W2965373594> .
+
+<https://openalex.org/W2131744502>
+    a schema:ScholarlyArticle ;
+    schema:name "Distributed Representations of Sentences and Documents" ;
     dcterms:created "2014"^^xsd:gYear ;
     schema:genre "preprint" ;
-    schema:about "Natural language processing" ;
-    schema:identifier "https://doi.org/10.48550/arXiv.1409.0473" ;
-    schema:url <https://arxiv.org/pdf/1409.0473> ;
-    ex:citationCount "45000"^^xsd:integer ;
-    cito:cites <https://openalex.org/W1000000004> .
+    schema:about "Topic Modeling" ;
+    schema:abstract "Many machine learning algorithms require the input to be represented as a fixed-length feature vector. When it comes to texts, one of the most common fixed-length features is bag-of-words. Despite their popularity, bag-of-words features have two major weaknesses: they lose the ordering of the words and they also ignore semantics of the words. For example, \"powerful,\" \"strong\" and \"Paris\" are equally distant. In this paper, we propose Paragraph Vector, an unsupervised algorithm that learns fixed-length feature representations from variable-length pieces of texts, such as sentences, paragraphs, and documents. Our algorithm represents each document by a dense vector which is trained to predict words in the document. Its construction gives our algorithm the potential to overcome the weaknesses of bag-of-words models. Empirical results show that Paragraph Vectors outperform bag-of-words models as well as other techniques for text representations. Finally, we achieve new state-of-the-art results on several text classification and sentiment analysis tasks." ;
+    schema:identifier "https://doi.org/10.48550/arxiv.1405.4053" ;
+    schema:url <https://arxiv.org/pdf/1405.4053> ;
+    ex:citationCount "5119"^^xsd:integer ;
+    cito:cites <https://openalex.org/W2117130368>, <https://openalex.org/W2153579005>, <https://openalex.org/W2158139315>, <https://openalex.org/W2251939518> .
 
-<https://openalex.org/W1000000003>
+<https://openalex.org/W2970231061>
     a schema:ScholarlyArticle ;
-    schema:name "Effective Approaches to Attention-based Neural Machine Translation" ;
+    schema:name "LXMERT: Learning Cross-Modality Encoder Representations from Transformers" ;
+    dcterms:created "2019"^^xsd:gYear ;
+    schema:genre "conference-paper" ;
+    schema:about "Topic Modeling" ;
+    schema:abstract "Hao Tan, Mohit Bansal. Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP). 2019." ;
+    schema:identifier "https://doi.org/10.18653/v1/d19-1514" ;
+    schema:url <https://www.aclweb.org/anthology/D19-1514.pdf> ;
+    ex:citationCount "2345"^^xsd:integer ;
+    cito:cites <https://openalex.org/W2108598243>, <https://openalex.org/W2914120296>, <https://openalex.org/W2963341956>, <https://openalex.org/W2963748441> .
+
+<https://openalex.org/W2950813464>
+    a schema:ScholarlyArticle ;
+    schema:name "XLNet: Generalized Autoregressive Pretraining for Language Understanding" ;
+    dcterms:created "2019"^^xsd:gYear ;
+    schema:genre "preprint" ;
+    schema:about "Topic Modeling" ;
+    schema:abstract "With the capability of modeling bidirectional contexts, denoising autoencoding based pretraining like BERT achieves better performance than pretraining approaches based on autoregressive language modeling. However, relying on corrupting the input with masks, BERT neglects dependency between the masked positions and suffers from a pretrain-finetune discrepancy. In light of these pros and cons, we propose XLNet, a generalized autoregressive pretraining method that (1) enables learning bidirectional contexts by maximizing the expected likelihood over all permutations of the factorization order and (2) overcomes the limitations of BERT thanks to its autoregressive formulation. Furthermore, XLNet integrates ideas from Transformer-XL, the state-of-the-art autoregressive model, into pretraining. Empirically, under comparable experiment settings, XLNet outperforms BERT on 20 tasks, often by a large margin, including question answering, natural language inference, sentiment analysis, and document ranking." ;
+    schema:identifier "https://doi.org/10.48550/arxiv.1906.08237" ;
+    schema:url <https://arxiv.org/pdf/1906.08237> ;
+    ex:citationCount "1851"^^xsd:integer ;
+    cito:cites <https://openalex.org/W1566289585>, <https://openalex.org/W2170973209>, <https://openalex.org/W2962369866>, <https://openalex.org/W2963341956>, <https://openalex.org/W2965373594> .
+
+<https://openalex.org/W2970476646>
+    a schema:ScholarlyArticle ;
+    schema:name "Language Models as Knowledge Bases?" ;
+    dcterms:created "2019"^^xsd:gYear ;
+    schema:genre "conference-paper" ;
+    schema:about "Topic Modeling" ;
+    schema:abstract "Fabio Petroni, Tim Rocktäschel, Sebastian Riedel, Patrick Lewis, Anton Bakhtin, Yuxiang Wu, Alexander Miller. Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP). 2019." ;
+    schema:identifier "https://doi.org/10.18653/v1/d19-1250" ;
+    schema:url <https://www.aclweb.org/anthology/D19-1250.pdf> ;
+    ex:citationCount "1806"^^xsd:integer ;
+    cito:cites <https://openalex.org/W1566289585>, <https://openalex.org/W2963341956>, <https://openalex.org/W2963748441>, <https://openalex.org/W2964110616> .
+
+<https://openalex.org/W3176923149>
+    a schema:ScholarlyArticle ;
+    schema:name "Text Data Augmentation for Deep Learning" ;
+    dcterms:created "2021"^^xsd:gYear ;
+    schema:genre "article" ;
+    schema:about "Topic Modeling" ;
+    schema:abstract "Natural Language Processing (NLP) is one of the most captivating applications of Deep Learning. In this survey, we consider how the Data Augmentation training strategy can aid in its development. We begin with the major motifs of Data Augmentation summarized into strengthening local decision boundaries, brute force training, causality and counterfactual examples, and the distinction between meaning and form. We follow these motifs with a concrete list of augmentation frameworks that have been developed for text data. Deep Learning generally struggles with the measurement of generalization and characterization of overfitting. We highlight studies that cover how augmentations can construct test sets for generalization. NLP is at an early stage in applying Data Augmentation compared to Computer Vision. We highlight the key differences and promising ideas that have yet to be tested in NLP. For the sake of practical implementation, we describe tools that facilitate Data Augmentation such as the use of consistency regularization, controllers, and offline and online augmentation pipelines, to preview a few. Finally, we discuss interesting topics around Data Augmentation in NLP such as task-specific augmentations, the use of prior knowledge in self-supervised learning versus Data Augmentation, intersections with transfer and multi-task learning, and ideas for AI-GAs (AI-Generating Algorithms). We hope this paper inspires further research interest in Text Data Augmentation." ;
+    schema:identifier "https://doi.org/10.1186/s40537-021-00492-0" ;
+    schema:url <https://journalofbigdata.springeropen.com/track/pdf/10.1186/s40537-021-00492-0> ;
+    ex:citationCount "1707"^^xsd:integer ;
+    cito:cites <https://openalex.org/W2108598243>, <https://openalex.org/W2962369866>, <https://openalex.org/W2963341956>, <https://openalex.org/W2970641574>, <https://openalex.org/W2978017171>, <https://openalex.org/W3027879771>, <https://openalex.org/W3035524453>, <https://openalex.org/W3176923149> .
+
+<https://openalex.org/W1486649854>
+    a schema:ScholarlyArticle ;
+    schema:name "Skip-Thought Vectors" ;
     dcterms:created "2015"^^xsd:gYear ;
-    schema:genre "conference paper" ;
-    schema:about "Natural language processing" ;
-    schema:identifier "https://doi.org/10.48550/arXiv.1508.04025" ;
-    schema:url <https://arxiv.org/pdf/1508.04025> ;
-    ex:citationCount "21000"^^xsd:integer ;
-    cito:cites <https://openalex.org/W1000000002>, <https://openalex.org/W1000000004> .
+    schema:genre "preprint" ;
+    schema:about "Topic Modeling" ;
+    schema:abstract "We describe an approach for unsupervised learning of a generic, distributed sentence encoder. Using the continuity of text from books, we train an encoder-decoder model that tries to reconstruct the surrounding sentences of an encoded passage. Sentences that share semantic and syntactic properties are thus mapped to similar vector representations. We next introduce a simple vocabulary expansion method to encode words that were not seen as part of training, allowing us to expand our vocabulary to a million words. After training our model, we extract and evaluate our vectors with linear models on 8 tasks: semantic relatedness, paraphrase detection, image-sentence ranking, question-type classification and 4 benchmark sentiment and subjectivity datasets. The end result is an off-the-shelf encoder that can produce highly generic sentence representations that are robust and perform well in practice. We will make our encoder publicly available." ;
+    schema:identifier "https://doi.org/10.48550/arxiv.1506.06726" ;
+    schema:url <https://arxiv.org/pdf/1506.06726> ;
+    ex:citationCount "722"^^xsd:integer ;
+    cito:cites <https://openalex.org/W1566289585>, <https://openalex.org/W2131744502>, <https://openalex.org/W2251939518> .
 
-<https://openalex.org/W1000000004>
+<https://openalex.org/W3035524453>
     a schema:ScholarlyArticle ;
-    schema:name "Sequence to Sequence Learning with Neural Networks" ;
-    dcterms:created "2014"^^xsd:gYear ;
-    schema:genre "conference paper" ;
-    schema:about "Machine learning" ;
-    schema:identifier "https://doi.org/10.48550/arXiv.1409.3215" ;
-    schema:url <https://arxiv.org/pdf/1409.3215> ;
-    ex:citationCount "38000"^^xsd:integer .
+    schema:name "Momentum Contrast for Unsupervised Visual Representation Learning" ;
+    dcterms:created "2020"^^xsd:gYear ;
+    schema:genre "conference-paper" ;
+    schema:about "Domain Adaptation and Few-Shot Learning" ;
+    schema:abstract "We present Momentum Contrast (MoCo) for unsupervised visual representation learning. From a perspective on contrastive learning as dictionary look-up, we build a dynamic dictionary with a queue and a moving-averaged encoder. This enables building a large and consistent dictionary on-the-fly that facilitates contrastive unsupervised learning. MoCo provides competitive results under the common linear protocol on ImageNet classification. More importantly, the representations learned by MoCo transfer well to downstream tasks. MoCo can outperform its supervised pre-training counterpart in 7 detection/segmentation tasks on PASCAL VOC, COCO, and other datasets, sometimes surpassing it by large margins. This suggests that the gap between unsupervised and supervised representation learning has been largely closed in many vision tasks." ;
+    schema:identifier "https://doi.org/10.1109/cvpr42600.2020.00975" ;
+    ex:citationCount "12608"^^xsd:integer ;
+    cito:cites <https://openalex.org/W2108598243>, <https://openalex.org/W2963341956> .
+
+<https://openalex.org/W2978017171>
+    a schema:ScholarlyArticle ;
+    schema:name "DistilBERT, a distilled version of BERT: smaller, faster, cheaper and lighter" ;
+    dcterms:created "2019"^^xsd:gYear ;
+    schema:genre "preprint" ;
+    schema:about "Topic Modeling" ;
+    schema:abstract "As Transfer Learning from large-scale pre-trained models becomes more prevalent in Natural Language Processing (NLP), operating these large models in on-the-edge and/or under constrained computational training or inference budgets remains challenging. In this work, we propose a method to pre-train a smaller general-purpose language representation model, called DistilBERT, which can then be fine-tuned with good performances on a wide range of tasks like its larger counterparts. While most prior work investigated the use of distillation for building task-specific models, we leverage knowledge distillation during the pre-training phase and show that it is possible to reduce the size of a BERT model by 40%, while retaining 97% of its language understanding capabilities and being 60% faster. To leverage the inductive biases learned by larger models during pre-training, we introduce a triple loss combining language modeling, distillation and cosine-distance losses. Our smaller, faster and lighter model is cheaper to pre-train and we demonstrate its capabilities for on-device computations in a proof-of-concept experiment and a comparative on-device study." ;
+    schema:identifier "https://doi.org/10.4230/tgdk.3.3.5" ;
+    schema:url <https://arxiv.org/pdf/1910.01108> ;
+    ex:citationCount "4593"^^xsd:integer ;
+    cito:cites <https://openalex.org/W1566289585>, <https://openalex.org/W2963341956>, <https://openalex.org/W2963748441>, <https://openalex.org/W2965373594> .
+
+<https://openalex.org/W2964110616>
+    a schema:ScholarlyArticle ;
+    schema:name "Transformer-XL: Attentive Language Models beyond a Fixed-Length Context" ;
+    dcterms:created "2019"^^xsd:gYear ;
+    schema:genre "conference-paper" ;
+    schema:about "Topic Modeling" ;
+    schema:abstract "Transformers have a potential of learning longer-term dependency, but are limited by a fixed-length context in the setting of language modeling.We propose a novel neural architecture Transformer-XL that enables learning dependency beyond a fixed length without disrupting temporal coherence.It consists of a segment-level recurrence mechanism and a novel positional encoding scheme.Our method not only enables capturing longer-term dependency, but also resolves the context fragmentation problem.As a result, Transformer-XL learns dependency that is 80% longer than RNNs and 450% longer than vanilla Transformers, achieves better performance on both short and long sequences, and is up to 1,800+ times faster than vanilla Transformers during evaluation.Notably, we improve the state-ofthe-art results of bpc/perplexity to 0.99 on en-wiki8, 1.08 on text8, 18.3 on WikiText-103, 21.8 on One Billion Word, and 54.5 on Penn Treebank (without finetuning).When trained only on WikiText-103, Transformer-XL manages to generate reasonably coherent, novel text articles with thousands of tokens.Our code, pretrained models, and hyperparameters are available in both Tensorflow and PyTorch 1 ." ;
+    schema:identifier "https://doi.org/10.18653/v1/p19-1285" ;
+    schema:url <https://www.aclweb.org/anthology/P19-1285.pdf> ;
+    ex:citationCount "3212"^^xsd:integer ;
+    cito:cites <https://openalex.org/W2170973209>, <https://openalex.org/W2963341956> .
+
+<https://openalex.org/W3212386989>
+    a schema:ScholarlyArticle ;
+    schema:name "Attention mechanisms in computer vision: A survey" ;
+    dcterms:created "2022"^^xsd:gYear ;
+    schema:genre "article" ;
+    schema:about "Visual Attention and Saliency Detection" ;
+    schema:abstract "Humans can naturally and effectively find salient regions in complex scenes. Motivated by this observation, attention mechanisms were introduced into computer vision with the aim of imitating this aspect of the human visual system. Such an attention mechanism can be regarded as a dynamic weight adjustment process based on features of the input image. Attention mechanisms have achieved great success in many visual tasks, including image classification, object detection, semantic segmentation, video understanding, image generation, 3D vision, multimodal tasks, and self-supervised learning. In this survey, we provide a comprehensive review of various attention mechanisms in computer vision and categorize them according to approach, such as channel attention, spatial attention, temporal attention, and branch attention; a related repository https://github.com/MenghaoGuo/Awesome-Vision-Attentions is dedicated to collecting related work. We also suggest future directions for attention mechanism research." ;
+    schema:identifier "https://doi.org/10.1007/s41095-022-0271-y" ;
+    schema:url <https://link.springer.com/content/pdf/10.1007/s41095-022-0271-y.pdf> ;
+    ex:citationCount "2517"^^xsd:integer ;
+    cito:cites <https://openalex.org/W2108598243>, <https://openalex.org/W2950813464>, <https://openalex.org/W2963341956>, <https://openalex.org/W2964110616>, <https://openalex.org/W3030163527>, <https://openalex.org/W3121523901>, <https://openalex.org/W3159481202>, <https://openalex.org/W3170841864>, <https://openalex.org/W3171125843> .
+
+<https://openalex.org/W3171125843>
+    a schema:ScholarlyArticle ;
+    schema:name "Pre-Trained Image Processing Transformer" ;
+    dcterms:created "2021"^^xsd:gYear ;
+    schema:genre "conference-paper" ;
+    schema:about "Advanced Image Processing Techniques" ;
+    schema:abstract "As the computing power of modern hardware is increasing strongly, pre-trained deep learning models (e.g., BERT, GPT-3) learned on large-scale datasets have shown their effectiveness over conventional methods. The big progress is mainly contributed to the representation ability of transformer and its variant architectures. In this paper, we study the low-level computer vision task (e.g., denoising, super-resolution and deraining) and develop a new pre-trained model, namely, image processing transformer (IPT). To maximally excavate the capability of transformer, we present to utilize the well-known ImageNet benchmark for generating a large amount of corrupted image pairs. The IPT model is trained on these images with multi-heads and multi-tails. In addition, the contrastive learning is introduced for well adapting to different image processing tasks. The pre-trained model can therefore efficiently employed on desired task after fine-tuning. With only one pre-trained model, IPT outperforms the current state-of-the-art methods on various low-level benchmarks. Code is available at https://github.com/huawei-noah/Pretrained-IPT and https://gitee.com/mindspore/mindspore/tree/master/model_zoo/research/cv/IPT" ;
+    schema:identifier "https://doi.org/10.1109/cvpr46437.2021.01212" ;
+    ex:citationCount "2101"^^xsd:integer ;
+    cito:cites <https://openalex.org/W2108598243>, <https://openalex.org/W2963341956>, <https://openalex.org/W2965373594>, <https://openalex.org/W2970231061>, <https://openalex.org/W3030163527>, <https://openalex.org/W3035524453>, <https://openalex.org/W3094502228> .
+
+<https://openalex.org/W1566289585>
+    a schema:ScholarlyArticle ;
+    schema:name "Aligning Books and Movies: Towards Story-Like Visual Explanations by Watching Movies and Reading Books" ;
+    dcterms:created "2015"^^xsd:gYear ;
+    schema:genre "conference-paper" ;
+    schema:about "Multimodal Machine Learning Applications" ;
+    schema:abstract "Books are a rich source of both fine-grained information, how a character, an object or a scene looks like, as well as high-level semantics, what someone is thinking, feeling and how these states evolve through a story. This paper aims to align books to their movie releases in order to provide rich descriptive explanations for visual content that go semantically far beyond the captions available in the current datasets. To align movies and books we propose a neural sentence embedding that is trained in an unsupervised way from a large corpus of books, as well as a video-text neural embedding for computing similarities between movie clips and sentences in the book. We propose a context-aware CNN to combine information from multiple sources. We demonstrate good quantitative performance for movie/book alignment and show several qualitative examples that showcase the diversity of tasks our model can be used for." ;
+    schema:identifier "https://doi.org/10.1109/iccv.2015.11" ;
+    schema:url <http://hdl.handle.net/1721.1/112996> ;
+    ex:citationCount "2076"^^xsd:integer .
+
+<https://openalex.org/W2158139315>
+    a schema:ScholarlyArticle ;
+    schema:name "Word Representations: A Simple and General Method for Semi-Supervised Learning" ;
+    dcterms:created "2010"^^xsd:gYear ;
+    schema:genre "article" ;
+    schema:about "Topic Modeling" ;
+    schema:abstract "If we take an existing supervised NLP system, a simple and general way to improve accuracy is to use unsupervised word representations as extra word features. We evaluate Brown clusters, Collobert and Weston (2008) embeddings, and HLBL (Mnih & Hinton, 2009) embeddings of words on both NER and chunking. We use near state-of-the-art supervised baselines, and find that each of the three word representations improves the accuracy of these baselines. We find further improvements by combining different word representations. You can download our word features, for off-the-shelf use in existing NLP systems, as well as our code, here:" ;
+    ex:citationCount "1936"^^xsd:integer ;
+    cito:cites <https://openalex.org/W2117130368> .
+
+<https://openalex.org/W1840435438>
+    a schema:ScholarlyArticle ;
+    schema:name "A large annotated corpus for learning natural language inference" ;
+    dcterms:created "2015"^^xsd:gYear ;
+    schema:genre "conference-paper" ;
+    schema:about "Multimodal Machine Learning Applications" ;
+    schema:abstract "Understanding entailment and contradiction is fundamental to understanding natural language, and inference about entailment and contradiction is a valuable testing ground for the development of semantic representations.However, machine learning research in this area has been dramatically limited by the lack of large-scale resources.To address this, we introduce the Stanford Natural Language Inference corpus, a new, freely available collection of labeled sentence pairs, written by humans doing a novel grounded task based on image captioning.At 570K pairs, it is two orders of magnitude larger than all other resources of its type.This increase in scale allows lexicalized classifiers to outperform some sophisticated existing entailment models, and it allows a neural network-based model to perform competitively on natural language inference benchmarks for the first time." ;
+    schema:identifier "https://doi.org/10.18653/v1/d15-1075" ;
+    schema:url <https://aclanthology.org/D15-1075.pdf> ;
+    ex:citationCount "3492"^^xsd:integer ;
+    cito:cites <https://openalex.org/W2250539671>, <https://openalex.org/W2251939518> .
+
+<https://openalex.org/W3015468748>
+    a schema:ScholarlyArticle ;
+    schema:name "Longformer: The Long-Document Transformer" ;
+    dcterms:created "2020"^^xsd:gYear ;
+    schema:genre "preprint" ;
+    schema:about "Topic Modeling" ;
+    schema:abstract "The quadratic complexity of standard attention (O(N²)) remains the dominant bottleneck for training and deploying large language models on long sequences. We introduce Murmurative Attention, a novel attention mechanism that replaces pairwise token-token interactions with token-to-slot interactions over a fixed-size learnable memory pool of M slots, achieving O(N·M) complexity with M ≪ N. The mechanism operates in four phases per round: (1) select — each token hard-selects the top-k relevant slots via dot-product similarity; (2) attend — tokens compute a standard softmax over their selected slots and aggregate their value vectors; (3) update — tokens write back to slots via an exponential moving average; and (4) diffuse — slots exchange information with their neighbors through a tridiagonal discrete Laplace stencil, enabling global information propagation across rounds. We prove that with M = 256 slots and R = 3 rounds, Murmurative Attention achieves identical language modeling perplexity to standard multi-head attention while consuming 4.4× fewer attention FLOPs at N=512 tokens, 10.1× fewer at N=4,096, and 20.2× fewer at N=8,192 — a gap that widens asymptotically. We implement efficient CUDA kernels including a WMMA tensor-core path, fuse the select-attend and update-diffuse operations into single GPU launches, and provide a full training benchmark comparing wall-clock time, memory, and perplexity-per-FLOP efficiency against standard attention and FlashAttention. Our results show that sub-quadratic attention can match the representational quality of full attention while dramatically reducing the computational cost of long-context training." ;
+    schema:identifier "https://doi.org/10.48550/arxiv.2004.05150" ;
+    schema:url <https://arxiv.org/pdf/2004.05150> ;
+    ex:citationCount "2205"^^xsd:integer ;
+    cito:cites <https://openalex.org/W1566289585>, <https://openalex.org/W2170973209>, <https://openalex.org/W2962369866>, <https://openalex.org/W2963341956>, <https://openalex.org/W2964110616>, <https://openalex.org/W2965373594> .
+
+<https://openalex.org/W2891602716>
+    a schema:ScholarlyArticle ;
+    schema:name "Semi-Supervised Sequence Modeling with Cross-View Training" ;
+    dcterms:created "2018"^^xsd:gYear ;
+    schema:genre "conference-paper" ;
+    schema:about "Topic Modeling" ;
+    schema:abstract "Unsupervised representation learning algorithms such as word2vec and ELMo improve the accuracy of many supervised NLP models, mainly because they can take advantage of large amounts of unlabeled text.However, the supervised models only learn from taskspecific labeled data during the main training phase.We therefore propose Cross-View Training (CVT), a semi-supervised learning algorithm that improves the representations of a Bi-LSTM sentence encoder using a mix of labeled and unlabeled data.On labeled examples, standard supervised learning is used.On unlabeled examples, CVT teaches auxiliary prediction modules that see restricted views of the input (e.g., only part of a sentence) to match the predictions of the full model seeing the whole input.Since the auxiliary modules and the full model share intermediate representations, this in turn improves the full model.Moreover, we show that CVT is particularly effective when combined with multitask learning.We evaluate CVT on five sequence tagging tasks, machine translation, and dependency parsing, achieving state-of-the-art results. 1" ;
+    schema:identifier "https://doi.org/10.18653/v1/d18-1217" ;
+    schema:url <https://www.aclweb.org/anthology/D18-1217.pdf> ;
+    ex:citationCount "396"^^xsd:integer ;
+    cito:cites <https://openalex.org/W1486649854>, <https://openalex.org/W2117130368>, <https://openalex.org/W2153579005>, <https://openalex.org/W2170973209>, <https://openalex.org/W2250539671>, <https://openalex.org/W2963918774> .
+
+<https://openalex.org/W2911489562>
+    a schema:ScholarlyArticle ;
+    schema:name "BioBERT: a pre-trained biomedical language representation model for biomedical text mining" ;
+    dcterms:created "2019"^^xsd:gYear ;
+    schema:genre "article" ;
+    schema:about "Biomedical Text Mining and Ontologies" ;
+    schema:abstract "MOTIVATION: Biomedical text mining is becoming increasingly important as the number of biomedical documents rapidly grows. With the progress in natural language processing (NLP), extracting valuable information from biomedical literature has gained popularity among researchers, and deep learning has boosted the development of effective biomedical text mining models. However, directly applying the advancements in NLP to biomedical text mining often yields unsatisfactory results due to a word distribution shift from general domain corpora to biomedical corpora. In this article, we investigate how the recently introduced pre-trained language model BERT can be adapted for biomedical corpora. RESULTS: We introduce BioBERT (Bidirectional Encoder Representations from Transformers for Biomedical Text Mining), which is a domain-specific language representation model pre-trained on large-scale biomedical corpora. With almost the same architecture across tasks, BioBERT largely outperforms BERT and previous state-of-the-art models in a variety of biomedical text mining tasks when pre-trained on biomedical corpora. While BERT obtains performance comparable to that of previous state-of-the-art models, BioBERT significantly outperforms them on the following three representative biomedical text mining tasks: biomedical named entity recognition (0.62% F1 score improvement), biomedical relation extraction (2.80% F1 score improvement) and biomedical question answering (12.24% MRR improvement). Our analysis results show that pre-training BERT on biomedical corpora helps it to understand complex biomedical texts. AVAILABILITY AND IMPLEMENTATION: We make the pre-trained weights of BioBERT freely available at https://github.com/naver/biobert-pretrained, and the source code for fine-tuning BioBERT available at https://github.com/dmis-lab/biobert." ;
+    schema:identifier "https://doi.org/10.1093/bioinformatics/btz682" ;
+    schema:url <https://academic.oup.com/bioinformatics/article-pdf/36/4/1234/48983216/bioinformatics_36_4_1234.pdf> ;
+    ex:citationCount "7431"^^xsd:integer ;
+    cito:cites <https://openalex.org/W2153579005>, <https://openalex.org/W2250539671>, <https://openalex.org/W2963341956>, <https://openalex.org/W2963716420> .
+
+<https://openalex.org/W3185341429>
+    a schema:ScholarlyArticle ;
+    schema:name "Pre-train, Prompt, and Predict: A Systematic Survey of Prompting Methods in Natural Language Processing" ;
+    dcterms:created "2022"^^xsd:gYear ;
+    schema:genre "article" ;
+    schema:about "Topic Modeling" ;
+    schema:abstract "This article surveys and organizes research works in a new paradigm in natural language processing, which we dub “prompt-based learning.” Unlike traditional supervised learning, which trains a model to take in an input x and predict an output y as P ( y|x ), prompt-based learning is based on language models that model the probability of text directly. To use these models to perform prediction tasks, the original input x is modified using a template into a textual string prompt x′ that has some unfilled slots, and then the language model is used to probabilistically fill the unfilled information to obtain a final string x̂ , from which the final output y can be derived. This framework is powerful and attractive for a number of reasons: It allows the language model to be pre-trained on massive amounts of raw text, and by defining a new prompting function the model is able to perform few-shot or even zero-shot learning, adapting to new scenarios with few or no labeled data. In this article, we introduce the basics of this promising paradigm, describe a unified set of mathematical notations that can cover a wide variety of existing work, and organize existing work along several dimensions, e.g., the choice of pre-trained language models, prompts, and tuning strategies. To make the field more accessible to interested beginners, we not only make a systematic review of existing works and a highly structured typology of prompt-based concepts but also release other resources, e.g., a website NLPedia–Pretrain including constantly updated survey and paperlist." ;
+    schema:identifier "https://doi.org/10.1145/3560815" ;
+    schema:url <https://dl.acm.org/doi/pdf/10.1145/3560815> ;
+    ex:citationCount "3867"^^xsd:integer ;
+    cito:cites <https://openalex.org/W2250539671>, <https://openalex.org/W2963341956>, <https://openalex.org/W2963748441>, <https://openalex.org/W2965373594>, <https://openalex.org/W2970476646>, <https://openalex.org/W2981852735>, <https://openalex.org/W3174770825> .
+
+<https://openalex.org/W3168867926>
+    a schema:ScholarlyArticle ;
+    schema:name "LoRA Fine-Tuning of a 3B Code LLM for Algorithmic Efficiency" ;
+    dcterms:created "2021"^^xsd:gYear ;
+    schema:genre "preprint" ;
+    schema:about "Topic Modeling" ;
+    schema:abstract "An important paradigm of natural language processing consists of large-scale pre-training on general domain data and adaptation to particular tasks or domains. As we pre-train larger models, full fine-tuning, which retrains all model parameters, becomes less feasible. Using GPT-3 175B as an example -- deploying independent instances of fine-tuned models, each with 175B parameters, is prohibitively expensive. We propose Low-Rank Adaptation, or LoRA, which freezes the pre-trained model weights and injects trainable rank decomposition matrices into each layer of the Transformer architecture, greatly reducing the number of trainable parameters for downstream tasks. Compared to GPT-3 175B fine-tuned with Adam, LoRA can reduce the number of trainable parameters by 10,000 times and the GPU memory requirement by 3 times. LoRA performs on-par or better than fine-tuning in model quality on RoBERTa, DeBERTa, GPT-2, and GPT-3, despite having fewer trainable parameters, a higher training throughput, and, unlike adapters, no additional inference latency. We also provide an empirical investigation into rank-deficiency in language model adaptation, which sheds light on the efficacy of LoRA. We release a package that facilitates the integration of LoRA with PyTorch models and provide our implementations and model checkpoints for RoBERTa, DeBERTa, and GPT-2 at https://github.com/microsoft/LoRA." ;
+    schema:identifier "https://doi.org/10.48550/arxiv.2106.09685" ;
+    schema:url <https://arxiv.org/pdf/2106.09685> ;
+    ex:citationCount "2550"^^xsd:integer ;
+    cito:cites <https://openalex.org/W131533222>, <https://openalex.org/W2117130368>, <https://openalex.org/W2251939518>, <https://openalex.org/W2963341956>, <https://openalex.org/W2965373594>, <https://openalex.org/W3030163527> .
+
+<https://openalex.org/W3121523901>
+    a schema:ScholarlyArticle ;
+    schema:name "Tokens-to-Token ViT: Training Vision Transformers from Scratch on ImageNet" ;
+    dcterms:created "2021"^^xsd:gYear ;
+    schema:genre "conference-paper" ;
+    schema:about "Multimodal Machine Learning Applications" ;
+    schema:abstract "Transformers, which are popular for language modeling, have been explored for solving vision tasks recently, e.g., the Vision Transformer (ViT) for image classification. The ViT model splits each image into a sequence of tokens with fixed length and then applies multiple Transformer layers to model their global relation for classification. However, ViT achieves inferior performance to CNNs when trained from scratch on a midsize dataset like ImageNet. We find it is because: 1) the simple tokenization of input images fails to model the important local structure such as edges and lines among neighboring pixels, leading to low training sample efficiency; 2) the redundant attention backbone design of ViT leads to limited feature richness for fixed computation budgets and limited training samples. To overcome such limitations, we propose a new Tokens-To-Token Vision Transformer (T2T-VTT), which incorporates 1) a layer-wise Tokens-to-Token (T2T) transformation to progressively structurize the image to tokens by recursively aggregating neighboring Tokens into one Token (Tokens-to-Token), such that local structure represented by surrounding tokens can be modeled and tokens length can be reduced; 2) an efficient backbone with a deep-narrow structure for vision transformer motivated by CNN architecture design after empirical study. Notably, T2T-ViT reduces the parameter count and MACs of vanilla ViT by half, while achieving more than 3.0% improvement when trained from scratch on ImageNet. It also outperforms ResNets and achieves comparable performance with MobileNets by directly training on ImageNet. For example, T2T-ViT with comparable size to ResNet50 (21.5M parameters) can achieve 83.3% top1 accuracy in image resolution 384x384 on ImageNet.1" ;
+    schema:identifier "https://doi.org/10.1109/iccv48922.2021.00060" ;
+    ex:citationCount "2327"^^xsd:integer ;
+    cito:cites <https://openalex.org/W2108598243>, <https://openalex.org/W2963341956>, <https://openalex.org/W2965373594>, <https://openalex.org/W3094502228>, <https://openalex.org/W3171125843> .
+
+<https://openalex.org/W2963716420>
+    a schema:ScholarlyArticle ;
+    schema:name "Publicly Available Clinical" ;
+    dcterms:created "2019"^^xsd:gYear ;
+    schema:genre "conference-paper" ;
+    schema:about "Topic Modeling" ;
+    schema:abstract "Contextual word embedding models such as ELMo and BERT have dramatically improved performance for many natural language processing (NLP) tasks in recent months. However, these models have been minimally explored on specialty corpora, such as clinical text; moreover, in the clinical domain, no publicly-available pre-trained BERT models yet exist. In this work, we address this need by exploring and releasing BERT models for clinical text: one for generic clinical text and another for discharge summaries specifically. We demonstrate that using a domain-specific model yields performance improvements on 3/5 clinical NLP tasks, establishing a new state-of-the-art on the MedNLI dataset. We find that these domain-specific models are not as performant on 2 clinical de-identification tasks, and argue that this is a natural consequence of the differences between de-identified source text and synthetically non de-identified task text." ;
+    schema:identifier "https://doi.org/10.18653/v1/w19-1909" ;
+    schema:url <https://doi.org/10.18653/v1/w19-1909> ;
+    ex:citationCount "1764"^^xsd:integer ;
+    cito:cites <https://openalex.org/W2153579005>, <https://openalex.org/W2250539671>, <https://openalex.org/W2911489562>, <https://openalex.org/W2963341956>, <https://openalex.org/W2963918774> .
+
+<https://openalex.org/W3146944767>
+    a schema:ScholarlyArticle ;
+    schema:name "Biological structure and function emerge from scaling unsupervised learning to 250 million protein sequences" ;
+    dcterms:created "2021"^^xsd:gYear ;
+    schema:genre "article" ;
+    schema:about "Machine Learning in Bioinformatics" ;
+    schema:abstract "In the field of artificial intelligence, a combination of scale in data and model capacity enabled by unsupervised learning has led to major advances in representation learning and statistical generation. In the life sciences, the anticipated growth of sequencing promises unprecedented data on natural sequence diversity. Protein language modeling at the scale of evolution is a logical step toward predictive and generative artificial intelligence for biology. To this end, we use unsupervised learning to train a deep contextual language model on 86 billion amino acids across 250 million protein sequences spanning evolutionary diversity. The resulting model contains information about biological properties in its representations. The representations are learned from sequence data alone. The learned representation space has a multiscale organization reflecting structure from the level of biochemical properties of amino acids to remote homology of proteins. Information about secondary and tertiary structure is encoded in the representations and can be identified by linear projections. Representation learning produces features that generalize across a range of applications, enabling state-of-the-art supervised prediction of mutational effect and secondary structure and improving state-of-the-art features for long-range contact prediction." ;
+    schema:identifier "https://doi.org/10.1073/pnas.2016239118" ;
+    schema:url <https://doi.org/10.1073/pnas.2016239118> ;
+    ex:citationCount "3367"^^xsd:integer ;
+    cito:cites <https://openalex.org/W2117130368>, <https://openalex.org/W2170973209>, <https://openalex.org/W2963341956>, <https://openalex.org/W3146944767> .
+
+<https://openalex.org/W131533222>
+    a schema:ScholarlyArticle ;
+    schema:name "Automatically Constructing a Corpus of Sentential Paraphrases." ;
+    dcterms:created "2005"^^xsd:gYear ;
+    schema:genre "article" ;
+    schema:about "Topic Modeling" ;
+    schema:abstract "An obstacle to research in automatic paraphrase identification and genera-tion is the lack of large-scale, publicly-available labeled corpora of sentential paraphrases. This paper describes the creation of the recently-released Micro-soft Research Paraphrase Corpus, which contains 5801 sentence pairs, each hand-labeled with a binary judg-ment as to whether the pair constitutes a paraphrase. The corpus was created using heuristic extraction techniques in conjunction with an SVM-based classi-fier to select likely sentence-level para-phrases from a large corpus of topic-clustered news data. These pairs were then submitted to human judges, who confirmed that 67 % were in fact se-mantically equivalent. In addition to describing the corpus itself, we explore a number of issues that arose in defin-ing guidelines for the human raters." ;
+    ex:citationCount "1110"^^xsd:integer .
+
+<https://openalex.org/W3159481202>
+    a schema:ScholarlyArticle ;
+    schema:name "Emerging Properties in Self-Supervised Vision Transformers" ;
+    dcterms:created "2021"^^xsd:gYear ;
+    schema:genre "conference-paper" ;
+    schema:about "Domain Adaptation and Few-Shot Learning" ;
+    schema:abstract "In this paper, we question if self-supervised learning provides new properties to Vision Transformer (ViT) [16] that stand out compared to convolutional networks (convnets). Beyond the fact that adapting self-supervised methods to this architecture works particularly well, we make the following observations: first, self-supervised ViT features contain explicit information about the semantic segmentation of an image, which does not emerge as clearly with supervised ViTs, nor with convnets. Second, these features are also excellent k-NN classifiers, reaching 78.3% top-1 on ImageNet with a small ViT. Our study also underlines the importance of momentum encoder [26], multi-crop training [9], and the use of small patches with ViTs. We implement our findings into a simple self-supervised method, called DINO, which we interpret as a form of self-distillation with no labels. We show the synergy between DINO and ViTs by achieving 80.1% top-1 on ImageNet in linear evaluation with ViT-Base." ;
+    schema:identifier "https://doi.org/10.1109/iccv48922.2021.00951" ;
+    schema:url <https://arxiv.org/pdf/2104.14294> ;
+    ex:citationCount "5551"^^xsd:integer ;
+    cito:cites <https://openalex.org/W2962369866>, <https://openalex.org/W2963341956>, <https://openalex.org/W3035524453>, <https://openalex.org/W3094502228> .
+
+<https://openalex.org/W3170841864>
+    a schema:ScholarlyArticle ;
+    schema:name "Rethinking Semantic Segmentation from a Sequence-to-Sequence Perspective with Transformers" ;
+    dcterms:created "2021"^^xsd:gYear ;
+    schema:genre "conference-paper" ;
+    schema:about "Advanced Neural Network Applications" ;
+    schema:abstract "Most recent semantic segmentation methods adopt a fully-convolutional network (FCN) with an encoder-decoder architecture. The encoder progressively reduces the spatial resolution and learns more abstract/semantic visual concepts with larger receptive fields. Since context modeling is critical for segmentation, the latest efforts have been focused on increasing the receptive field, through either dilated/atrous convolutions or inserting attention modules. However, the encoder-decoder based FCN architecture remains unchanged. In this paper, we aim to provide an alternative perspective by treating semantic segmentation as a sequence-to-sequence prediction task. Specifically, we deploy a pure transformer (i.e., without convolution and resolution reduction) to encode an image as a sequence of patches. With the global context modeled in every layer of the transformer, this encoder can be combined with a simple decoder to provide a powerful segmentation model, termed SEgmentation TRansformer (SETR). Extensive experiments show that SETR achieves new state of the art on ADE20K (50.28% mIoU), Pascal Context (55.83% mIoU) and competitive results on Cityscapes. Particularly, we achieve the first position in the highly competitive ADE20K test server leaderboard on the day of submission." ;
+    schema:identifier "https://doi.org/10.1109/cvpr46437.2021.00681" ;
+    schema:url <https://wrap.warwick.ac.uk/id/eprint/200208/1/WRAP-rethinking-semantic-segmentation-sequence-to-sequence-perspective-transformers-2021.pdf> ;
+    ex:citationCount "3678"^^xsd:integer ;
+    cito:cites <https://openalex.org/W2963341956>, <https://openalex.org/W2964110616>, <https://openalex.org/W3094502228> .
+
+<https://openalex.org/W2970771982>
+    a schema:ScholarlyArticle ;
+    schema:name "SciBERT: A Pretrained Language Model for Scientific Text" ;
+    dcterms:created "2019"^^xsd:gYear ;
+    schema:genre "conference-paper" ;
+    schema:about "Topic Modeling" ;
+    schema:abstract "Iz Beltagy, Kyle Lo, Arman Cohan. Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP). 2019." ;
+    schema:identifier "https://doi.org/10.18653/v1/d19-1371" ;
+    schema:url <https://www.aclweb.org/anthology/D19-1371.pdf> ;
+    ex:citationCount "3125"^^xsd:integer ;
+    cito:cites <https://openalex.org/W2911489562>, <https://openalex.org/W2963341956>, <https://openalex.org/W2963716420> .
+
+<https://openalex.org/W3027879771>
+    a schema:ScholarlyArticle ;
+    schema:name "Affordance-Compiled Intelligence: Observable-Only Cognitive Impedance Matching for No-Meta LLM-Integrated Systems" ;
+    dcterms:created "2020"^^xsd:gYear ;
+    schema:genre "preprint" ;
+    schema:about "Topic Modeling" ;
+    schema:abstract "Affordance-Compiled Intelligence develops Cognitive Impedance Matching Theory (CIMT), an observable-only and no-meta protected compiler theory for LLM-integrated systems. The paper studies how a fixed model-policy can exhibit different operational capability when the surrounding world is redesigned through observations, typed action handles, validators, repair paths, rollback modes, authority scopes, context summaries, and auditable receipts. CIMT treats system-level capability amplification as a world-side compilation problem rather than a model-weight improvement problem. It defines operational claims through explicit claim objects and evidence objects, using committed observable ledgers, target-evaluation channels, deterministic reducers, validity budget ledgers, evidence dependency graphs, artifact I/O manifests, conformance envelopes, and finite-sample or sequential certificates. Human reviewers, LLM judges, benchmarks, and external auditors are not treated as privileged evaluators; they are modeled as named, fallible measurement channels. The theory provides a conservative certification framework for paired target-channel improvement, vector debt accounting, forbidden-coordinate zero certificates, target-firewall discipline, scope simulation, dynamic widening, runtime and model-policy conformance, macro reliability, repair contraction, distribution-shift transfer, and receipt sufficiency. It also includes worked examples for code-editing agents and retrieval-augmented generation systems. The intended contribution is a practical formal foundation for making fixed-model LLM systems more reliable through observable world-side interface, authority, validation, repair, and audit design." ;
+    schema:identifier "https://doi.org/10.48550/arxiv.2005.11401" ;
+    schema:url <https://arxiv.org/pdf/2005.11401> ;
+    ex:citationCount "3079"^^xsd:integer ;
+    cito:cites <https://openalex.org/W2963341956>, <https://openalex.org/W2970476646>, <https://openalex.org/W2981852735> .
+
+<https://openalex.org/W3174770825>
+    a schema:ScholarlyArticle ;
+    schema:name "Prefix-Tuning: Optimizing Continuous Prompts for Generation" ;
+    dcterms:created "2021"^^xsd:gYear ;
+    schema:genre "conference-paper" ;
+    schema:about "Natural Language Processing Techniques" ;
+    schema:abstract "Xiang Lisa Li, Percy Liang. Proceedings of the 59th Annual Meeting of the Association for Computational Linguistics and the 11th International Joint Conference on Natural Language Processing (Volume 1: Long Papers). 2021." ;
+    schema:identifier "https://doi.org/10.18653/v1/2021.acl-long.353" ;
+    schema:url <https://aclanthology.org/2021.acl-long.353.pdf> ;
+    ex:citationCount "2345"^^xsd:integer ;
+    cito:cites <https://openalex.org/W2936695845>, <https://openalex.org/W2963341956>, <https://openalex.org/W2965373594> .
+
+<https://openalex.org/W3169483174>
+    a schema:ScholarlyArticle ;
+    schema:name "mT5: A Massively Multilingual Pre-trained Text-to-Text Transformer" ;
+    dcterms:created "2021"^^xsd:gYear ;
+    schema:genre "conference-paper" ;
+    schema:about "Topic Modeling" ;
+    schema:abstract "Linting Xue, Noah Constant, Adam Roberts, Mihir Kale, Rami Al-Rfou, Aditya Siddhant, Aditya Barua, Colin Raffel. Proceedings of the 2021 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies. 2021." ;
+    schema:identifier "https://doi.org/10.18653/v1/2021.naacl-main.41" ;
+    schema:url <https://aclanthology.org/2021.naacl-main.41.pdf> ;
+    ex:citationCount "1631"^^xsd:integer ;
+    cito:cites <https://openalex.org/W2914120296>, <https://openalex.org/W2963341956>, <https://openalex.org/W2963748441>, <https://openalex.org/W2965373594> .
+
+<https://openalex.org/W1599016936>
+    a schema:ScholarlyArticle ;
+    schema:name "The Winograd Schema Challenge" ;
+    dcterms:created "2011"^^xsd:gYear ;
+    schema:genre "article" ;
+    schema:about "Natural Language Processing Techniques" ;
+    schema:abstract "In this paper, we present an alternative to the Turing Test that has some conceptual and practical advantages. Like the original, it involves responding to typed English sentences, and English-speaking adults will have no difficulty with it. Unlike the original, the subject is not required to engage in a conversation and fool an interrogator into believing she is dealing with a person. Moreover, the test is arranged in such a way that having full access to a large corpus of English text might not help much. Finally, the interrogator or a third party will be able to decide unambiguously after a few minutes whether or not a subject has passed the test." ;
+    ex:citationCount "863"^^xsd:integer .
