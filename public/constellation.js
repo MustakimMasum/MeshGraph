@@ -34,6 +34,7 @@
       this.lastSelectedIndex = -1;
       this.lastSelectedId = null;
       this.homePosition = this.el.object3D.position.clone();
+      this.homeScale = this.el.object3D.scale.clone();
       this.focusAnimation = null;
       this.frame = 0;
       this.matrix = new THREE.Matrix4();
@@ -85,6 +86,8 @@
 
     buildGraph(graph) {
       this.disposeGraph();
+      this.el.object3D.scale.setScalar(1);
+      this.homeScale.setScalar(1);
       this.nodes = (graph.nodes || []).slice(0, this.data.maxNodes);
       const nodeIds = new Set(this.nodes.map((node) => node.id));
       this.links = (graph.links || []).filter(
@@ -114,16 +117,22 @@
       );
 
       const topics = [...new Set(this.nodes.map((node) => node.topic || "Unclassified"))];
-      const topicRadius = THREE.MathUtils.clamp(
-        2.4 + Math.sqrt(topics.length) * 0.5,
-        3.2,
-        8.5,
+      const topicCounts = new Map();
+      for (const node of this.nodes) {
+        const topic = node.topic || "Unclassified";
+        topicCounts.set(topic, (topicCounts.get(topic) ?? 0) + 1);
+      }
+      const largestTopic = Math.max(1, ...topicCounts.values());
+      const clusterSpacing = THREE.MathUtils.clamp(
+        0.95 + Math.log2(largestTopic + 1) * 0.05,
+        1,
+        1.25,
       );
-      const nodesPerTopic = this.nodes.length / Math.max(1, topics.length);
-      const jitterSpread = THREE.MathUtils.clamp(
-        1.2 + Math.sqrt(nodesPerTopic) * 0.12,
-        1.5,
-        4.5,
+      const clusterExtent = Math.sqrt(largestTopic) * clusterSpacing;
+      const topicRadius = THREE.MathUtils.clamp(
+        4.8 + clusterExtent * 0.85 + Math.sqrt(topics.length) * 0.3,
+        6,
+        11,
       );
       this.topicTargets = new Map(
         topics.map((topic, index) => {
@@ -151,12 +160,15 @@
       this.nodeMesh.frustumCulled = false;
       this.nodeMesh.userData.meshGraph = this;
 
+      const topicOrdinals = new Map();
+      const goldenAngle = Math.PI * (3 - Math.sqrt(5));
       this.nodes.forEach((node, index) => {
         const topic = node.topic || "Unclassified";
         const [topicX, topicY] = this.topicTargets.get(topic);
-        const seed = hash(node.id);
-        const angle = (seed % 6283) / 1000;
-        const radius = 0.45 + (((seed >>> 8) % 500) / 500) * jitterSpread;
+        const ordinal = topicOrdinals.get(topic) ?? 0;
+        topicOrdinals.set(topic, ordinal + 1);
+        const angle = (hash(topic) % 6283) / 1000 + ordinal * goldenAngle;
+        const radius = Math.sqrt(ordinal + 0.65) * clusterSpacing;
         const offset = index * 3;
         this.positions[offset] = topicX + Math.cos(angle) * radius;
         this.positions[offset + 1] = topicY + Math.sin(angle) * radius;
@@ -200,7 +212,7 @@
       const linkMaterial = new THREE.LineBasicMaterial({
         color: graph.mode === "citations" ? 0x54758e : 0x765ca8,
         transparent: true,
-        opacity: 0.3,
+        opacity: 0.18,
         depthWrite: false,
       });
       this.linkLines = new THREE.LineSegments(linkGeometry, linkMaterial);
@@ -234,7 +246,7 @@
       this.updateFocusAnimation();
       if (!this.nodeMesh || !this.nodes.length) return;
       const dt = Math.min(delta / 16.6667, 2);
-      const linkStrength = 0.00015 * dt;
+      const linkStrength = 0.00006 * dt;
 
       for (const link of this.links) {
         const source = this.idToIndex.get(link.source);
@@ -257,9 +269,9 @@
         const targetX = this.anchorPositions[velocityOffset];
         const targetY = this.anchorPositions[velocityOffset + 1];
         this.velocities[velocityOffset] +=
-          (targetX - this.positions[offset]) * 0.008 * dt;
+          (targetX - this.positions[offset]) * 0.012 * dt;
         this.velocities[velocityOffset + 1] +=
-          (targetY - this.positions[offset + 1]) * 0.008 * dt;
+          (targetY - this.positions[offset + 1]) * 0.012 * dt;
 
         this.positions[offset] += this.velocities[velocityOffset] * dt;
         this.positions[offset + 1] += this.velocities[velocityOffset + 1] * dt;
@@ -275,7 +287,9 @@
     updateInstances() {
       this.nodes.forEach((node, index) => {
         const offset = index * 3;
-        const radius = 0.65 + Math.min(1.75, Math.log10((node.citationCount || 0) + 1) * 0.42);
+        const radius =
+          0.7 +
+          Math.min(0.85, Math.log10((node.citationCount || 0) + 1) * 0.18);
         const visibleScale = this.visible[index] ? radius : 0;
         this.scale.setScalar(visibleScale);
         this.matrix.compose(
@@ -393,34 +407,52 @@
       const camera = this.el.sceneEl.camera;
       if (!camera || !this.nodeMesh || !this.nodes.length) return;
 
+      this.el.object3D.scale.setScalar(1);
       this.el.object3D.updateWorldMatrix(true, false);
       camera.updateWorldMatrix(true, false);
-      let minX = Infinity;
-      let maxX = -Infinity;
-      let minY = Infinity;
-      let maxY = -Infinity;
-      const projected = new THREE.Vector3();
-      this.nodes.forEach((_node, index) => {
-        if (!this.visible[index]) return;
-        const offset = index * 3;
-        projected
-          .set(
-            this.positions[offset],
-            this.positions[offset + 1],
-            this.positions[offset + 2],
-          )
-          .applyMatrix4(this.el.object3D.matrixWorld)
-          .project(camera);
-        if (!Number.isFinite(projected.x) || !Number.isFinite(projected.y)) return;
-        minX = Math.min(minX, projected.x);
-        maxX = Math.max(maxX, projected.x);
-        minY = Math.min(minY, projected.y);
-        maxY = Math.max(maxY, projected.y);
-      });
+      const projectedBounds = () => {
+        let minX = Infinity;
+        let maxX = -Infinity;
+        let minY = Infinity;
+        let maxY = -Infinity;
+        const projected = new THREE.Vector3();
+        this.nodes.forEach((_node, index) => {
+          if (!this.visible[index]) return;
+          const offset = index * 3;
+          projected
+            .set(
+              this.positions[offset],
+              this.positions[offset + 1],
+              this.positions[offset + 2],
+            )
+            .applyMatrix4(this.el.object3D.matrixWorld)
+            .project(camera);
+          if (!Number.isFinite(projected.x) || !Number.isFinite(projected.y)) return;
+          minX = Math.min(minX, projected.x);
+          maxX = Math.max(maxX, projected.x);
+          minY = Math.min(minY, projected.y);
+          maxY = Math.max(maxY, projected.y);
+        });
+        return { minX, maxX, minY, maxY };
+      };
+
+      let { minX, maxX, minY, maxY } = projectedBounds();
       if (!Number.isFinite(minX) || !Number.isFinite(minY)) return;
 
-      const currentCenterNdc = new THREE.Vector2((minX + maxX) / 2, (minY + maxY) / 2);
       const targetCenterNdc = this.viewportCenterNdc();
+      const usableWidth = Math.max(0.5, 2 * (1 - targetCenterNdc.x) * 0.88);
+      const usableHeight = 1.72;
+      const fitScale = THREE.MathUtils.clamp(
+        Math.min(usableWidth / (maxX - minX), usableHeight / (maxY - minY)),
+        0.55,
+        1,
+      );
+      this.el.object3D.scale.setScalar(fitScale);
+      this.homeScale.copy(this.el.object3D.scale);
+      this.el.object3D.updateWorldMatrix(true, false);
+      ({ minX, maxX, minY, maxY } = projectedBounds());
+
+      const currentCenterNdc = new THREE.Vector2((minX + maxX) / 2, (minY + maxY) / 2);
       const graphWorldCenter = new THREE.Vector3().setFromMatrixPosition(
         this.el.object3D.matrixWorld,
       );
@@ -465,7 +497,7 @@
       const offset = index * 3;
       const targetPosition = this.homePosition.clone();
       const targetQuaternion = new THREE.Quaternion();
-      const targetScale = new THREE.Vector3(1, 1, 1);
+      const targetScale = this.homeScale.clone();
       const localPoint = new THREE.Vector3(
         this.positions[offset],
         this.positions[offset + 1],
