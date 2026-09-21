@@ -306,6 +306,74 @@
     },
   });
 
+  AFRAME.registerComponent("webxr-launcher", {
+    schema: { sessionTimeout: { default: 15000 } },
+
+    init() {
+      this.button = document.getElementById("enter-vr-button");
+      this.status = document.getElementById("vr-status");
+      if (!this.button || !this.status) return;
+
+      this.setState = (label, status, disabled) => {
+        this.button.setAttribute("aria-label", label);
+        this.button.disabled = disabled;
+        this.status.textContent = status;
+      };
+      this.onClick = async () => {
+        try {
+          this.setState("Starting VR mode", "Requesting headset access", true);
+          await Promise.race([
+            this.el.enterVR(),
+            new Promise((_, reject) =>
+              setTimeout(
+                () => reject(new Error("WebXR session request timed out")),
+                this.data.sessionTimeout,
+              ),
+            ),
+          ]);
+        } catch (error) {
+          console.error("Unable to enter VR", error);
+          this.setState("Enter VR mode", "Unable to start VR", false);
+        }
+      };
+      this.onEnterVr = () => this.setState("VR mode active", "VR mode active", true);
+      this.onExitVr = () => this.setState("Enter VR mode", "Headset ready", false);
+
+      this.button.addEventListener("click", this.onClick);
+      this.el.addEventListener("enter-vr", this.onEnterVr);
+      this.el.addEventListener("exit-vr", this.onExitVr);
+
+      if (!window.isSecureContext) {
+        this.setState("Enter VR mode", "HTTPS or localhost required", true);
+        return;
+      }
+      if (!navigator.xr?.isSessionSupported) {
+        this.setState("Enter VR mode", "WebXR is not supported", true);
+        return;
+      }
+
+      navigator.xr
+        .isSessionSupported("immersive-vr")
+        .then((supported) => {
+          this.setState(
+            "Enter VR mode",
+            supported ? "Headset ready" : "No headset detected",
+            !supported,
+          );
+        })
+        .catch((error) => {
+          console.error("WebXR session support check failed", error);
+          this.setState("Enter VR mode", "WebXR check failed", true);
+        });
+    },
+
+    remove() {
+      this.button?.removeEventListener("click", this.onClick);
+      this.el.removeEventListener("enter-vr", this.onEnterVr);
+      this.el.removeEventListener("exit-vr", this.onExitVr);
+    },
+  });
+
   AFRAME.registerComponent("gesture-controls", {
     schema: {
       worker: { default: "/public/hand-worker.js?v=0.10.35-4" },

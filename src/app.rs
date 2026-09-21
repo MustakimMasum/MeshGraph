@@ -1,6 +1,7 @@
 use gloo_net::http::Request;
 use leptos::*;
 use serde::{Deserialize, Serialize};
+use std::time::Duration;
 use wasm_bindgen::{closure::Closure, JsCast, JsValue};
 use wasm_bindgen_futures::spawn_local;
 use web_sys::{window, CustomEvent, CustomEventInit, EventTarget};
@@ -14,13 +15,6 @@ struct PaperMetadata {
     abstract_text: Option<String>,
     pdf_url: Option<String>,
     citation_count: u64,
-}
-
-#[derive(Clone, Debug, Default, Deserialize)]
-struct GraphStats {
-    nodes: usize,
-    links: usize,
-    mode: String,
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -95,10 +89,11 @@ fn dispatch_macro_event(name: &str, detail: &str) {
 pub fn App() -> impl IntoView {
     let (selected_paper, set_selected_paper) = create_signal::<Option<PaperMetadata>>(None);
     let (paper_loading, set_paper_loading) = create_signal(false);
-    let (graph_stats, set_graph_stats) = create_signal(GraphStats::default());
     let (graph_mode, set_graph_mode) = create_signal("citations".to_owned());
-    let (year_filter, set_year_filter) = create_signal("All publication years".to_owned());
     let (gesture_source, set_gesture_source) = create_signal("webcam".to_owned());
+    let (settings_open, set_settings_open) = create_signal(false);
+    let (search_open, set_search_open) = create_signal(false);
+    let search_input = create_node_ref::<html::Input>();
     let (gesture_status, set_gesture_status) =
         create_signal("Hand input is off · Webcam selected".to_owned());
     let (identifier, set_identifier) = create_signal(String::new());
@@ -127,22 +122,9 @@ pub fn App() -> impl IntoView {
                     set_paper_loading.set(false);
                 });
             });
-        let stats_callback = Closure::<dyn FnMut(CustomEvent)>::new(move |event: CustomEvent| {
-            let payload: Option<String> = event.detail().as_string();
-            if let Some(payload) = payload {
-                if let Ok(stats) = serde_json::from_str::<GraphStats>(&payload) {
-                    set_graph_stats.set(stats);
-                }
-            }
-        });
         let gesture_callback = Closure::<dyn FnMut(CustomEvent)>::new(move |event: CustomEvent| {
             if let Some(status) = event.detail().as_string() {
                 set_gesture_status.set(status);
-            }
-        });
-        let filter_callback = Closure::<dyn FnMut(CustomEvent)>::new(move |event: CustomEvent| {
-            if let Some(filter) = event.detail().as_string() {
-                set_year_filter.set(filter);
             }
         });
 
@@ -151,16 +133,8 @@ pub fn App() -> impl IntoView {
             selected_callback.as_ref().unchecked_ref(),
         );
         let _ = event_target.add_event_listener_with_callback(
-            "citation-graph-loaded",
-            stats_callback.as_ref().unchecked_ref(),
-        );
-        let _ = event_target.add_event_listener_with_callback(
             "citation-gesture-status",
             gesture_callback.as_ref().unchecked_ref(),
-        );
-        let _ = event_target.add_event_listener_with_callback(
-            "citation-year-filter",
-            filter_callback.as_ref().unchecked_ref(),
         );
 
         on_cleanup(move || {
@@ -169,23 +143,18 @@ pub fn App() -> impl IntoView {
                 selected_callback.as_ref().unchecked_ref(),
             );
             let _ = event_target.remove_event_listener_with_callback(
-                "citation-graph-loaded",
-                stats_callback.as_ref().unchecked_ref(),
-            );
-            let _ = event_target.remove_event_listener_with_callback(
                 "citation-gesture-status",
                 gesture_callback.as_ref().unchecked_ref(),
-            );
-            let _ = event_target.remove_event_listener_with_callback(
-                "citation-year-filter",
-                filter_callback.as_ref().unchecked_ref(),
             );
         });
     }
 
-    let ingest = move |_| {
+    let ingest = move || {
         let requested_identifier = identifier.get().trim().to_owned();
-        if requested_identifier.is_empty() || ingesting.get_untracked() {
+        if ingesting.get_untracked() {
+            return;
+        }
+        if requested_identifier.is_empty() {
             set_notice.set(Some("Enter a DOI or arXiv identifier first.".to_owned()));
             return;
         }
@@ -216,95 +185,60 @@ pub fn App() -> impl IntoView {
 
     view! {
         <main id="app-shell">
-            <header class="topbar">
-                <div class="brand-lockup">
-                    <div>
-                        <h1>"MeshGraph"</h1>
-                        <p>"Research Citation Constellation"</p>
-                    </div>
-                </div>
-                <form class="ingest-form" on:submit=move |event| {
-                    event.prevent_default();
-                    ingest(event);
-                }>
+            <div class="brand-lockup">
+                <h1>"MeshGraph"</h1>
+                <p>"Research Citation Constellation"</p>
+            </div>
+
+            <div class="search-controls" class:open=move || search_open.get()>
+                <form
+                    class="search-form"
+                    aria-hidden=move || (!search_open.get()).to_string()
+                    on:submit=move |event| {
+                        event.prevent_default();
+                        ingest();
+                    }
+                >
                     <input
+                        node_ref=search_input
                         aria-label="DOI or arXiv identifier"
                         placeholder="DOI or arXiv ID"
+                        tabindex=move || if search_open.get() { "0" } else { "-1" }
                         prop:value=identifier
                         on:input=move |event| set_identifier.set(event_target_value(&event))
                     />
-                    <select
-                        aria-label="Citation depth"
-                        on:change=move |event| {
-                            set_depth.set(event_target_value(&event).parse().unwrap_or(1));
-                        }
-                    >
-                        <option value="1">"1 hop"</option>
-                        <option value="2">"2 hops"</option>
-                        <option value="3">"3 hops"</option>
-                    </select>
-                    <button type="submit" disabled=ingesting>
-                        {move || if ingesting.get() { "Mapping…" } else { "Map constellation" }}
-                    </button>
                 </form>
-                <div class="input-controls">
-                    <label for="gesture-source">"Hand input"</label>
-                    <select
-                        id="gesture-source"
-                        aria-label="Hand input source"
-                        on:change=move |event| {
-                            let source = event_target_value(&event);
-                            set_gesture_source.set(source.clone());
-                            dispatch_macro_event("citation-gesture-source", &source);
+                <button
+                    class="input-control"
+                    class:active=move || search_open.get()
+                    type="button"
+                    aria-label="Search"
+                    aria-expanded=move || search_open.get().to_string()
+                    title="Search"
+                    on:click=move |_| {
+                        if !search_open.get_untracked() {
+                            set_search_open.set(true);
+                            set_timeout(
+                                move || {
+                                    if let Some(input) = search_input.get() {
+                                        let _ = input.focus();
+                                    }
+                                },
+                                Duration::ZERO,
+                            );
+                        } else if identifier.get_untracked().trim().is_empty() {
+                            set_search_open.set(false);
+                        } else {
+                            ingest();
                         }
-                    >
-                        <option value="webcam">"Webcam · MediaPipe"</option>
-                        <option value="hyperion">"Leap Motion · Hyperion"</option>
-                    </select>
-                    <button
-                        id="gesture-toggle"
-                        class="secondary-button"
-                        type="button"
-                        on:click=move |_| {
-                            dispatch_macro_event(
-                                "citation-gesture-toggle",
-                                &gesture_source.get_untracked(),
-                            )
-                        }
-                    >
-                        "Toggle"
-                    </button>
-                </div>
-            </header>
-
-            <section class="hud-panel graph-overview" aria-label="Graph overview">
-                <span class="eyebrow">"LIVE RDF TOPOLOGY"</span>
-                <strong>{move || format!("{} papers", graph_stats.get().nodes)}</strong>
-                <span>{move || format!("{} relationships", graph_stats.get().links)}</span>
-                <span>{move || format!("{} topology", graph_stats.get().mode)}</span>
-                <span>{move || year_filter.get()}</span>
-                <span class="gesture-state">{move || gesture_status.get()}</span>
-            </section>
-
-            <nav class="mode-switcher" aria-label="Topology mode">
-                {[
-                    ("citations", "Citations"),
-                    ("co-citation", "Co-citation"),
-                    ("bibliographic-coupling", "Coupling"),
-                ]
-                .into_iter()
-                .map(|(mode, label)| view! {
-                    <button
-                        type="button"
-                        class:active=move || graph_mode.get() == mode
-                        on:click=move |_| {
-                            set_graph_mode.set(mode.to_owned());
-                            set_selected_paper.set(None);
-                        }
-                    >{label}</button>
-                })
-                .collect_view()}
-            </nav>
+                    }
+                >
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+                        <circle cx="11" cy="11" r="6.5"></circle>
+                        <path d="m16 16 4.5 4.5"></path>
+                    </svg>
+                </button>
+            </div>
 
             <Show when=move || notice.get().is_some()>
                 <div class="notice" role="status">
@@ -359,7 +293,8 @@ pub fn App() -> impl IntoView {
                 raycaster="objects: .citation-graph"
                 renderer="colorManagement: true; antialias: true; physicallyCorrectLights: true"
                 webxr="requiredFeatures: local-floor; optionalFeatures: bounded-floor, hand-tracking; referenceSpaceType: local-floor"
-                vr-mode-ui="enabled: true"
+                vr-mode-ui="enabled: false"
+                webxr-launcher
                 gesture-controls="worker: /public/hand-worker.js?v=0.10.35-4; graph: #citation-graph; rig: #rig"
             >
                 <a-entity
@@ -398,9 +333,126 @@ pub fn App() -> impl IntoView {
 
             <div id="gesture-pointer" hidden aria-hidden="true"></div>
 
-            <footer class="interaction-hint">
-                "POINT + PINCH SELECT · OPEN PALM PAN · QUICK SWIPE ROTATE · TWO-HAND SPREAD ZOOM"
-            </footer>
+            <Show when=move || settings_open.get()>
+                <aside class="settings-menu" aria-label="Graph settings">
+                    <section>
+                        <span class="settings-label">"Connection type"</span>
+                        <nav class="connection-options" aria-label="Connection type">
+                            {[
+                                ("citations", "Citations"),
+                                ("co-citation", "Co-citation"),
+                                ("bibliographic-coupling", "Coupling"),
+                            ]
+                            .into_iter()
+                            .map(|(mode, label)| view! {
+                                <button
+                                    type="button"
+                                    class:active=move || graph_mode.get() == mode
+                                    on:click=move |_| {
+                                        set_graph_mode.set(mode.to_owned());
+                                        set_selected_paper.set(None);
+                                    }
+                                >{label}</button>
+                            })
+                            .collect_view()}
+                        </nav>
+                    </section>
+                    <section>
+                        <span class="settings-label">"Citation depth"</span>
+                        <div class="depth-options" role="group" aria-label="Citation depth">
+                            {[(1_u8, "1 hop"), (2_u8, "2 hops"), (3_u8, "3 hops")]
+                                .into_iter()
+                                .map(|(hop_count, label)| view! {
+                                    <button
+                                        type="button"
+                                        class:active=move || depth.get() == hop_count
+                                        on:click=move |_| set_depth.set(hop_count)
+                                    >{label}</button>
+                                })
+                                .collect_view()}
+                        </div>
+                    </section>
+                    <section class="navigation-guide">
+                        <span class="settings-label">"Navigation"</span>
+                        <div><kbd>"W A S D"</kbd><span>"Move"</span></div>
+                        <div><kbd>"Drag"</kbd><span>"Look around"</span></div>
+                        <div><kbd>"Scroll"</kbd><span>"Zoom"</span></div>
+                        <div><kbd>"Point + pinch"</kbd><span>"Select"</span></div>
+                        <div><kbd>"Open palm"</kbd><span>"Pan"</span></div>
+                        <div><kbd>"Quick swipe"</kbd><span>"Rotate"</span></div>
+                        <div><kbd>"Two-hand spread"</kbd><span>"Zoom"</span></div>
+                    </section>
+                    <section class="input-status">
+                        <span class="settings-label">"Hand input"</span>
+                        <span>{move || gesture_status.get()}</span>
+                    </section>
+                </aside>
+            </Show>
+
+            <div class="input-controls" role="group" aria-label="Input controls">
+                <button
+                    id="webcam-input-button"
+                    class="input-control"
+                    class:active=move || gesture_source.get() == "webcam"
+                    type="button"
+                    aria-label="Use webcam hand input"
+                    title="Webcam"
+                    on:click=move |_| {
+                        set_gesture_source.set("webcam".to_owned());
+                        dispatch_macro_event("citation-gesture-toggle", "webcam");
+                    }
+                >
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="10" r="6.5"></circle>
+                        <circle cx="12" cy="10" r="2.25"></circle>
+                        <path d="M12 16.5v4M8.5 20.5h7"></path>
+                    </svg>
+                </button>
+                <button
+                    id="leap-input-button"
+                    class="input-control"
+                    class:active=move || gesture_source.get() == "hyperion"
+                    type="button"
+                    aria-label="Use Leap Motion infrared hand input"
+                    title="Leap Motion"
+                    on:click=move |_| {
+                        set_gesture_source.set("hyperion".to_owned());
+                        dispatch_macro_event("citation-gesture-toggle", "hyperion");
+                    }
+                >
+                    <span class="ir-mark" aria-hidden="true">"IR"</span>
+                </button>
+                <button
+                    id="enter-vr-button"
+                    class="input-control vr-control"
+                    type="button"
+                    disabled=true
+                    aria-label="Enter VR mode"
+                    title="Enter VR mode"
+                >
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+                        <path d="M4 6.5h16a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3.1a2 2 0 0 1-1.42-.59l-2.07-2.07a2 2 0 0 0-2.82 0l-2.07 2.07a2 2 0 0 1-1.42.59H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2Z"></path>
+                        <circle cx="8" cy="11.5" r="2.25"></circle>
+                        <circle cx="16" cy="11.5" r="2.25"></circle>
+                    </svg>
+                </button>
+                <button
+                    id="settings-button"
+                    class="input-control"
+                    class:active=move || settings_open.get()
+                    type="button"
+                    aria-label="Settings"
+                    aria-expanded=move || settings_open.get().to_string()
+                    title="Settings"
+                    on:click=move |_| set_settings_open.update(|open| *open = !*open)
+                >
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56V21h-4v-.08A1.7 1.7 0 0 0 8.95 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3v-4h.08A1.7 1.7 0 0 0 4.6 8.95a1.7 1.7 0 0 0-.34-1.88L4.2 7l2.83-2.83.06.06A1.7 1.7 0 0 0 8.95 4.6 1.7 1.7 0 0 0 9.98 3H14v.08a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06a1.7 1.7 0 0 0-.34 1.88 1.7 1.7 0 0 0 1.56 1.03H21v4h-.08A1.7 1.7 0 0 0 19.4 15Z"></path>
+                    </svg>
+                </button>
+                <span id="vr-status" class="visually-hidden" role="status">"Checking WebXR…"</span>
+            </div>
         </main>
     }
 }

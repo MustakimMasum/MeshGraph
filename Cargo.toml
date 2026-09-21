@@ -21,7 +21,7 @@ gloo-net = "0.6"
 leptos = { version = "0.6", features = ["csr"] }
 wasm-bindgen-futures = "0.4"
 wasm-bindgen = "0.2"
-web-sys = { version = "0.3", features = ["CustomEvent", "CustomEventInit", "Document", "Element", "Event", "EventTarget", "HtmlInputElement", "Window"] }
+web-sys = { version = "0.3", features = ["CustomEvent", "CustomEventInit", "Document", "Element", "Event", "EventTarget", "HtmlElement", "HtmlInputElement", "Window"] }
 
 [profile.release]
 opt-level = "z"
