@@ -205,6 +205,9 @@
       });
       this.linkLines = new THREE.LineSegments(linkGeometry, linkMaterial);
       this.linkLines.frustumCulled = false;
+      // Relationship lines are visual context only. Their default raycast
+      // threshold is wide enough to intercept clicks near connected nodes.
+      this.linkLines.raycast = () => {};
       this.el.setObject3D("citation-links", this.linkLines);
       this.updateInstances();
       this.updateLinks();
@@ -332,6 +335,41 @@
       this.nodeMesh.setColorAt(this.selectedIndex, this.topicColor(node.topic || "Unclassified"));
       this.nodeMesh.instanceColor.needsUpdate = true;
       this.selectedIndex = -1;
+    },
+
+    rotateAroundSelection(angle) {
+      const graphObject = this.el.object3D;
+      const index = this.selectedIndex;
+      if (
+        !Number.isInteger(index) ||
+        index < 0 ||
+        !this.nodes[index] ||
+        !this.visible[index]
+      ) {
+        graphObject.rotation.y += angle;
+        return;
+      }
+
+      const offset = index * 3;
+      const pivotLocal = new THREE.Vector3(
+        this.positions[offset],
+        this.positions[offset + 1],
+        this.positions[offset + 2],
+      );
+      graphObject.updateWorldMatrix(true, false);
+      const pivotBefore = graphObject.localToWorld(pivotLocal.clone());
+
+      graphObject.rotation.y += angle;
+      graphObject.updateWorldMatrix(true, false);
+      const pivotAfter = graphObject.localToWorld(pivotLocal.clone());
+
+      if (graphObject.parent) {
+        graphObject.parent.updateWorldMatrix(true, false);
+        graphObject.parent.worldToLocal(pivotBefore);
+        graphObject.parent.worldToLocal(pivotAfter);
+      }
+      graphObject.position.add(pivotBefore.sub(pivotAfter));
+      graphObject.updateWorldMatrix(true, false);
     },
 
     viewportCenterNdc() {
@@ -1122,7 +1160,7 @@
         graphObject.scale.multiplyScalar(factor);
         graphObject.scale.clampScalar(0.35, 3.5);
       } else if (gesture.kind === "swipe") {
-        graphObject.rotation.y += gesture.direction === "left" ? -0.45 : 0.45;
+        graph.rotateAroundSelection(gesture.direction === "left" ? -0.45 : 0.45);
       }
     },
 

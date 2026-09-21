@@ -45,8 +45,8 @@
         opacity: 0.7;
         pointer-events: none;
       }
-      .brand-lockup h1 { margin: 0; font-size: 15px; letter-spacing: 0.02em; }
-      .brand-lockup p { margin: 2px 0 0; color: var(--muted); font-size: 9px; letter-spacing: 0.09em; text-transform: uppercase; }
+      .brand-lockup h1 { margin: 0; font-size: 19px; letter-spacing: 0.02em; }
+      .brand-lockup p { margin: 3px 0 0; color: var(--muted); font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase; }
 
       .search-controls {
         --search-trigger-size: 48px;
@@ -106,6 +106,13 @@
         gap: 8px;
         align-items: center;
       }
+      .input-controls .input-control { color: var(--muted); }
+      .input-controls .input-control svg,
+      .input-controls .input-control .ir-mark { opacity: 0.68; }
+      .input-controls .input-control:hover svg,
+      .input-controls .input-control:hover .ir-mark { opacity: 0.84; }
+      .input-controls .input-control.active svg,
+      .input-controls .input-control.active .ir-mark { opacity: 0.68; }
       .input-control {
         display: grid;
         place-items: center;
@@ -130,11 +137,17 @@
         opacity: 0.52;
         transition: opacity 140ms ease;
       }
+      .input-control svg * { vector-effect: non-scaling-stroke; }
+      #reset-view-button svg { width: 26px; height: 26px; }
+      #webcam-input-button svg { width: 31px; height: 31px; }
+      #enter-vr-button svg { width: 25px; height: 25px; }
+      #settings-button svg { width: 23px; height: 23px; }
       .input-control:hover svg, .input-control:hover .ir-mark { opacity: 0.78; }
       .input-control.active svg, .input-control.active .ir-mark { opacity: 0.68; }
       .ir-mark {
-        font-size: 15px;
+        font-size: 19px;
         font-weight: 750;
+        line-height: 1;
         letter-spacing: 0.04em;
         opacity: 0.52;
         transition: opacity 140ms ease;
@@ -197,18 +210,19 @@
       }
       .connection-options, .depth-options {
         display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 3px;
       }
       .connection-options button, .depth-options button {
         width: 100%;
-        padding: 9px 10px;
+        padding: 9px 5px;
         color: var(--muted);
         border: 0;
         border-radius: 9px;
         background: transparent;
         font-size: 12px;
         font-weight: 700;
-        text-align: left;
+        text-align: center;
         cursor: pointer;
       }
       .connection-options button:hover, .depth-options button:hover { background: rgba(23, 50, 77, 0.05); }
@@ -296,10 +310,10 @@
         z-index: 30;
         width: 28px;
         height: 28px;
-        border: 2px solid rgba(8, 127, 149, 0.86);
+        border: 2px solid rgba(102, 80, 164, 0.62);
         border-radius: 50%;
-        background: rgba(255, 255, 255, 0.3);
-        box-shadow: 0 0 0 5px rgba(8, 127, 149, 0.12), 0 2px 10px rgba(23, 50, 77, 0.24);
+        background: rgba(102, 80, 164, 0.12);
+        box-shadow: 0 0 0 5px rgba(102, 80, 164, 0.08), 0 2px 10px rgba(23, 50, 77, 0.2);
         transform: translate(-50%, -50%) scale(var(--gesture-scale));
         transition: transform 90ms ease, border-color 90ms ease, background 90ms ease;
         pointer-events: none;
@@ -309,7 +323,7 @@
         position: absolute;
         inset: 8px;
         border-radius: 50%;
-        background: #087f95;
+        background: rgba(102, 80, 164, 0.72);
       }
       #gesture-pointer.hovering {
         --gesture-scale: 1.2;
