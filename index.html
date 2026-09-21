@@ -263,14 +263,27 @@
         z-index: 18;
         top: 18px;
         left: 18px;
+        display: flex;
+        height: min(680px, calc(100vh - 100px));
         width: min(360px, calc(100vw - 36px));
-        max-height: calc(100vh - 100px);
-        overflow: auto;
+        overflow: hidden;
         padding: 20px;
         border-radius: 16px;
       }
-      .paper-panel h2 { margin: 8px 32px 14px 0; font-size: 21px; line-height: 1.25; }
+      .paper-content { display: flex; flex: 1; flex-direction: column; width: 100%; min-width: 0; min-height: 0; }
+      .paper-panel h2 { max-width: 100%; margin: 8px 32px 14px 0; overflow-wrap: anywhere; font-size: 21px; line-height: 1.25; }
       .paper-panel p { color: #425d75; font-size: 13px; line-height: 1.62; }
+      .paper-abstract {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: hidden;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+        margin: 18px 0 0;
+        padding-bottom: 22px;
+        -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent);
+        mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent);
+      }
       .paper-facts { display: flex; flex-wrap: wrap; gap: 6px; }
       .paper-facts span, .paper-links span {
         color: #425d75;
@@ -279,7 +292,17 @@
         padding: 5px 8px;
         font-size: 10px;
       }
-      .paper-links { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; margin-top: 15px; }
+      .paper-links {
+        display: flex;
+        flex: 0 0 auto;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 7px;
+        margin-top: 10px;
+        padding-top: 14px;
+        border-top: 1px solid var(--line);
+      }
+      .paper-links:empty { display: none; }
       .paper-links a { color: #ffffff; border-radius: 999px; padding: 6px 10px; background: #17324d; font-size: 11px; font-weight: 800; text-decoration: none; }
       .panel-close, .notice button { color: var(--muted); border: 0; background: transparent; cursor: pointer; }
       .panel-close { position: absolute; top: 12px; right: 12px; font-size: 22px; }
@@ -348,7 +371,7 @@
         .input-controls { right: 10px; bottom: 12px; gap: 6px; }
         .input-control { width: 43px; height: 43px; }
         .settings-menu { right: 10px; bottom: 65px; width: min(280px, calc(100vw - 20px)); }
-        .paper-panel { top: 65px; left: 10px; width: calc(100vw - 20px); max-height: calc(100vh - 132px); }
+        .paper-panel { top: 65px; left: 10px; height: calc(100vh - 132px); width: calc(100vw - 20px); }
       }
     </style>
     <script crossorigin="anonymous" src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>

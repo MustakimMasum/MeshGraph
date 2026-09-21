@@ -13,6 +13,7 @@ struct PaperMetadata {
     year: Option<i32>,
     topic: Option<String>,
     abstract_text: Option<String>,
+    doi: Option<String>,
     pdf_url: Option<String>,
     citation_count: u64,
 }
@@ -264,23 +265,28 @@ pub fn App() -> impl IntoView {
                         when=move || !paper_loading.get()
                         fallback=|| view! { <p class="loading">"Resolving RDF metadata…"</p> }
                     >
-                        {move || selected_paper.get().map(|paper| view! {
-                            <span class="eyebrow">"Article"</span>
-                            <h2>{paper.title.clone()}</h2>
-                            <div class="paper-facts">
-                                <span>{paper.year.map(|year| year.to_string()).unwrap_or_else(|| "Year unknown".to_owned())}</span>
-                                <span>{paper.topic.clone().unwrap_or_else(|| "Unclassified".to_owned())}</span>
-                                <span>{format!("{} citations", paper.citation_count)}</span>
-                            </div>
-                            <p>{paper.abstract_text.clone().unwrap_or_else(|| "No abstract is available in OpenAlex for this record.".to_owned())}</p>
-                            <div class="paper-links">
-                                <Show when={
-                                    let paper = paper.clone();
-                                    move || paper.pdf_url.is_some()
-                                }>
-                                    <a href=paper.pdf_url.clone().unwrap_or_default() target="_blank" rel="noreferrer">"Open paper"</a>
-                                </Show>
-                            </div>
+                        {move || selected_paper.get().map(|paper| {
+                            let paper_url = paper.pdf_url.clone().or_else(|| paper.doi.clone());
+                            view! {
+                                <div class="paper-content">
+                                    <span class="eyebrow">"Article"</span>
+                                    <h2>{paper.title.clone()}</h2>
+                                    <div class="paper-facts">
+                                        <span>{paper.year.map(|year| year.to_string()).unwrap_or_else(|| "Year unknown".to_owned())}</span>
+                                        <span>{paper.topic.clone().unwrap_or_else(|| "Unclassified".to_owned())}</span>
+                                        <span>{format!("{} citations", paper.citation_count)}</span>
+                                    </div>
+                                    <p class="paper-abstract">{paper.abstract_text.clone().unwrap_or_else(|| "No abstract is available in OpenAlex for this record.".to_owned())}</p>
+                                    <div class="paper-links">
+                                        <Show when={
+                                            let paper_url = paper_url.clone();
+                                            move || paper_url.is_some()
+                                        }>
+                                            <a href=paper_url.clone().unwrap_or_default() target="_blank" rel="noreferrer">"Open paper"</a>
+                                        </Show>
+                                    </div>
+                                </div>
+                            }
                         })}
                     </Show>
                 </aside>
