@@ -91,8 +91,31 @@
         white-space: nowrap;
       }
       .ingest-form button:disabled { opacity: 0.55; cursor: wait; }
-      .secondary-button {
+      .input-controls {
         justify-self: end;
+        display: grid;
+        grid-template-columns: auto auto;
+        gap: 4px 7px;
+        align-items: center;
+      }
+      .input-controls label {
+        grid-column: 1 / -1;
+        color: var(--muted);
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+      .input-controls select {
+        min-width: 174px;
+        color: var(--ink);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        outline: 0;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 9px 10px;
+      }
+      .secondary-button {
         color: var(--ink);
         border: 1px solid var(--line);
         border-radius: 10px;
@@ -236,6 +259,8 @@
       @media (max-width: 620px) {
         .brand-lockup p, .interaction-hint { display: none; }
         .topbar { gap: 8px; padding: 9px; }
+        .input-controls label { display: none; }
+        .input-controls select { min-width: 0; max-width: 148px; padding: 8px; font-size: 11px; }
         .secondary-button { padding: 9px; font-size: 11px; }
         .ingest-form { grid-template-columns: minmax(0, 1fr) 92px; row-gap: 8px; }
         .ingest-form button { grid-column: 1 / -1; margin-left: 0; }
@@ -247,7 +272,7 @@
     <script crossorigin="anonymous" src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <script src="/public/constellation.js"></script>
     <link data-trunk rel="copy-dir" href="public">
-    <link data-trunk rel="rust" data-wasm-opt="z">
+    <link data-trunk rel="rust" data-bin="meshgraph_gateway" data-wasm-opt="z">
   </head>
   <body></body>
 </html>

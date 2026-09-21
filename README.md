@@ -73,13 +73,16 @@ open-access or landing-page URL supplied by OpenAlex.
 
 ## Input modes
 
-Desktop mouse/keyboard, WebXR controllers, and webcam gestures share the same
-scene:
+Desktop mouse/keyboard, WebXR controllers, webcam gestures, and an Ultraleap
+camera through Hyperion share the same scene. Use the **Hand input** selector
+in the top-right toolbar to choose **Webcam · MediaPipe** or
+**Leap Motion · Hyperion**, then select **Toggle**.
 
-- **Open palm drag** pans the constellation.
-- **Point** moves the on-screen hand reticle; **pinch** selects the node under it.
-- **Two-hand spread** scales the constellation.
-- **Horizontal hand swipe** rotates the constellation left or right.
+- **Webcam:** open-palm movement pans, point and pinch selects, two-hand spread
+  scales, and a horizontal swipe rotates the constellation.
+- **Leap Motion / Hyperion:** index-finger movement controls the snapping
+  reticle, pinch selects, an open palm pans, a fast horizontal hand movement
+  rotates, and two-hand spread scales.
 - **WebXR controllers** raycast the instanced graph and use the left thumbstick
   for locomotion.
 
@@ -88,6 +91,12 @@ MediaPipe `HandLandmarker` runs in a dedicated Web Worker. Frames use transferab
 browser is cross-origin isolated, and transferred `ArrayBuffer` objects as a
 fallback. Raw frame-level landmarks never cross into Leptos/WASM; only macro
 events such as paper selection and year-filter changes do.
+
+The Hyperion path uses a separate, Windows-only Rust bridge. The bridge loads
+the `LeapC.dll` installed by Hyperion at runtime and publishes only the latest
+tracking frame over `ws://127.0.0.1:6437/hands`. Browser-side gesture recognition
+maps LeapC palm, digit, velocity, pinch, and grab values to the existing scene
+macros. Sensor data never passes through the Axum graph gateway.
 
 The gateway sends `Cross-Origin-Opener-Policy: same-origin` and
 `Cross-Origin-Embedder-Policy: credentialless` so supported browsers can enable
@@ -105,6 +114,22 @@ docker compose up --build
 Open `http://localhost:3000`. Oxigraph is exposed at `http://localhost:7878`.
 The Compose seed job loads a small research network so the scene is useful before
 the first live ingestion.
+
+For Leap Motion input on Windows, start the host-side Hyperion bridge in a
+separate terminal. It must run on the Windows host rather than inside Docker so
+it can access the installed Hyperion service and `LeapC.dll`:
+
+```powershell
+cargo run --bin hyperion_bridge
+```
+
+The bridge defaults to the SDK location installed by Hyperion. Override it only
+when using a custom installation:
+
+```powershell
+$env:HYPERION_LEAPC_PATH = "D:\Ultraleap\LeapSDK\lib\x64\LeapC.dll"
+cargo run --bin hyperion_bridge
+```
 
 Wait for the gateway to report:
 
@@ -149,7 +174,8 @@ per-request safety limit and take longer to complete.
 
 ### Webcam gestures
 
-Select **Hand gestures** and grant camera access. Test each mapping:
+Choose **Webcam · MediaPipe**, select **Toggle**, and grant camera access. Test
+each mapping:
 
 - Slow open-palm movement pans the constellation.
 - Pinching over a node selects that paper.
@@ -160,6 +186,25 @@ The HUD reports whether tracking is using `shared memory` or the
 `transferable buffers` fallback. Use `localhost` or HTTPS: camera access and
 cross-origin isolated shared memory are not generally available from an insecure
 LAN address.
+
+### Original Leap Motion Controller
+
+The Hyperion 6.2 installer includes the tracking service, LeapC SDK, and Control
+Panel needed by MeshGraph. The bridge currently targets the packed LeapC ABI
+shipped with Hyperion 6.2:
+
+1. Install Ultraleap Hyperion from the Leap Motion Controller download page.
+2. Connect the original Leap Motion Controller and confirm it is visible in the
+   Ultraleap Control Panel visualizer.
+3. Run `cargo run --bin hyperion_bridge` from this repository and wait for the
+   `ws://127.0.0.1:6437/hands` listening message.
+4. Open MeshGraph in Chrome or Edge, choose **Leap Motion · Hyperion**, and
+   select **Toggle**.
+
+The HUD reports bridge, tracking-service, camera, and hand-presence state. The
+bridge endpoint `/health` returns its latest status or tracking frame for
+troubleshooting. Set `HYPERION_BRIDGE_ADDR` to change the loopback listener from
+its default `127.0.0.1:6437`.
 
 ### WebXR
 

@@ -98,7 +98,9 @@ pub fn App() -> impl IntoView {
     let (graph_stats, set_graph_stats) = create_signal(GraphStats::default());
     let (graph_mode, set_graph_mode) = create_signal("citations".to_owned());
     let (year_filter, set_year_filter) = create_signal("All publication years".to_owned());
-    let (gesture_status, set_gesture_status) = create_signal("Gesture camera is off".to_owned());
+    let (gesture_source, set_gesture_source) = create_signal("webcam".to_owned());
+    let (gesture_status, set_gesture_status) =
+        create_signal("Hand input is off · Webcam selected".to_owned());
     let (identifier, set_identifier) = create_signal(String::new());
     let (depth, set_depth) = create_signal(1_u8);
     let (ingesting, set_ingesting) = create_signal(false);
@@ -245,14 +247,34 @@ pub fn App() -> impl IntoView {
                         {move || if ingesting.get() { "Mapping…" } else { "Map constellation" }}
                     </button>
                 </form>
-                <button
-                    id="gesture-toggle"
-                    class="secondary-button"
-                    type="button"
-                    on:click=move |_| dispatch_macro_event("citation-gesture-toggle", "")
-                >
-                    "Hand gestures"
-                </button>
+                <div class="input-controls">
+                    <label for="gesture-source">"Hand input"</label>
+                    <select
+                        id="gesture-source"
+                        aria-label="Hand input source"
+                        on:change=move |event| {
+                            let source = event_target_value(&event);
+                            set_gesture_source.set(source.clone());
+                            dispatch_macro_event("citation-gesture-source", &source);
+                        }
+                    >
+                        <option value="webcam">"Webcam · MediaPipe"</option>
+                        <option value="hyperion">"Leap Motion · Hyperion"</option>
+                    </select>
+                    <button
+                        id="gesture-toggle"
+                        class="secondary-button"
+                        type="button"
+                        on:click=move |_| {
+                            dispatch_macro_event(
+                                "citation-gesture-toggle",
+                                &gesture_source.get_untracked(),
+                            )
+                        }
+                    >
+                        "Toggle"
+                    </button>
+                </div>
             </header>
 
             <section class="hud-panel graph-overview" aria-label="Graph overview">
@@ -377,7 +399,7 @@ pub fn App() -> impl IntoView {
             <div id="gesture-pointer" hidden aria-hidden="true"></div>
 
             <footer class="interaction-hint">
-                "POINT + PINCH SELECT · OPEN PALM PAN · SWIPE ROTATE · TWO-HAND SPREAD ZOOM"
+                "POINT + PINCH SELECT · OPEN PALM PAN · QUICK SWIPE ROTATE · TWO-HAND SPREAD ZOOM"
             </footer>
         </main>
     }

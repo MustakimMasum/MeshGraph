@@ -309,6 +309,7 @@
   AFRAME.registerComponent("gesture-controls", {
     schema: {
       worker: { default: "/public/hand-worker.js?v=0.10.35-4" },
+      hyperionUrl: { default: "ws://127.0.0.1:6437/hands" },
       graph: { type: "selector" },
       rig: { type: "selector" },
     },
@@ -316,6 +317,7 @@
     init() {
       this.running = false;
       this.starting = false;
+      this.inputSource = "webcam";
       this.framePending = false;
       this.captureStarted = false;
       this.startToken = 0;
@@ -328,11 +330,43 @@
       this.projectedNode = new THREE.Vector3();
       this.raycaster = new THREE.Raycaster();
       this.pointer = new THREE.Vector2();
-      this.onToggle = () => (this.running || this.starting ? this.stop() : this.start());
+      this.hyperionSocket = null;
+      this.hyperionHands = new Map();
+      this.hyperionPrimaryId = null;
+      this.hyperionPinching = false;
+      this.hyperionLastSpread = null;
+      this.hyperionSwipeCooldownUntil = 0;
+      this.onToggle = (event) => {
+        const source = event.detail === "hyperion" ? "hyperion" : "webcam";
+        if ((this.running || this.starting) && source === this.inputSource) this.stop();
+        else {
+          if (this.running || this.starting) this.stop();
+          this.start(source);
+        }
+      };
+      this.onSource = (event) => {
+        const source = event.detail === "hyperion" ? "hyperion" : "webcam";
+        if (source === this.inputSource) return;
+        const wasActive = this.running || this.starting;
+        if (wasActive) this.stop();
+        this.inputSource = source;
+        if (wasActive) this.start(source);
+        else {
+          const label = source === "hyperion" ? "Leap Motion · Hyperion" : "Webcam";
+          emitMacro("citation-gesture-status", `Hand input is off · ${label} selected`);
+        }
+      };
       window.addEventListener("citation-gesture-toggle", this.onToggle);
+      window.addEventListener("citation-gesture-source", this.onSource);
     },
 
-    async start() {
+    start(source = this.inputSource) {
+      this.inputSource = source === "hyperion" ? "hyperion" : "webcam";
+      if (this.inputSource === "hyperion") this.startHyperion();
+      else this.startWebcam();
+    },
+
+    async startWebcam() {
       if (this.running || this.starting) return;
       this.starting = true;
       this.handCount = -1;
@@ -403,6 +437,161 @@
                 : error?.message || "Camera or MediaPipe unavailable";
         this.stop(status);
       }
+    },
+
+    startHyperion() {
+      if (this.running || this.starting) return;
+      this.starting = true;
+      this.handCount = -1;
+      this.hyperionHands.clear();
+      this.hyperionPrimaryId = null;
+      this.hyperionPinching = false;
+      this.hyperionLastSpread = null;
+      const startToken = ++this.startToken;
+      emitMacro("citation-gesture-status", "Connecting to the local Hyperion bridge…");
+
+      try {
+        const socket = new WebSocket(this.data.hyperionUrl);
+        this.hyperionSocket = socket;
+        socket.addEventListener("open", () => {
+          if (startToken !== this.startToken) return;
+          this.running = true;
+          this.starting = false;
+          emitMacro("citation-gesture-status", "Hyperion bridge connected · waiting for tracking");
+        });
+        socket.addEventListener("message", (event) => {
+          if (startToken !== this.startToken) return;
+          try {
+            this.onHyperionMessage(JSON.parse(event.data));
+          } catch (error) {
+            console.warn("Ignoring invalid Hyperion bridge message", error);
+          }
+        });
+        socket.addEventListener("error", () => {
+          if (startToken !== this.startToken) return;
+          emitMacro(
+            "citation-gesture-status",
+            "Hyperion bridge unavailable · run cargo run --bin hyperion_bridge",
+          );
+        });
+        socket.addEventListener("close", () => {
+          if (startToken !== this.startToken) return;
+          this.running = false;
+          this.starting = false;
+          this.updatePointer(null);
+          emitMacro("citation-gesture-status", "Hyperion bridge disconnected · toggle to retry");
+        });
+      } catch (error) {
+        console.error("Unable to start Hyperion input", error);
+        this.stop(error?.message || "Hyperion input failed to initialize");
+      }
+    },
+
+    onHyperionMessage(message) {
+      if (message?.type === "status") {
+        emitMacro("citation-gesture-status", message.message || `Hyperion · ${message.state}`);
+        return;
+      }
+      if (message?.type !== "frame" || !Array.isArray(message.hands)) return;
+      this.applyHyperionFrame(message.hands);
+    },
+
+    applyHyperionFrame(hands) {
+      if (hands.length !== this.handCount) {
+        this.handCount = hands.length;
+        const label = hands.length === 1 ? "hand" : "hands";
+        emitMacro(
+          "citation-gesture-status",
+          hands.length
+            ? `Hyperion active · ${hands.length} ${label} detected`
+            : "Hyperion active · show a hand over the sensor",
+        );
+      }
+      if (!hands.length) {
+        this.hyperionHands.clear();
+        this.hyperionPrimaryId = null;
+        this.hyperionPinching = false;
+        this.hyperionLastSpread = null;
+        this.updatePointer(null);
+        return;
+      }
+
+      const primary =
+        hands.find((hand) => hand.id === this.hyperionPrimaryId) ||
+        hands.find((hand) => hand.chirality === "right") ||
+        hands[0];
+      if (primary.id !== this.hyperionPrimaryId) {
+        this.hyperionPrimaryId = primary.id;
+        this.hyperionPinching = false;
+      }
+
+      const indexTip = primary.digits?.[1]?.tip || primary.palm?.stabilizedPosition;
+      if (!Array.isArray(indexTip)) return;
+      const screenX = THREE.MathUtils.clamp(0.5 + indexTip[0] / 400, 0, 1);
+      const screenY = THREE.MathUtils.clamp(1 - (indexTip[1] - 100) / 350, 0, 1);
+      const pixelX = screenX * window.innerWidth;
+      const pixelY = screenY * window.innerHeight;
+      const gesturePinch = (Number(primary.flags) & 2) !== 0;
+      const pinchStrength = Number(primary.pinchStrength) || 0;
+      const pinching = this.hyperionPinching
+        ? gesturePinch || pinchStrength > 0.5
+        : gesturePinch || pinchStrength > 0.72;
+      this.updatePointer({ pixelX, pixelY, pinching });
+
+      const previous = this.hyperionHands.get(primary.id);
+      const palmPosition = primary.palm?.stabilizedPosition || primary.palm?.position;
+      const extendedDigits = (primary.digits || []).filter((digit) => digit.extended).length;
+      const openPalm = (Number(primary.grabStrength) || 0) < 0.25 && extendedDigits >= 4;
+      if (previous?.openPalm && openPalm && Array.isArray(palmPosition)) {
+        const dx = THREE.MathUtils.clamp((palmPosition[0] - previous.palm[0]) / 320, -0.08, 0.08);
+        const dy = THREE.MathUtils.clamp((previous.palm[1] - palmPosition[1]) / 300, -0.08, 0.08);
+        if (Math.abs(dx) + Math.abs(dy) > 0.001) {
+          this.applyGesture({ kind: "palm_pan", dx, dy });
+        }
+      }
+
+      if (pinching && !this.hyperionPinching) {
+        this.applyGesture({ kind: "pinch", x: 1 - screenX, y: screenY });
+      }
+      this.hyperionPinching = pinching;
+
+      const velocity = primary.palm?.velocity || [0, 0, 0];
+      const now = performance.now();
+      if (
+        now >= this.hyperionSwipeCooldownUntil &&
+        Math.abs(velocity[0]) > 900 &&
+        Math.abs(velocity[0]) > Math.abs(velocity[1]) * 1.4
+      ) {
+        this.applyGesture({ kind: "swipe", direction: velocity[0] < 0 ? "left" : "right" });
+        this.hyperionSwipeCooldownUntil = now + 650;
+      }
+
+      if (hands.length >= 2) {
+        const first = hands[0].palm?.position;
+        const second = hands[1].palm?.position;
+        if (Array.isArray(first) && Array.isArray(second)) {
+          const distance = Math.hypot(first[0] - second[0], first[1] - second[1], first[2] - second[2]);
+          if (this.hyperionLastSpread !== null) {
+            const delta = THREE.MathUtils.clamp((distance - this.hyperionLastSpread) / 300, -0.08, 0.08);
+            if (Math.abs(delta) > 0.001) this.applyGesture({ kind: "spread", delta });
+          }
+          this.hyperionLastSpread = distance;
+        }
+      } else {
+        this.hyperionLastSpread = null;
+      }
+
+      this.hyperionHands = new Map(
+        hands.map((hand) => [
+          hand.id,
+          {
+            palm: hand.palm?.stabilizedPosition || hand.palm?.position || [0, 0, 0],
+            openPalm:
+              (Number(hand.grabStrength) || 0) < 0.25 &&
+              (hand.digits || []).filter((digit) => digit.extended).length >= 4,
+          },
+        ]),
+      );
     },
 
     async captureFrame(time) {
@@ -529,12 +718,16 @@
         return;
       }
 
-      const screenX = THREE.MathUtils.clamp(1 - pointer.x, 0, 1);
-      const screenY = THREE.MathUtils.clamp(pointer.y, 0, 1);
       const width = window.innerWidth;
       const height = window.innerHeight;
-      const rawX = screenX * width;
-      const rawY = screenY * height;
+      const hasPixelPosition =
+        Number.isFinite(pointer.pixelX) && Number.isFinite(pointer.pixelY);
+      const rawX = hasPixelPosition
+        ? THREE.MathUtils.clamp(pointer.pixelX, 0, width)
+        : THREE.MathUtils.clamp(1 - pointer.x, 0, 1) * width;
+      const rawY = hasPixelPosition
+        ? THREE.MathUtils.clamp(pointer.pixelY, 0, height)
+        : THREE.MathUtils.clamp(pointer.y, 0, 1) * height;
       reticle.hidden = false;
       reticle.classList.toggle("pinching", Boolean(pointer.pinching));
 
@@ -649,7 +842,7 @@
       }
     },
 
-    stop(status = "Gesture camera is off") {
+    stop(status) {
       this.startToken += 1;
       this.running = false;
       this.starting = false;
@@ -659,6 +852,14 @@
       this.lastGestureKind = null;
       this.snappedNodeMesh = null;
       this.pinchLockUntil = 0;
+      this.hyperionHands.clear();
+      this.hyperionPrimaryId = null;
+      this.hyperionPinching = false;
+      this.hyperionLastSpread = null;
+      if (this.hyperionSocket) {
+        this.hyperionSocket.close();
+        this.hyperionSocket = null;
+      }
       this.updatePointer(null);
       this.workerInstance?.terminate();
       this.workerInstance = null;
@@ -666,11 +867,16 @@
       this.stream = null;
       if (this.video) this.video.srcObject = null;
       this.video = null;
-      emitMacro("citation-gesture-status", status);
+      const defaultStatus =
+        this.inputSource === "hyperion"
+          ? "Hand input is off · Leap Motion · Hyperion selected"
+          : "Hand input is off · Webcam selected";
+      emitMacro("citation-gesture-status", status || defaultStatus);
     },
 
     remove() {
       window.removeEventListener("citation-gesture-toggle", this.onToggle);
+      window.removeEventListener("citation-gesture-source", this.onSource);
       this.stop();
     },
   });

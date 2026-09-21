@@ -146,3 +146,92 @@ test("retains WebXR hand tracking and controller raycasting", async ({ page }) =
     { hand: "right", objects: ".citation-graph" },
   ]);
 });
+
+test("uses Hyperion frames as an alternate snapping pointer", async ({ page }) => {
+  await loadConstellation(page);
+  await page.evaluate(() => {
+    class MockWebSocket {
+      constructor(url) {
+        this.url = url;
+        this.listeners = new Map();
+        window.__hyperionTestSocket = this;
+        queueMicrotask(() => this.emit("open", {}));
+      }
+
+      addEventListener(name, callback) {
+        const listeners = this.listeners.get(name) || [];
+        listeners.push(callback);
+        this.listeners.set(name, listeners);
+      }
+
+      close() {
+        this.emit("close", {});
+      }
+
+      emit(name, event) {
+        for (const callback of this.listeners.get(name) || []) callback(event);
+      }
+
+      sendFrame(hands) {
+        this.emit("message", { data: JSON.stringify({ type: "frame", hands }) });
+      }
+    }
+    window.WebSocket = MockWebSocket;
+  });
+
+  await page.getByLabel("Hand input source").selectOption("hyperion");
+  await page.locator("#gesture-toggle").click();
+  await expect(page.locator(".gesture-state")).toContainText("Hyperion bridge connected");
+
+  await page.evaluate(() => {
+    const graphElement = document.querySelector("#citation-graph");
+    const graph = graphElement.components["af-force-graph"];
+    const scene = document.querySelector("#citation-scene");
+    const camera = scene.camera;
+    const point = new THREE.Vector3(
+      graph.positions[3],
+      graph.positions[4],
+      graph.positions[5],
+    );
+    graph.nodeMesh.updateWorldMatrix(true, false);
+    camera.updateWorldMatrix(true, false);
+    point.applyMatrix4(graph.nodeMesh.matrixWorld).project(camera);
+    const cursor = [
+      (point.x * 0.5 + 0.5) * window.innerWidth,
+      (-point.y * 0.5 + 0.5) * window.innerHeight,
+    ];
+    const indexTip = [
+      (cursor[0] / window.innerWidth - 0.5) * 400,
+      (1 - cursor[1] / window.innerHeight) * 350 + 100,
+      0,
+    ];
+    const hand = (pinchStrength) => ({
+      id: 7,
+      chirality: "right",
+      flags: 0,
+      confidence: 1,
+      pinchDistance: pinchStrength ? 8 : 50,
+      pinchStrength,
+      grabStrength: 0,
+      palm: {
+        position: [0, 210, 0],
+        stabilizedPosition: [0, 210, 0],
+        velocity: [0, 0, 0],
+        normal: [0, -1, 0],
+        direction: [0, 1, 0],
+      },
+      digits: [
+        { extended: true, tip: [-20, 200, 0] },
+        { extended: true, tip: indexTip },
+        { extended: true, tip: [0, 220, 0] },
+        { extended: true, tip: [10, 215, 0] },
+        { extended: true, tip: [20, 205, 0] },
+      ],
+    });
+    window.__hyperionTestSocket.sendFrame([hand(0)]);
+    window.__hyperionTestSocket.sendFrame([hand(0.9)]);
+  });
+
+  await expect(page.locator("#paper-panel h2")).toHaveText("Middle graph paper");
+  await expect(page.locator("#gesture-pointer")).toBeVisible();
+});
