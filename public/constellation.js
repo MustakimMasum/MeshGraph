@@ -31,6 +31,10 @@
       this.velocities = new Float32Array();
       this.yearRange = [new Date().getFullYear(), new Date().getFullYear()];
       this.selectedIndex = -1;
+      this.lastSelectedIndex = -1;
+      this.lastSelectedId = null;
+      this.homePosition = this.el.object3D.position.clone();
+      this.focusAnimation = null;
       this.frame = 0;
       this.matrix = new THREE.Matrix4();
       this.quaternion = new THREE.Quaternion();
@@ -41,9 +45,11 @@
       };
       this.onReload = () => this.loadGraph();
       this.onClear = () => this.clearSelection();
+      this.onFocusSelected = () => this.focusSelected();
       this.el.addEventListener("click", this.onClick);
       window.addEventListener("citation-graph-reload", this.onReload);
       window.addEventListener("citation-selection-clear", this.onClear);
+      window.addEventListener("citation-focus-selected", this.onFocusSelected);
       this.loadGraph();
     },
 
@@ -85,6 +91,10 @@
         (link) => nodeIds.has(link.source) && nodeIds.has(link.target),
       );
       this.idToIndex = new Map(this.nodes.map((node, index) => [node.id, index]));
+      this.selectedIndex = -1;
+      this.lastSelectedIndex = this.lastSelectedId
+        ? (this.idToIndex.get(this.lastSelectedId) ?? -1)
+        : -1;
       this.positions = new Float32Array(this.nodes.length * 3);
       this.velocities = new Float32Array(this.nodes.length * 2);
       this.anchorPositions = new Float32Array(this.nodes.length * 2);
@@ -97,17 +107,40 @@
       const minYear = datedYears.length ? Math.min(...datedYears) : currentYear;
       const maxYear = datedYears.length ? Math.max(...datedYears) : currentYear;
       this.yearRange = [minYear, maxYear];
+      this.yearDepth = THREE.MathUtils.clamp(
+        2.5 + Math.log2(Math.max(2, this.nodes.length)) * 0.45,
+        3.5,
+        7,
+      );
 
       const topics = [...new Set(this.nodes.map((node) => node.topic || "Unclassified"))];
+      const topicRadius = THREE.MathUtils.clamp(
+        2.4 + Math.sqrt(topics.length) * 0.5,
+        3.2,
+        8.5,
+      );
+      const nodesPerTopic = this.nodes.length / Math.max(1, topics.length);
+      const jitterSpread = THREE.MathUtils.clamp(
+        1.2 + Math.sqrt(nodesPerTopic) * 0.12,
+        1.5,
+        4.5,
+      );
       this.topicTargets = new Map(
         topics.map((topic, index) => {
           const angle = (index / Math.max(1, topics.length)) * Math.PI * 2;
-          const radius = 5 + Math.sqrt(topics.length) * 0.8;
-          return [topic, [Math.cos(angle) * radius, Math.sin(angle) * radius]];
+          return [
+            topic,
+            [Math.cos(angle) * topicRadius, Math.sin(angle) * topicRadius],
+          ];
         }),
       );
 
-      const geometry = new THREE.IcosahedronGeometry(0.23, 1);
+      const nodeGeometryRadius = THREE.MathUtils.lerp(
+        0.22,
+        0.34,
+        1 - THREE.MathUtils.clamp(this.nodes.length / 500, 0, 1),
+      );
+      const geometry = new THREE.IcosahedronGeometry(nodeGeometryRadius, 1);
       const material = new THREE.MeshBasicMaterial({
         transparent: true,
         opacity: 0.96,
@@ -123,15 +156,35 @@
         const [topicX, topicY] = this.topicTargets.get(topic);
         const seed = hash(node.id);
         const angle = (seed % 6283) / 1000;
-        const radius = 0.8 + ((seed >>> 8) % 500) / 160;
+        const radius = 0.45 + (((seed >>> 8) % 500) / 500) * jitterSpread;
         const offset = index * 3;
         this.positions[offset] = topicX + Math.cos(angle) * radius;
         this.positions[offset + 1] = topicY + Math.sin(angle) * radius;
         this.positions[offset + 2] = this.yearToZ(node.year);
-        this.anchorPositions[index * 2] = this.positions[offset];
-        this.anchorPositions[index * 2 + 1] = this.positions[offset + 1];
         this.nodeMesh.setColorAt(index, this.topicColor(topic));
       });
+      if (this.nodes.length) {
+        const minimum = new THREE.Vector3(Infinity, Infinity, Infinity);
+        const maximum = new THREE.Vector3(-Infinity, -Infinity, -Infinity);
+        this.nodes.forEach((_node, index) => {
+          const offset = index * 3;
+          minimum.x = Math.min(minimum.x, this.positions[offset]);
+          minimum.y = Math.min(minimum.y, this.positions[offset + 1]);
+          minimum.z = Math.min(minimum.z, this.positions[offset + 2]);
+          maximum.x = Math.max(maximum.x, this.positions[offset]);
+          maximum.y = Math.max(maximum.y, this.positions[offset + 1]);
+          maximum.z = Math.max(maximum.z, this.positions[offset + 2]);
+        });
+        const layoutCenter = minimum.add(maximum).multiplyScalar(0.5);
+        this.nodes.forEach((_node, index) => {
+          const offset = index * 3;
+          this.positions[offset] -= layoutCenter.x;
+          this.positions[offset + 1] -= layoutCenter.y;
+          this.positions[offset + 2] -= layoutCenter.z;
+          this.anchorPositions[index * 2] = this.positions[offset];
+          this.anchorPositions[index * 2 + 1] = this.positions[offset + 1];
+        });
+      }
       material.needsUpdate = true;
       if (this.nodeMesh.instanceColor) {
         this.nodeMesh.instanceColor.setUsage(THREE.DynamicDrawUsage);
@@ -155,13 +208,17 @@
       this.el.setObject3D("citation-links", this.linkLines);
       this.updateInstances();
       this.updateLinks();
+      requestAnimationFrame(() => this.centerLayoutInViewport());
     },
 
     yearToZ(year) {
       if (!Number.isFinite(year)) return 0;
       const [minYear, maxYear] = this.yearRange;
       if (minYear === maxYear) return 0;
-      return -12 + ((year - minYear) / (maxYear - minYear)) * 24;
+      return (
+        -this.yearDepth +
+        ((year - minYear) / (maxYear - minYear)) * this.yearDepth * 2
+      );
     },
 
     topicColor(topic) {
@@ -171,6 +228,7 @@
     },
 
     tick(_time, delta) {
+      this.updateFocusAnimation();
       if (!this.nodeMesh || !this.nodes.length) return;
       const dt = Math.min(delta / 16.6667, 2);
       const linkStrength = 0.00015 * dt;
@@ -261,6 +319,8 @@
       if (!this.nodes[index] || !this.visible[index]) return;
       this.clearSelection();
       this.selectedIndex = index;
+      this.lastSelectedIndex = index;
+      this.lastSelectedId = this.nodes[index].id;
       this.nodeMesh.setColorAt(index, new THREE.Color(0x17324d));
       this.nodeMesh.instanceColor.needsUpdate = true;
       emitMacro("citation-node-selected", this.nodes[index].id);
@@ -272,6 +332,161 @@
       this.nodeMesh.setColorAt(this.selectedIndex, this.topicColor(node.topic || "Unclassified"));
       this.nodeMesh.instanceColor.needsUpdate = true;
       this.selectedIndex = -1;
+    },
+
+    viewportCenterNdc() {
+      if (window.matchMedia("(max-width: 620px)").matches) {
+        return new THREE.Vector2(0, 0);
+      }
+      const panel = document.getElementById("paper-panel");
+      const gutter = 18;
+      const reservedPanelWidth = Math.min(360, window.innerWidth - gutter * 2);
+      const panelRight = Math.min(
+        window.innerWidth,
+        panel
+          ? panel.getBoundingClientRect().right + gutter
+          : gutter + reservedPanelWidth + gutter,
+      );
+      const targetScreenX = panelRight + (window.innerWidth - panelRight) / 2;
+      return new THREE.Vector2((targetScreenX / window.innerWidth) * 2 - 1, 0);
+    },
+
+    centerLayoutInViewport() {
+      const camera = this.el.sceneEl.camera;
+      if (!camera || !this.nodeMesh || !this.nodes.length) return;
+
+      this.el.object3D.updateWorldMatrix(true, false);
+      camera.updateWorldMatrix(true, false);
+      let minX = Infinity;
+      let maxX = -Infinity;
+      let minY = Infinity;
+      let maxY = -Infinity;
+      const projected = new THREE.Vector3();
+      this.nodes.forEach((_node, index) => {
+        if (!this.visible[index]) return;
+        const offset = index * 3;
+        projected
+          .set(
+            this.positions[offset],
+            this.positions[offset + 1],
+            this.positions[offset + 2],
+          )
+          .applyMatrix4(this.el.object3D.matrixWorld)
+          .project(camera);
+        if (!Number.isFinite(projected.x) || !Number.isFinite(projected.y)) return;
+        minX = Math.min(minX, projected.x);
+        maxX = Math.max(maxX, projected.x);
+        minY = Math.min(minY, projected.y);
+        maxY = Math.max(maxY, projected.y);
+      });
+      if (!Number.isFinite(minX) || !Number.isFinite(minY)) return;
+
+      const currentCenterNdc = new THREE.Vector2((minX + maxX) / 2, (minY + maxY) / 2);
+      const targetCenterNdc = this.viewportCenterNdc();
+      const graphWorldCenter = new THREE.Vector3().setFromMatrixPosition(
+        this.el.object3D.matrixWorld,
+      );
+      const cameraForward = new THREE.Vector3();
+      camera.getWorldDirection(cameraForward);
+      const layoutPlane = new THREE.Plane().setFromNormalAndCoplanarPoint(
+        cameraForward,
+        graphWorldCenter,
+      );
+      const currentRay = new THREE.Raycaster();
+      const targetRay = new THREE.Raycaster();
+      currentRay.setFromCamera(currentCenterNdc, camera);
+      targetRay.setFromCamera(targetCenterNdc, camera);
+      const currentWorldCenter = new THREE.Vector3();
+      const targetWorldCenter = new THREE.Vector3();
+      if (
+        !currentRay.ray.intersectPlane(layoutPlane, currentWorldCenter) ||
+        !targetRay.ray.intersectPlane(layoutPlane, targetWorldCenter)
+      ) {
+        return;
+      }
+
+      const targetPosition = this.el.object3D.position
+        .clone()
+        .add(targetWorldCenter.sub(currentWorldCenter));
+      this.el.object3D.position.copy(targetPosition);
+    },
+
+    focusSelected() {
+      const index = this.selectedIndex >= 0 ? this.selectedIndex : this.lastSelectedIndex;
+      const camera = this.el.sceneEl.camera;
+      if (
+        !camera ||
+        !this.nodeMesh ||
+        !Number.isInteger(index) ||
+        !this.nodes[index] ||
+        !this.visible[index]
+      ) {
+        return;
+      }
+
+      const offset = index * 3;
+      const targetPosition = this.homePosition.clone();
+      const targetQuaternion = new THREE.Quaternion();
+      const targetScale = new THREE.Vector3(1, 1, 1);
+      const localPoint = new THREE.Vector3(
+        this.positions[offset],
+        this.positions[offset + 1],
+        this.positions[offset + 2],
+      );
+      const targetMatrix = new THREE.Matrix4().compose(
+        targetPosition,
+        targetQuaternion,
+        targetScale,
+      );
+      this.el.object3D.parent?.updateWorldMatrix(true, false);
+      if (this.el.object3D.parent) {
+        targetMatrix.premultiply(this.el.object3D.parent.matrixWorld);
+      }
+      const worldPoint = localPoint.clone().applyMatrix4(targetMatrix);
+
+      camera.updateWorldMatrix(true, false);
+      const targetNdc = this.viewportCenterNdc();
+      const raycaster = new THREE.Raycaster();
+      raycaster.setFromCamera(targetNdc, camera);
+      const cameraForward = new THREE.Vector3();
+      camera.getWorldDirection(cameraForward);
+      const focusPlane = new THREE.Plane().setFromNormalAndCoplanarPoint(
+        cameraForward,
+        worldPoint,
+      );
+      const targetWorldPoint = new THREE.Vector3();
+      if (!raycaster.ray.intersectPlane(focusPlane, targetWorldPoint)) return;
+
+      targetPosition.add(targetWorldPoint.sub(worldPoint));
+      this.focusAnimation = {
+        startedAt: performance.now(),
+        duration: 360,
+        fromPosition: this.el.object3D.position.clone(),
+        toPosition: targetPosition,
+        fromQuaternion: this.el.object3D.quaternion.clone(),
+        toQuaternion: targetQuaternion,
+        fromScale: this.el.object3D.scale.clone(),
+        toScale: targetScale,
+      };
+    },
+
+    updateFocusAnimation() {
+      if (!this.focusAnimation) return;
+      const animation = this.focusAnimation;
+      const progress = Math.min(1, (performance.now() - animation.startedAt) / animation.duration);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      this.el.object3D.position.lerpVectors(
+        animation.fromPosition,
+        animation.toPosition,
+        eased,
+      );
+      this.el.object3D.quaternion.slerpQuaternions(
+        animation.fromQuaternion,
+        animation.toQuaternion,
+        eased,
+      );
+      this.el.object3D.scale.lerpVectors(animation.fromScale, animation.toScale, eased);
+      if (progress === 1) this.focusAnimation = null;
     },
 
     setYearCutoff(normalizedX) {
@@ -302,6 +517,7 @@
       this.el.removeEventListener("click", this.onClick);
       window.removeEventListener("citation-graph-reload", this.onReload);
       window.removeEventListener("citation-selection-clear", this.onClear);
+      window.removeEventListener("citation-focus-selected", this.onFocusSelected);
       this.disposeGraph();
     },
   });
@@ -946,6 +1162,44 @@
       window.removeEventListener("citation-gesture-toggle", this.onToggle);
       window.removeEventListener("citation-gesture-source", this.onSource);
       this.stop();
+    },
+  });
+
+  AFRAME.registerComponent("vertical-controls", {
+    schema: { speed: { default: 3 } },
+    init() {
+      this.direction = 0;
+      this.onKeyDown = (event) => {
+        const target = event.target;
+        if (
+          target instanceof HTMLInputElement ||
+          target instanceof HTMLTextAreaElement ||
+          target instanceof HTMLSelectElement ||
+          target?.isContentEditable
+        ) {
+          return;
+        }
+        if (event.code === "KeyE") this.direction = 1;
+        if (event.code === "KeyC") this.direction = -1;
+      };
+      this.onKeyUp = (event) => {
+        if (
+          (event.code === "KeyE" && this.direction === 1) ||
+          (event.code === "KeyC" && this.direction === -1)
+        ) {
+          this.direction = 0;
+        }
+      };
+      window.addEventListener("keydown", this.onKeyDown);
+      window.addEventListener("keyup", this.onKeyUp);
+    },
+    tick(_time, delta) {
+      if (!this.direction || this.el.sceneEl.is("vr-mode")) return;
+      this.el.object3D.position.y += this.direction * this.data.speed * (delta / 1000);
+    },
+    remove() {
+      window.removeEventListener("keydown", this.onKeyDown);
+      window.removeEventListener("keyup", this.onKeyUp);
     },
   });
 

@@ -300,7 +300,7 @@ pub fn App() -> impl IntoView {
                 <a-entity
                     id="citation-graph"
                     class="citation-graph"
-                    position="0 1 -20"
+                    position="0 1 -16"
                     af-force-graph=move || format!(
                         "endpoint: /api/v1/citations/graph?mode={}; maxNodes: 12000",
                         graph_mode.get()
@@ -312,6 +312,7 @@ pub fn App() -> impl IntoView {
                         id="research-camera"
                         look-controls="pointerLockEnabled: false"
                         wasd-controls="acceleration: 28"
+                        vertical-controls="speed: 3"
                         camera="fov: 65"
                     ></a-camera>
                     <a-entity
@@ -375,6 +376,7 @@ pub fn App() -> impl IntoView {
                     <section class="navigation-guide">
                         <span class="settings-label">"Navigation"</span>
                         <div><kbd>"W A S D"</kbd><span>"Move"</span></div>
+                        <div><kbd>"E / C"</kbd><span>"Up / down"</span></div>
                         <div><kbd>"Drag"</kbd><span>"Look around"</span></div>
                         <div><kbd>"Scroll"</kbd><span>"Zoom"</span></div>
                         <div><kbd>"Point + pinch"</kbd><span>"Select"</span></div>
@@ -390,6 +392,19 @@ pub fn App() -> impl IntoView {
             </Show>
 
             <div class="input-controls" role="group" aria-label="Input controls">
+                <button
+                    id="reset-view-button"
+                    class="input-control"
+                    type="button"
+                    aria-label="Refocus selected node"
+                    title="Reset view"
+                    on:click=move |_| dispatch_macro_event("citation-focus-selected", "")
+                >
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+                        <path d="M4.5 9A8 8 0 1 1 4 14"></path>
+                        <path d="M4.5 4.5V9H9"></path>
+                    </svg>
+                </button>
                 <button
                     id="webcam-input-button"
                     class="input-control"
