@@ -126,3 +126,64 @@ test("history gesture simulation pans, zooms, and selects through the shared inp
   expect(result.zoom).toBeGreaterThan(result.scale);
   await expect(page.locator("#history-panel h2")).toHaveText(result.title);
 });
+
+
+test("JPL IR focused pinch selects without panning and empty-space pinch pans", async ({ page }) => {
+  await openHistory(page);
+  await page.waitForFunction(() => document.querySelector("#citation-graph")?.components?.["af-force-graph"]?.nodeMesh);
+  const focused = await page.evaluate(() => {
+    const scene = document.getElementById("history-scene");
+    const graph = document.getElementById("citation-graph").components["af-force-graph"];
+    const input = scene.components["gesture-controls"];
+    input.inputSource = "hyperion";
+    input.resetHyperionNavigation();
+    graph.nodeMesh.updateWorldMatrix(true, false);
+    scene.camera.updateWorldMatrix(true, false);
+    const target = graph.nodes.findIndex((node, index) => {
+      if (node.id === graph.lastSelectedId || !input.projectNodeToScreen(graph, index, scene.camera, innerWidth, innerHeight)) return false;
+      return input.projectedNode.x > 390 && input.projectedNode.x < innerWidth - 30 &&
+        input.projectedNode.y > 30 && input.projectedNode.y < innerHeight - 90;
+    });
+    if (target < 0) throw new Error("No visible JPL selection target");
+    input.projectNodeToScreen(graph, target, scene.camera, innerWidth, innerHeight);
+    const position = [(input.projectedNode.x / innerWidth - 0.5) * 320,
+      (1 - input.projectedNode.y / innerHeight) * 220 + 100, 0];
+    const hand = (pinchStrength, dx = 0) => ({
+      id: 71, chirality: "right", confidence: 0.2, pinchStrength, grabStrength: 0.8,
+      palm: { position: [position[0] + dx, position[1], 0] },
+      digits: Array.from({ length: 5 }, () => ({ extended: false })),
+    });
+    window.__jplIRHand = hand;
+    input.applyHyperionFrame([hand(0)]);
+    const hover = input.hoveredInstanceId;
+    if (hover !== target) throw new Error(`Focus missed: ${hover} instead of ${target}`);
+    input.applyHyperionFrame([hand(0.9)]);
+    return { title: graph.nodes[target].title, selected: graph.lastSelectedId, expected: graph.nodes[target].id };
+  });
+  expect(focused.selected).toBe(focused.expected);
+  await expect(page.locator("#history-panel h2")).toHaveText(focused.title);
+  const drag = await page.evaluate(() => {
+    const input = document.getElementById("history-scene").components["gesture-controls"];
+    const object = document.getElementById("citation-graph").object3D;
+    const before = object.position.clone();
+    input.applyHyperionFrame([window.__jplIRHand(0.9, 0.5)]);
+    const delta = object.position.clone().sub(before).length();
+    input.applyHyperionFrame([window.__jplIRHand(0.9, 0.5)]);
+    const stationaryDelta = object.position.clone().sub(before).length();
+    input.applyHyperionFrame([window.__jplIRHand(0, 0.5)]);
+    const emptyHand = (pinchStrength, dx = 0) => ({ id: 71, chirality: "right",
+      pinchStrength, grabStrength: 0, palm: { position: [155 + dx, 105, 0] },
+      digits: Array.from({ length: 5 }, () => ({ extended: false })) });
+    input.applyHyperionFrame([emptyHand(0)]);
+    if (Number.isInteger(input.hoveredInstanceId)) throw new Error("Expected empty space for pan");
+    const panBefore = object.position.clone();
+    input.applyHyperionFrame([emptyHand(0.9)]);
+    input.applyHyperionFrame([emptyHand(0.9, 0.5)]);
+    const emptyPanDelta = object.position.clone().sub(panBefore).length();
+    input.applyHyperionFrame([emptyHand(0)]);
+    return { delta, stationaryDelta, emptyPanDelta };
+  });
+  expect(drag.delta).toBe(0);
+  expect(drag.stationaryDelta).toBe(0);
+  expect(drag.emptyPanDelta).toBeGreaterThan(0);
+});

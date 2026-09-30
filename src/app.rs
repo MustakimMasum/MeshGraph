@@ -401,11 +401,11 @@ pub fn App() -> impl IntoView {
                         <div><kbd>"Scroll"</kbd><span>"Zoom"</span></div>
                         <div><kbd>"Pinch (IR)"</kbd><span>"Select focused node immediately"</span></div>
                         <div><kbd>"Point + pinch (webcam)"</kbd><span>"Select"</span></div>
-                        <div><kbd>"Open palm (IR)"</kbd><span>"Move selection focus"</span></div>
-                        <div><kbd>"Pinch + drag (IR)"</kbd><span>"Pan left/right and up/down"</span></div>
+                        <div><kbd>"Visible hand (IR)"</kbd><span>"Move selection focus"</span></div>
+                        <div><kbd>"Pinch + drag (IR)"</kbd><span>"Pan when no node is focused"</span></div>
                         <div><kbd>"Closed hand (IR)"</kbd><span>"Orbit left/right and up/down"</span></div>
                         <div><kbd>"Quick swipe (webcam)"</kbd><span>"Rotate"</span></div>
-                        <div><kbd>"Two open palms"</kbd><span>"Zoom; relax either hand to release"</span></div>
+                        <div><kbd>"Two relaxed hands (IR)"</kbd><span>"Zoom; pinch or close a hand to release"</span></div>
                     </section>
                     <section class="input-status">
                         <span class="settings-label">"Hand input"</span>

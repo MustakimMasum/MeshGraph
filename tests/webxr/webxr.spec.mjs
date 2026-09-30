@@ -206,8 +206,8 @@ test("uses Hyperion frames as an alternate snapping pointer", async ({ page }) =
       (-point.y * 0.5 + 0.5) * window.innerHeight,
     ];
     const indexTip = [
-      (cursor[0] / window.innerWidth - 0.5) * 400,
-      (1 - cursor[1] / window.innerHeight) * 350 + 100,
+      (cursor[0] / window.innerWidth - 0.5) * 320,
+      (1 - cursor[1] / window.innerHeight) * 220 + 100,
       0,
     ];
     const hand = (pinchStrength) => ({
@@ -219,8 +219,8 @@ test("uses Hyperion frames as an alternate snapping pointer", async ({ page }) =
       pinchStrength,
       grabStrength: 0,
       palm: {
-        position: [0, 210, 0],
-        stabilizedPosition: [0, 210, 0],
+        position: indexTip,
+        stabilizedPosition: indexTip,
         velocity: [0, 0, 0],
         normal: [0, -1, 0],
         direction: [0, 1, 0],

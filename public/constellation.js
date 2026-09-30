@@ -890,8 +890,9 @@
       this.hyperionLastFrameAt = now;
       const validPosition = (position) => Array.isArray(position) &&
         position.length === 3 && position.every(Number.isFinite);
-      const tracked = hands.filter((hand) => hand && validPosition(hand.palm?.position) &&
-        (hand.confidence === undefined || hand.confidence >= 0.35));
+      // A valid tracked palm is enough for focus. Relaxed fingers and lower
+      // confidence must not make a visible hand disappear from the controls.
+      const tracked = hands.filter((hand) => hand && validPosition(hand.palm?.position));
       if (tracked.length !== this.handCount) {
         this.handCount = tracked.length;
         emitMacro("citation-gesture-status", tracked.length
@@ -920,16 +921,19 @@
         const fingers = (hand.digits || []).filter((digit) => digit.extended).length;
         const grab = Number(hand.grabStrength) || 0;
         const pinch = Number(hand.pinchStrength) || 0;
-        // Separate enter/release thresholds prevent pose chatter. A pinch
-        // releases an open palm; a fist can naturally report a strong pinch.
+        // A relaxed hand and an open palm are the same focus pose. Finger
+        // extension is only used to distinguish a deliberate, tightly closed
+        // fist; ordinary curled fingers must not trigger orbit.
+        const closedHand = fingers <= 1 && grab >= (previous?.closedHand ? 0.85 : 0.93);
+        const distancePinch = Number.isFinite(hand.pinchDistance) && hand.pinchDistance >= 0 && hand.pinchDistance < 22;
         return [hand.id, {
-          openPalm: pinch < 0.45 && grab < (previous?.openPalm ? 0.5 : 0.4) && fingers >= 3,
-          closedHand: fingers <= 2 && grab > (previous?.closedHand ? 0.55 : 0.75),
+          relaxedHand: !closedHand && pinch < 0.45 && !distancePinch,
+          closedHand,
         }];
       }));
       const pose = poses.get(primary.id);
       const pinchStrength = Number(primary.pinchStrength) || 0;
-      const pinchDistance = Number(primary.pinchDistance);
+      const pinchDistance = primary.pinchDistance;
       const distancePinch = Number.isFinite(pinchDistance) && pinchDistance >= 0 &&
         pinchDistance < (this.hyperionPinching ? 35 : 22);
       const pinching = distancePinch || pinchStrength > (this.hyperionPinching ? 0.3 : 0.6);
@@ -937,16 +941,16 @@
       if (pinching && (this.hyperionMode === "zoom" || this.hyperionMode === "orbit")) {
         this.hyperionSelectionBlocked = true;
       }
-      const zoomHands = tracked.length === 2 && tracked.every((hand) => poses.get(hand.id).openPalm);
+      const zoomHands = tracked.length === 2 && tracked.every((hand) => poses.get(hand.id).relaxedHand);
       // Once dragging starts, finger curl and an incidental second hand cannot
       // change modes. Release the pinch before beginning another gesture.
-      const continuingPan = this.hyperionMode === "pan" && pinching &&
+      const continuingPinch = ["pan", "select"].includes(this.hyperionMode) && pinching &&
         this.hyperionPinchCandidate?.handId === primary.id;
-      const mode = continuingPan ? "pan" : zoomHands ? "zoom"
+      const mode = continuingPinch ? this.hyperionMode : zoomHands ? "zoom"
         : tracked.length === 1 && pinching && (!pose.closedHand || Number.isInteger(this.hoveredInstanceId)) &&
-          !this.hyperionSelectionBlocked ? "pan"
+          !this.hyperionSelectionBlocked ? (Number.isInteger(this.hoveredInstanceId) ? "select" : "pan")
         : tracked.length === 1 && pose.closedHand ? "orbit" : "idle";
-      const modeIds = mode === "pan" ? [primary.id] : tracked.map((hand) => hand.id).sort((a, b) => a - b);
+      const modeIds = ["pan", "select"].includes(mode) ? [primary.id] : tracked.map((hand) => hand.id).sort((a, b) => a - b);
       const modeKey = `${mode}:${modeIds.join(",")}`;
       const previousMode = this.hyperionMode;
       const changed = modeKey !== this.hyperionModeKey;
@@ -961,22 +965,23 @@
             (pinching && (previousMode === "zoom" || previousMode === "orbit"))) {
           this.hyperionSelectionBlocked = true;
         }
-        const labels = { pan: "Pinch selects focus; hold and move to pan",
+        const labels = { pan: "Pinch and drag empty space to pan",
+          select: "Focused node selected; release pinch to move focus",
           orbit: "Closed hand \u00b7 move to orbit",
-          zoom: "Two open palms \u00b7 spread to zoom \u00b7 relax either hand to release",
-          idle: "Open palm to focus \u00b7 pinch to select and drag" };
+          zoom: "Two relaxed hands \u00b7 spread to zoom \u00b7 pinch or close either hand to release",
+          idle: "Pinch a focused node to select \u00b7 pinch empty space to pan" };
         emitMacro("citation-gesture-status", labels[mode]);
       }
 
       // Use one coordinate source for every pose, including the transition
       // into a pinch. Finger extension must not remap the cursor.
       const indexTip = primary.palm.position;
-      if ((mode === "idle" || mode === "pan") && validPosition(indexTip)) {
+      if ((mode === "idle" || mode === "pan" || mode === "select") && validPosition(indexTip)) {
         const screenX = THREE.MathUtils.clamp(0.5 + indexTip[0] / 320, 0, 1);
         const screenY = THREE.MathUtils.clamp(1 - (indexTip[1] - 100) / 220, 0, 1);
         const focus = { pixelX: screenX * window.innerWidth,
           pixelY: screenY * window.innerHeight, pinching };
-        if (mode === "pan") {
+        if (mode === "pan" || mode === "select") {
           if (!this.hyperionPinchCandidate) {
             // Keep the target from the open hand: curling fingers into a pinch
             // should not move the focus to a different node.
@@ -985,9 +990,9 @@
             this.hyperionPinchCandidate = { handId: primary.id, start: [...primary.palm.position],
               dragging: false, pointer, instanceId: this.hoveredInstanceId,
               x: 1 - pointer.pixelX / window.innerWidth, y: pointer.pixelY / window.innerHeight };
-            // Select the visibly focused node at pinch-down. Selection remains
-            // active while dragging; movement can no longer cancel the click.
-            if (Number.isInteger(this.hyperionPinchCandidate.instanceId)) {
+            // A focused pinch selects once and never turns into a pan, even
+            // if the hand moves away before release.
+            if (mode === "select" && Number.isInteger(this.hyperionPinchCandidate.instanceId)) {
               this.applyGesture({ kind: "pinch", instanceId: this.hyperionPinchCandidate.instanceId,
                 x: this.hyperionPinchCandidate.x, y: this.hyperionPinchCandidate.y });
             }
@@ -1012,7 +1017,7 @@
         const other = tracked.find((hand) => hand.id !== primary.id).palm.position;
         position = [Math.hypot(...position.map((value, axis) => value - other[axis])), 0, 0];
       }
-      if (mode !== "idle") {
+      if (mode !== "idle" && mode !== "select") {
         if (!this.hyperionMotion) {
           this.hyperionMotion = { filtered: [...position], anchor: [...position] };
         } else {
@@ -1270,7 +1275,7 @@
         palm_pan: this.inputSource === "hyperion" ? "Pinch-drag pan" : "Open-palm pan",
         pinch: "Pinch select",
         spread: this.inputSource === "hyperion"
-          ? "Two open palms · zoom · relax either hand to release" : "Two-hand zoom",
+          ? "Two relaxed hands \u00b7 zoom \u00b7 pinch or close either hand to release" : "Two-hand zoom",
         swipe: "Hand swipe rotate",
         orbit: "Closed-hand orbit",
       };

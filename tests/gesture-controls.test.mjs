@@ -121,6 +121,8 @@ test("pinch releasing navigation requires a release before selection", () => {
   c.frame([hand(1, "point", 0, 220, 0.9)]);
   assert.equal(c.gestures.length, 0);
   c.frame([hand(1, "point")]);
+  c.input.hoveredInstanceId = 4;
+  c.frame([hand(1, "point", 0, 220, 0.9)]);
   assert.equal(c.gestures.at(-1).kind, "pinch");
   assert.ok(c.input.pointerValue);
 });
@@ -175,15 +177,15 @@ test("open palm moves focus without transforming the graph", () => {
   assert.ok(c.input.pointerValue.pixelY < before.pixelY);
 });
 
-test("short pinch selects the focused node on release and ignores finger curl", () => {
+test("pinch selects the focused node immediately and ignores finger curl", () => {
   const c = controls();
   c.frame([hand(1)]);
   c.input.hoveredInstanceId = 4;
   const focus = { ...c.input.pointerValue };
   c.frame([hand(1, "point", 0, 220, 0.9)]);
-  c.frame([hand(1, "point", 2, 221, 0.9)]);
-  assert.equal(c.gestures.length, 0);
+  assert.equal(c.gestures.length, 1);
   assert.equal(c.input.pointerValue.pixelX, focus.pixelX);
+  c.frame([hand(1, "point", 2, 221, 0.9)]);
   c.frame([hand(1)]);
   assert.equal(c.gestures.length, 1);
   assert.equal(c.gestures[0].kind, "pinch");
@@ -245,4 +247,75 @@ test("open-palm focus does not jump when fingertips curl or extend", () => {
   c.frame([flexed]);
   assert.equal(c.input.pointerValue.pixelX, before.pixelX);
   assert.equal(c.input.pointerValue.pixelY, before.pixelY);
+});
+
+
+test("pan applies the entire raw delta immediately, including tiny movements", () => {
+  const c = controls();
+  c.frame([hand(1)]);
+  c.frame([hand(1, "point", 0, 220, 0.9)]);
+  c.frame([hand(1, "point", 0.1, 220.2, 0.9)], 8);
+  assert.equal(c.gestures.at(-1).kind, "palm_pan");
+  assert.ok(Math.abs(c.gestures.at(-1).dx - 0.1 / 320) < 1e-10);
+  const count = c.gestures.length;
+  c.frame([hand(1, "point", 0.1, 220.2, 0.9)]);
+  assert.equal(c.gestures.length, count, "stopping the hand has no filter tail");
+});
+
+test("pinch distance can select when strength is below its entry threshold", () => {
+  const c = controls();
+  c.frame([hand(1)]);
+  c.input.hoveredInstanceId = 4;
+  c.frame([{ ...hand(1, "point", 0, 220, 0.4), pinchDistance: 12 }]);
+  assert.equal(c.gestures.at(-1).kind, "pinch");
+});
+
+
+test("a normal curled hand moves focus exactly like an open palm", () => {
+  const c = controls();
+  const relaxed = (x, y = 220) => ({ ...hand(1, "point", x, y),
+    grabStrength: 0.8, confidence: 0.2,
+    digits: Array.from({ length: 5 }, () => ({ extended: false })) });
+  c.frame([hand(1)]);
+  const before = { ...c.input.pointerValue };
+  c.frame([relaxed(50, 240)]);
+  assert.equal(c.input.hyperionMode, "idle");
+  assert.ok(c.input.pointerValue.pixelX > before.pixelX);
+  assert.ok(c.input.pointerValue.pixelY < before.pixelY);
+  assert.equal(c.gestures.length, 0);
+  c.input.hoveredInstanceId = 4;
+  c.frame([{ ...relaxed(50, 240), pinchStrength: 0.8 }]);
+  assert.equal(c.gestures.at(-1).kind, "pinch");
+  assert.equal(c.gestures.at(-1).instanceId, 4);
+  c.frame([{ ...relaxed(60, 240), pinchStrength: 0.8 }]);
+  assert.equal(c.gestures.length, 1);
+  assert.equal(c.input.hyperionMode, "select");
+});
+
+test("two normal hands zoom without requiring extended fingers", () => {
+  const c = controls();
+  const relaxed = (id, x) => ({ ...hand(id, "point", x), grabStrength: 0.65,
+    digits: Array.from({ length: 5 }, () => ({ extended: false })) });
+  c.frame([relaxed(1, -80), relaxed(2, 80)]);
+  c.frame([relaxed(1, -100), relaxed(2, 100)]);
+  assert.equal(c.input.hyperionMode, "zoom");
+  assert.equal(c.gestures.at(-1).kind, "spread");
+});
+
+
+test("a focused pinch never pans even after focus is lost while held", () => {
+  const c = controls();
+  c.frame([hand(1)]);
+  c.input.hoveredInstanceId = 4;
+  c.frame([hand(1, "point", 0, 220, 0.9)]);
+  c.input.hoveredInstanceId = null;
+  c.frame([hand(1, "point", 100, 280, 0.9)]);
+  assert.equal(c.input.hyperionMode, "select");
+  assert.equal(c.gestures.length, 1);
+  assert.equal(c.gestures[0].kind, "pinch");
+  c.frame([hand(1, "point", 100, 280)]);
+  c.frame([hand(1, "point", 100, 280, 0.9)]);
+  c.frame([hand(1, "point", 110, 290, 0.9)]);
+  assert.equal(c.input.hyperionMode, "pan");
+  assert.equal(c.gestures.at(-1).kind, "palm_pan");
 });
