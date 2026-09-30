@@ -3,7 +3,7 @@ services:
     image: ghcr.io/oxigraph/oxigraph:latest
     command: serve --location /data --bind 0.0.0.0:7878
     ports:
-      - "7878:7878"
+      - "127.0.0.1:7878:7878"
     volumes:
       - ./local_graph_store:/data
     restart: unless-stopped
@@ -14,19 +14,10 @@ services:
       - oxigraph_db
     volumes:
       - ./data:/seed:ro
-    entrypoint: ["/bin/sh", "-c"]
-    command:
-      - >-
-        until curl --fail --silent http://oxigraph_db:7878/query?query=ASK%7B%7D > /dev/null;
-        do sleep 2; done;
-        curl --fail --request PUT
-        --header "Content-Type: text/turtle"
-        --data-binary @/seed/citations.ttl
-        "http://oxigraph_db:7878/store?graph=http%3A%2F%2Fexample.org%2Fmeshgraph%2Fgraphs%2Fcitations" &&
-        curl --fail --request PUT
-        --header "Content-Type: text/turtle"
-        --data-binary @/seed/jpl-history/history.ttl
-        "http://oxigraph_db:7878/store?graph=http%3A%2F%2Fexample.org%2Fmeshgraph%2Fgraphs%2Fjpl-history"
+      - ./scripts/seed-graphs.sh:/seed-graphs.sh:ro
+    environment:
+      FORCE_SEED: ${FORCE_SEED:-false}
+    entrypoint: ["/bin/sh", "/seed-graphs.sh"]
     restart: "no"
 
   axum_gateway:
@@ -40,6 +31,12 @@ services:
       DATABASE_UPDATE_URL: http://oxigraph_db:7878/update
       OPENALEX_EMAIL: ${OPENALEX_EMAIL:-}
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:3000/api/v1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
     restart: unless-stopped
 

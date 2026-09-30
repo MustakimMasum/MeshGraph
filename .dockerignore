@@ -6,4 +6,10 @@ local_graph_store
 directive
 AGENTS.md
 README.md
+node_modules
+resources
+demo
+test-results
+playwright-report
+__pycache__
 

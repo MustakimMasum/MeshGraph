@@ -33,7 +33,7 @@ Open:
 - [Oxigraph](http://localhost:7878)
 
 Axum serves the API and the frontend bundle from `dist/` on port **3000**.
-The seed job loads both bundled collections.
+The seed job loads missing bundled collections and keeps existing named graphs.
 
 ### Work on the app
 
@@ -54,10 +54,29 @@ before starting the local Rust gateway. If Trunk rejects `NO_COLOR=1`, set
 ### Run everything in Docker
 
 ```powershell
-docker compose up --build
+docker compose up -d --build
+docker compose ps
 # Stop the stack:
 docker compose down
 ```
+
+The database persists in `local_graph_store/`, mounted as `/data` in Oxigraph.
+Both published ports bind to `127.0.0.1`. The gateway waits for the seed job to
+finish and exposes a container health check. Stop the local `cargo run` gateway
+before starting the Docker gateway so port 3000 is available. Docker builds both
+the Leptos frontend and Rust gateway; host-side `trunk build` is not required.
+
+Verify recovery and collection contents without replacing graphs:
+
+```powershell
+python scripts/verify-docker-persistence.py --restart --check-seed
+```
+
+This briefly restarts and stops/starts Oxigraph, compares both collections'
+counts and content hashes, then confirms a normal seed run preserves them.
+The report is written to `demo/jpl-history/docker-persistence.json`. Existing
+named graphs are kept even when bundled seed files change; use the explicit
+import command below to update JPL alone.
 
 ### Run without Docker (temporary demo/test database)
 
@@ -123,7 +142,10 @@ Invoke-WebRequest -Method Put -ContentType 'text/turtle' `
 ```
 
 Rebuild frontend assets after importing images. `docker compose run --rm graph_seed`
-reloads **both** bundled graphs and resets live-ingested citation additions.
+loads missing graphs and preserves existing collections. To deliberately replace
+**both** collections with bundled data, including removing live-ingested citation
+additions, run `docker compose run --rm -e FORCE_SEED=true graph_seed`.
+For a Docker gateway, run `docker compose up -d --build` after changing image assets.
 Regenerate the citation seed with `npm run seed:generate`.
 
 See the [pilot plan](directive/jpl_history_pilot_plan.md) and
@@ -186,6 +208,7 @@ All abbreviated history paths in the table use the `/api/v1/history` prefix.
 | `DATABASE_URL` | `http://localhost:7878/query` |
 | `DATABASE_UPDATE_URL` | Derived from the query URL as `/update`. |
 | `PILOT_GRAPH_ADDR` | `127.0.0.1:7878`; bind address for the ephemeral demo database only. |
+| `FORCE_SEED` | `false`; seed job keeps existing graphs. `true` explicitly replaces both bundled collections. |
 | `OPENALEX_EMAIL` | Optional contact for OpenAlex requests. |
 | `HYPERION_LEAPC_PATH` | Override the installed Hyperion `LeapC.dll` path. |
 | `HYPERION_BRIDGE_ADDR` | `127.0.0.1:6437` |

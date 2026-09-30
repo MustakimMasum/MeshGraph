@@ -82,10 +82,28 @@ original numeric values, and direction uncertainty. Next page handles long text.
 Automated gesture simulation exercises pan, zoom, and pinch against history;
 it does not establish camera recognition or physical Hyperion tracking quality.
 
-Docker Desktop was unavailable during initial implementation. Integration uses
-the real Oxigraph crate in a separate ephemeral HTTP test service and the actual
-Axum gateway. Compose persistence/restart behavior remains a separate acceptance
-check when Docker is available.
+Docker Desktop was unavailable during initial implementation; that verification
+used the real Oxigraph crate in a separate ephemeral HTTP test service and the
+actual Axum gateway.
+
+Docker acceptance completed on 2026-09-30 using Oxigraph 0.5.11 and the release
+Axum/Leptos image built from the repository Dockerfile:
+
+- Compose startup completed; the gateway container is healthy on port 3000.
+- JPL retains 262 topics, 418 connections, and 58 attachments; citations retain
+  50 papers and 253 edges. Persistent named graphs contain 3,469 JPL and 692
+  citation triples.
+- Both collections' complete API record hashes and history dataset version
+  remain identical after database restart, stop/start, and repeated seeding.
+  The seed job preserves nonempty graphs; forced replacement is explicit.
+- All 13 browser tests passed against the Docker gateway and persistent Oxigraph,
+  including source notes/attachments and saved-viewpoint reload/restore.
+- Evidence: `demo/jpl-history/docker-persistence.json`. Reproduce with
+  `python scripts/verify-docker-persistence.py --restart --check-seed` and
+  `npx playwright test` against the running stack.
+
+This completes Docker persistence acceptance. Reader and physical-device
+acceptance remain open.
 
 ## Questions for the professor
 

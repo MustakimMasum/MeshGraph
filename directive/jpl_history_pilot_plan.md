@@ -1,8 +1,15 @@
 # JPL History Pilot — Execution Plan
 
 Status: Phases 1–6 implemented; Phase 7 software and evaluation package implemented.
-Checkpoint D remains open for physical-device, Docker persistence, and professor
-evaluation. The next phase is acceptance and feedback, not authoring or deployment.
+Docker persistence acceptance passed on 2026-09-30. Checkpoint D remains open for
+physical-device and professor evaluation. The next phase is acceptance and feedback,
+not authoring or deployment.
+
+Docker follow-up: the release gateway/frontend image builds and runs with Oxigraph
+0.5.11. The seed job loads missing graphs and preserves existing collections unless
+explicitly forced. Both collection content hashes match after database restart,
+stop/start, and repeated seeding; all 13 browser tests pass against the Docker stack.
+Use `python scripts/verify-docker-persistence.py --restart --check-seed` to reproduce.
 
 Phase 7 acceptance follow-up (2026-09-30): the headset card now cycles all recorded
 connections and exposes endpoints, source IDs, original Relation/Meaning/Direction
