@@ -871,6 +871,10 @@
       this.hyperionMode = "idle";
       this.hyperionModeKey = null;
       this.hyperionMotion = null;
+      this.hyperionPinchCandidate = null;
+      this.hyperionFocusPointer = null;
+      this.hyperionFocusHandId = null;
+      this.hyperionPanGain = null;
       this.hyperionLastFrameAt = null;
       this.hyperionSelectionBlocked = false;
     },
@@ -908,6 +912,8 @@
       if (primary.id !== this.hyperionPrimaryId) {
         this.hyperionPrimaryId = primary.id;
         this.hyperionPinching = false;
+        this.hyperionPinchCandidate = null;
+        this.hyperionFocusPointer = null;
       }
       const poses = new Map(tracked.map((hand) => {
         const previous = this.hyperionHands.get(hand.id);
@@ -922,37 +928,79 @@
         }];
       }));
       const pose = poses.get(primary.id);
+      const pinchStrength = Number(primary.pinchStrength) || 0;
+      const pinchDistance = Number(primary.pinchDistance);
+      const distancePinch = Number.isFinite(pinchDistance) && pinchDistance >= 0 &&
+        pinchDistance < (this.hyperionPinching ? 35 : 22);
+      const pinching = distancePinch || pinchStrength > (this.hyperionPinching ? 0.3 : 0.6);
+      if (pinchStrength < 0.45) this.hyperionSelectionBlocked = false;
+      if (pinching && (this.hyperionMode === "zoom" || this.hyperionMode === "orbit")) {
+        this.hyperionSelectionBlocked = true;
+      }
       const zoomHands = tracked.length === 2 && tracked.every((hand) => poses.get(hand.id).openPalm);
-      const mode = zoomHands ? "zoom" : tracked.length === 1 && pose.openPalm ? "pan"
+      // Once dragging starts, finger curl and an incidental second hand cannot
+      // change modes. Release the pinch before beginning another gesture.
+      const continuingPan = this.hyperionMode === "pan" && pinching &&
+        this.hyperionPinchCandidate?.handId === primary.id;
+      const mode = continuingPan ? "pan" : zoomHands ? "zoom"
+        : tracked.length === 1 && pinching && (!pose.closedHand || Number.isInteger(this.hoveredInstanceId)) &&
+          !this.hyperionSelectionBlocked ? "pan"
         : tracked.length === 1 && pose.closedHand ? "orbit" : "idle";
-      const modeKey = `${mode}:${tracked.map((hand) => hand.id).sort((a, b) => a - b).join(",")}`;
-      const wasNavigating = this.hyperionMode !== "idle";
+      const modeIds = mode === "pan" ? [primary.id] : tracked.map((hand) => hand.id).sort((a, b) => a - b);
+      const modeKey = `${mode}:${modeIds.join(",")}`;
+      const previousMode = this.hyperionMode;
       const changed = modeKey !== this.hyperionModeKey;
       if (changed) {
+        this.hyperionPinchCandidate = null;
         this.hyperionModeKey = modeKey;
         this.hyperionMode = mode;
         this.hyperionMotion = null;
-        // A pinch used to exit navigation must be released before selecting.
-        if (mode !== "idle" || wasNavigating) this.hyperionSelectionBlocked = true;
-        const labels = { pan: "Open palm · move to pan", orbit: "Closed hand · move to orbit",
-          zoom: "Two open palms · spread to zoom · relax either hand to release",
-          idle: "Hyperion ready · open palm to pan · closed hand to orbit" };
+        this.hyperionPanGain = null;
+        // Leaving zoom/orbit with a pinch requires a release before dragging.
+        if (mode === "zoom" || mode === "orbit" ||
+            (pinching && (previousMode === "zoom" || previousMode === "orbit"))) {
+          this.hyperionSelectionBlocked = true;
+        }
+        const labels = { pan: "Pinch selects focus; hold and move to pan",
+          orbit: "Closed hand \u00b7 move to orbit",
+          zoom: "Two open palms \u00b7 spread to zoom \u00b7 relax either hand to release",
+          idle: "Open palm to focus \u00b7 pinch to select and drag" };
         emitMacro("citation-gesture-status", labels[mode]);
       }
 
-      const pinchStrength = Number(primary.pinchStrength) || 0;
-      const pinching = pinchStrength > (this.hyperionPinching ? 0.5 : 0.72);
-      if (pinchStrength < 0.45) this.hyperionSelectionBlocked = false;
-      const indexTip = primary.digits?.[1]?.tip || primary.palm.position;
-      if (mode === "idle" && validPosition(indexTip)) {
-        const screenX = THREE.MathUtils.clamp(0.5 + indexTip[0] / 400, 0, 1);
-        const screenY = THREE.MathUtils.clamp(1 - (indexTip[1] - 100) / 350, 0, 1);
-        this.updatePointer({ pixelX: screenX * window.innerWidth,
-          pixelY: screenY * window.innerHeight, pinching });
-        if (pinching && !this.hyperionPinching && !this.hyperionSelectionBlocked) {
-          this.applyGesture({ kind: "pinch", x: 1 - screenX, y: screenY });
+      // Use one coordinate source for every pose, including the transition
+      // into a pinch. Finger extension must not remap the cursor.
+      const indexTip = primary.palm.position;
+      if ((mode === "idle" || mode === "pan") && validPosition(indexTip)) {
+        const screenX = THREE.MathUtils.clamp(0.5 + indexTip[0] / 320, 0, 1);
+        const screenY = THREE.MathUtils.clamp(1 - (indexTip[1] - 100) / 220, 0, 1);
+        const focus = { pixelX: screenX * window.innerWidth,
+          pixelY: screenY * window.innerHeight, pinching };
+        if (mode === "pan") {
+          if (!this.hyperionPinchCandidate) {
+            // Keep the target from the open hand: curling fingers into a pinch
+            // should not move the focus to a different node.
+            const pointer = this.hyperionFocusHandId === primary.id && this.hyperionFocusPointer
+              ? this.hyperionFocusPointer : focus;
+            this.hyperionPinchCandidate = { handId: primary.id, start: [...primary.palm.position],
+              dragging: false, pointer, instanceId: this.hoveredInstanceId,
+              x: 1 - pointer.pixelX / window.innerWidth, y: pointer.pixelY / window.innerHeight };
+            // Select the visibly focused node at pinch-down. Selection remains
+            // active while dragging; movement can no longer cancel the click.
+            if (Number.isInteger(this.hyperionPinchCandidate.instanceId)) {
+              this.applyGesture({ kind: "pinch", instanceId: this.hyperionPinchCandidate.instanceId,
+                x: this.hyperionPinchCandidate.x, y: this.hyperionPinchCandidate.y });
+            }
+          }
+          const candidate = this.hyperionPinchCandidate;
+          this.updatePointer(candidate.dragging ? null : { ...candidate.pointer, pinching: true });
+        } else {
+          this.updatePointer(focus);
+          this.hyperionFocusPointer = focus;
+          this.hyperionFocusHandId = primary.id;
         }
       } else {
+        this.hyperionFocusPointer = null;
         this.updatePointer(null);
       }
       this.hyperionPinching = pinching;
@@ -969,17 +1017,22 @@
           this.hyperionMotion = { filtered: [...position], anchor: [...position] };
         } else {
           const motion = this.hyperionMotion;
-          const alpha = 1 - Math.exp(-Math.max(1, gap) / 35);
+          const alpha = mode === "pan" ? 1 : 1 - Math.exp(-Math.max(1, gap) / 25);
           motion.filtered = motion.filtered.map((v, i) => v + (position[i] - v) * alpha);
           const dx = motion.filtered[0] - motion.anchor[0];
           const dy = motion.filtered[1] - motion.anchor[1];
-          // Accumulate slow motion instead of discarding each tiny frame delta.
-          if (Math.hypot(dx, dy) >= 0.35) {
+          const candidate = this.hyperionPinchCandidate;
+          if (mode === "pan" && candidate && (dx !== 0 || dy !== 0)) {
+            candidate.dragging = true;
+            this.updatePointer(null);
+          }
+          // Pan follows the raw frame delta with no click threshold or trailing
+          // filter. Other navigation modes retain their jitter filter.
+          if (mode === "pan" ? dx !== 0 || dy !== 0 : Math.hypot(dx, dy) >= 0.35) {
             if (mode === "zoom") {
               this.applyGesture({ kind: "spread", delta: THREE.MathUtils.clamp(dx / 300, -0.06, 0.06) });
             } else if (mode === "pan") {
-              this.applyGesture({ kind: "palm_pan", dx: THREE.MathUtils.clamp(dx / 320, -0.06, 0.06),
-                dy: THREE.MathUtils.clamp(-dy / 300, -0.06, 0.06), viewRelative: true });
+              this.applyGesture({ kind: "palm_pan", dx: dx / 320, dy: -dy / 300, viewRelative: true });
             } else {
               this.applyGesture({ kind: "orbit", yaw: THREE.MathUtils.clamp(dx * 0.009, -0.12, 0.12),
                 pitch: THREE.MathUtils.clamp(-dy * 0.009, -0.12, 0.12) });
@@ -1091,9 +1144,14 @@
     },
 
     nearestPointerNode(graph, camera, rawX, rawY, width, height) {
-      this.pointer.set((rawX / width) * 2 - 1, -((rawY / height) * 2 - 1));
-      this.raycaster.setFromCamera(this.pointer, camera);
-      const directHit = this.raycaster.intersectObject(graph.nodeMesh, false)[0];
+      if (this.inputSource !== "hyperion") {
+        this.pointer.set((rawX / width) * 2 - 1, -((rawY / height) * 2 - 1));
+        this.raycaster.setFromCamera(this.pointer, camera);
+      }
+      // IR focus uses projected node proximity; avoid raycasting every
+      // instance as well as scanning the same graph on each tracking frame.
+      const directHit = this.inputSource === "hyperion" ? null
+        : this.raycaster.intersectObject(graph.nodeMesh, false)[0];
       if (
         directHit &&
         Number.isInteger(directHit.instanceId) &&
@@ -1102,7 +1160,8 @@
         return directHit.instanceId;
       }
 
-      const snapRadiusSquared = 38 * 38;
+      const snapRadius = this.inputSource === "hyperion" ? 24 : 38;
+      const snapRadiusSquared = snapRadius * snapRadius;
       let nearest = null;
       let nearestDistanceSquared = snapRadiusSquared;
       for (let index = 0; index < graph.nodes.length; index += 1) {
@@ -1158,8 +1217,10 @@
         ) {
           const dx = this.projectedNode.x - rawX;
           const dy = this.projectedNode.y - rawY;
-          const withinReleaseRadius = dx * dx + dy * dy <= 70 * 70;
-          if (withinReleaseRadius || pointer.pinching || performance.now() < this.pinchLockUntil) {
+          const releaseRadius = this.inputSource === "hyperion" ? 32 : 70;
+          const withinReleaseRadius = dx * dx + dy * dy <= releaseRadius * releaseRadius;
+          const clickLocked = this.inputSource !== "hyperion" && performance.now() < this.pinchLockUntil;
+          if (withinReleaseRadius || pointer.pinching || clickLocked) {
             displayX = this.projectedNode.x;
             displayY = this.projectedNode.y;
           } else {
@@ -1206,7 +1267,7 @@
       }
 
       const labels = {
-        palm_pan: "Open-palm pan",
+        palm_pan: this.inputSource === "hyperion" ? "Pinch-drag pan" : "Open-palm pan",
         pinch: "Pinch select",
         spread: this.inputSource === "hyperion"
           ? "Two open palms · zoom · relax either hand to release" : "Two-hand zoom",
@@ -1220,12 +1281,19 @@
         this.lastGestureStatusAt = now;
       }
 
+      if (["palm_pan", "spread", "orbit", "swipe"].includes(gesture.kind)) {
+        graph.focusAnimation = null;
+      }
       if (gesture.kind === "palm_pan" && gesture.viewRelative && this.el.camera) {
         const camera = this.el.camera;
         const rotation = camera.getWorldQuaternion(new THREE.Quaternion());
         const center = graphObject.getWorldPosition(new THREE.Vector3());
         const distance = Math.max(1, center.distanceTo(camera.getWorldPosition(new THREE.Vector3())));
-        const height = 2 * distance * Math.tan(THREE.MathUtils.degToRad(camera.fov || 60) / 2);
+        // Freeze drag sensitivity at pinch-down; recalculating from a moving
+        // graph made the same hand movement accelerate as the graph moved away.
+        const height = this.hyperionPanGain ??
+          2 * distance * Math.tan(THREE.MathUtils.degToRad(camera.fov || 60) / 2);
+        if (this.hyperionMode === "pan") this.hyperionPanGain = height;
         const offset = new THREE.Vector3(gesture.dx * height * (camera.aspect || 1), -gesture.dy * height, 0)
           .applyQuaternion(rotation);
         const target = center.add(offset);
@@ -1243,9 +1311,10 @@
           10,
         );
       } else if (gesture.kind === "pinch") {
-        if (Number.isInteger(this.hoveredInstanceId)) {
+        const selectedInstance = Number.isInteger(gesture.instanceId) ? gesture.instanceId : this.hoveredInstanceId;
+        if (Number.isInteger(selectedInstance)) {
           this.pinchLockUntil = performance.now() + 400;
-          graph.selectInstance(this.hoveredInstanceId);
+          graph.selectInstance(selectedInstance);
           return;
         }
         const camera = this.el.camera;

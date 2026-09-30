@@ -129,14 +129,17 @@ cargo run --bin hyperion_bridge
 
 IR controls use distinct poses:
 
-- **One open palm:** move left/right or up/down to pan in the camera's view.
+- **One open palm:** move the selection pointer to focus a node.
+- **Pinch and drag:** hold a pinch and move left/right or up/down to pan in the
+  camera's view. Release the pinch to stop. Pinching a focused node selects it immediately;
+  holding and moving the pinch pans while keeping that selection active.
 - **One closed hand:** move horizontally or vertically to orbit smoothly around
   the selected node (or the graph center).
 - **Two open palms:** spread apart to zoom in; bring together to zoom out.
   Relax/curl either hand to release zoom. Remove the second hand to resume
   single-hand navigation; each pose change starts from your current hand position.
-- **Point and pinch:** select a node. A pinch that releases navigation does not
-  select until you release and pinch again.
+- A pinch that releases zoom or orbit does not select or drag until you release
+  and pinch again.
 
 Movement is filtered to reduce jitter, and stops when you release the pose or
 tracking is lost. Gesture regression tests run with `npm run test:gestures`.

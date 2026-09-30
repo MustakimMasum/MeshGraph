@@ -235,6 +235,7 @@ test("uses Hyperion frames as an alternate snapping pointer", async ({ page }) =
     });
     window.__hyperionTestSocket.sendFrame([hand(0)]);
     window.__hyperionTestSocket.sendFrame([hand(0.9)]);
+    window.__hyperionTestSocket.sendFrame([hand(0)]);
   });
 
   await expect(page.locator("#paper-panel h2")).toHaveText("Middle graph paper");

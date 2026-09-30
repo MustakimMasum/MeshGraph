@@ -40,22 +40,27 @@ function hand(id, pose = "open", x = 0, y = 220, pinchStrength = 0) {
   };
 }
 
-test("IR pan follows raw palm movement in both axes without swipe or zoom", () => {
+test("IR pinch-drag pans in both axes without swipe, zoom, or selection", () => {
   const c = controls();
   c.frame([hand(1)]);
-  c.frame([hand(1, "open", 30, 250)]);
+  c.frame([hand(1, "point", 0, 220, 0.9)]);
+  c.frame([hand(1, "point", 30, 250, 0.9)]);
   assert.equal(c.gestures.length, 1);
   assert.equal(c.gestures[0].kind, "palm_pan");
   assert.ok(c.gestures[0].dx > 0 && c.gestures[0].dy < 0);
   assert.equal(c.gestures[0].viewRelative, true);
-  c.frame([hand(1, "open", -30, 190)]);
+  c.frame([hand(1, "point", -30, 190, 0.9)]);
   assert.ok(c.gestures.at(-1).dx < 0 && c.gestures.at(-1).dy > 0);
+  c.frame([hand(1)]);
+  assert.ok(c.gestures.every((g) => g.kind === "palm_pan"));
+  assert.ok(c.input.pointerValue);
 });
 
 test("small movements accumulate instead of disappearing below a frame threshold", () => {
   const c = controls();
   c.frame([hand(1)]);
-  for (let i = 1; i <= 30; i++) c.frame([hand(1, "open", i * 0.15)]);
+  c.frame([hand(1, "point", 0, 220, 0.9)]);
+  for (let i = 1; i <= 80; i++) c.frame([hand(1, "point", i * 0.15, 220, 0.9)]);
   assert.ok(c.gestures.length > 0);
   assert.ok(c.gestures.every((g) => g.kind === "palm_pan" && g.dx > 0));
 });
@@ -91,13 +96,17 @@ test("only two open palms zoom; relaxing either hand releases without another tr
   }
 });
 
-test("removing second hand starts pan from the current position", () => {
+test("removing second hand restores focus; a fresh pinch starts pan", () => {
   const c = controls();
   c.frame([hand(1), hand(2, "open", 160)]);
   c.frame([hand(1, "open", 200, 350)]);
+  assert.equal(c.input.hyperionMode, "idle");
+  assert.ok(c.input.pointerValue);
+  assert.equal(c.gestures.length, 0);
+  c.frame([hand(1, "point", 200, 350, 0.9)]);
   assert.equal(c.input.hyperionMode, "pan");
   assert.equal(c.gestures.length, 0);
-  c.frame([hand(1, "open", 210, 360)]);
+  c.frame([hand(1, "point", 230, 380, 0.9)]);
   assert.equal(c.gestures.at(-1).kind, "palm_pan");
 });
 
@@ -110,6 +119,8 @@ test("pinch releasing navigation requires a release before selection", () => {
   assert.equal(c.gestures.length, 0);
   c.frame([hand(1, "point")]);
   c.frame([hand(1, "point", 0, 220, 0.9)]);
+  assert.equal(c.gestures.length, 0);
+  c.frame([hand(1, "point")]);
   assert.equal(c.gestures.at(-1).kind, "pinch");
   assert.ok(c.input.pointerValue);
 });
@@ -150,4 +161,88 @@ test("a fist can orbit even when its curled fingers report strong pinch strength
   assert.equal(c.input.hyperionMode, "orbit");
   assert.equal(c.gestures.at(-1).kind, "orbit");
   assert.ok(c.gestures.every((g) => g.kind !== "pinch"));
+});
+
+
+test("open palm moves focus without transforming the graph", () => {
+  const c = controls();
+  c.frame([hand(1)]);
+  const before = { ...c.input.pointerValue };
+  c.frame([hand(1, "open", 70, 270)]);
+  assert.equal(c.input.hyperionMode, "idle");
+  assert.equal(c.gestures.length, 0);
+  assert.ok(c.input.pointerValue.pixelX > before.pixelX);
+  assert.ok(c.input.pointerValue.pixelY < before.pixelY);
+});
+
+test("short pinch selects the focused node on release and ignores finger curl", () => {
+  const c = controls();
+  c.frame([hand(1)]);
+  c.input.hoveredInstanceId = 4;
+  const focus = { ...c.input.pointerValue };
+  c.frame([hand(1, "point", 0, 220, 0.9)]);
+  c.frame([hand(1, "point", 2, 221, 0.9)]);
+  assert.equal(c.gestures.length, 0);
+  assert.equal(c.input.pointerValue.pixelX, focus.pixelX);
+  c.frame([hand(1)]);
+  assert.equal(c.gestures.length, 1);
+  assert.equal(c.gestures[0].kind, "pinch");
+  assert.equal(c.gestures[0].instanceId, 4);
+});
+
+test("tracking loss during a pinch cancels the click and drag", () => {
+  const c = controls();
+  c.frame([hand(1)]);
+  c.frame([hand(1, "point", 0, 220, 0.9)]);
+  c.frame([]);
+  c.frame([hand(1)]);
+  assert.equal(c.gestures.length, 0);
+  assert.equal(c.input.hyperionPinchCandidate, null);
+});
+
+
+test("drag begins on the first deliberate movement without waiting for the filter", () => {
+  const c = controls();
+  c.frame([hand(1)]);
+  c.frame([hand(1, "point", 0, 220, 0.9)]);
+  c.frame([hand(1, "point", 4, 220, 0.9)], 8);
+  assert.equal(c.input.hyperionPinchCandidate.dragging, true);
+  assert.equal(c.gestures.at(-1).kind, "palm_pan");
+});
+
+test("finger curl and an incidental second hand cannot interrupt a held drag", () => {
+  const c = controls();
+  c.frame([hand(1)]);
+  c.frame([hand(1, "point", 0, 220, 0.9)]);
+  c.frame([hand(1, "point", 20, 220, 0.9)]);
+  const candidate = c.input.hyperionPinchCandidate;
+  c.frame([hand(1, "closed", 30, 240, 0.9), hand(2, "open", 120)]);
+  assert.equal(c.input.hyperionMode, "pan");
+  assert.equal(c.input.hyperionPinchCandidate, candidate);
+  assert.equal(c.gestures.at(-1).kind, "palm_pan");
+  c.frame([hand(1, "point", 40, 250, 0.4)]);
+  assert.equal(c.input.hyperionMode, "pan");
+  c.frame([hand(1)]);
+  assert.equal(c.input.hyperionMode, "idle");
+  assert.ok(c.gestures.every((g) => g.kind === "palm_pan"));
+});
+
+test("fast drag retains movement instead of clipping each tracking frame", () => {
+  const c = controls();
+  c.frame([hand(1)]);
+  c.frame([hand(1, "point", 0, 220, 0.9)]);
+  c.frame([hand(1, "point", 100, 220, 0.9)]);
+  assert.ok(c.gestures.at(-1).dx > 0.06);
+});
+
+test("open-palm focus does not jump when fingertips curl or extend", () => {
+  const c = controls();
+  const open = hand(1);
+  c.frame([open]);
+  const before = { ...c.input.pointerValue };
+  const flexed = hand(1);
+  flexed.digits[1].tip = [170, 380, 0];
+  c.frame([flexed]);
+  assert.equal(c.input.pointerValue.pixelX, before.pixelX);
+  assert.equal(c.input.pointerValue.pixelY, before.pixelY);
 });
