@@ -56,11 +56,17 @@ pub fn HistoryApp() -> impl IntoView {
     let quality_open = create_rw_signal(false);
     let tour_step = create_rw_signal::<Option<usize>>(None);
     let search_generation = create_rw_signal(0_u32);
+    let gesture_source = create_rw_signal("webcam".to_owned());
+    let search_open = create_rw_signal(false);
+    let settings_open = create_rw_signal(false);
+    let panel_open = create_rw_signal(true);
+    let search_input = create_node_ref::<html::Input>();
 
     let commit = Callback::new(move |next: ViewState| {
         past.update(|items| items.push(state.get_untracked()));
         future.set(vec![]);
         state.set(next);
+        panel_open.set(true);
         selected_link.set(String::new());
     });
     let select = Callback::new(move |id: String| {
@@ -174,11 +180,7 @@ pub fn HistoryApp() -> impl IntoView {
                         expanded: vec![dataset.root_id.clone()],
                         ..Default::default()
                     });
-                    notice.set(format!(
-                        "{} topics · {} connections · incomplete research archive",
-                        dataset.nodes.len(),
-                        dataset.links.len()
-                    ));
+                    notice.set(String::new());
                     data.set(Some(dataset));
                     emit("history-bookmark-command", json!({"action": "list"}));
                 }
@@ -327,15 +329,11 @@ pub fn HistoryApp() -> impl IntoView {
 
     view! {
         <main id="history-app">
-            <aside id="history-panel">
-                <header><a href="/">"← Citations"</a><span class="history-eyebrow">"MESHGRAPH / ARCHIVE"</span><h1>"JPL History"</h1><p>"People, work, and memories of the Computer Graphics Laboratory."</p></header>
-                <p id="history-status" role="status">{move || notice.get()}</p>
-                <nav class="history-actions" aria-label="Explore history">
-                    <button on:click=move |_| { if let Some(d) = data.get_untracked() { commit.call(ViewState { selected: d.root_id.clone(), expanded: vec![d.root_id], ..Default::default() }); } }>"Home"</button>
-                    <button disabled=move || past.get().is_empty() on:click=move |_| { let mut items = past.get_untracked(); if let Some(previous) = items.pop() { future.update(|f| f.push(state.get_untracked())); past.set(items); state.set(previous); } }>"Back"</button>
-                    <button disabled=move || future.get().is_empty() on:click=move |_| { let mut items = future.get_untracked(); if let Some(next) = items.pop() { past.update(|p| p.push(state.get_untracked())); future.set(items); state.set(next); } }>"Forward"</button>
-                    <button on:click=move |_| advance_tour()>{move || if tour_step.get().is_some() { "Next tour stop" } else { "Guided introduction" }}</button>
-                </nav>
+            <div class="brand-lockup history-brand">
+                <h1>"JPL History"</h1><p>"Computer Graphics Laboratory archive · "<a href="/">"Citations"</a></p>
+            </div>
+            <section class="history-navigation" aria-label="History navigation">
+                <Show when=move || !notice.get().is_empty()><p id="history-status" role="status">{move || notice.get()}</p></Show>
                 <nav class="history-trail" aria-label="Visited topics">{move || {
                     let dataset = data.get();
                     past.get().into_iter().rev().take(5).collect::<Vec<_>>().into_iter().rev().map(|view| {
@@ -344,18 +342,32 @@ pub fn HistoryApp() -> impl IntoView {
                         view! { <button on:click=move |_| select.call(id.clone())>{title}</button><span>" › "</span> }
                     }).collect_view()
                 }}</nav>
-                <form class="history-search" on:submit=move |event| { event.prevent_default(); run_search(); }>
-                    <input aria-label="Search history" placeholder="Search names and notes" prop:value=move || query.get() on:input=move |e| query.set(event_target_value(&e))/>
-                    <button type="submit">"Search"</button>
+            </section>
+            <div class="search-controls history-search-controls" class:open=move || search_open.get()>
+                <form class="search-form" aria-hidden=move || (!search_open.get()).to_string() on:submit=move |event| { event.prevent_default(); run_search(); }>
+                    <input node_ref=search_input aria-label="Search history" placeholder="Search names and notes" tabindex=move || if search_open.get() { "0" } else { "-1" } prop:value=move || query.get() on:input=move |e| query.set(event_target_value(&e))/>
                 </form>
+                <button class="input-control" class:active=move || search_open.get() type="button" aria-label="Search" aria-expanded=move || search_open.get().to_string() title="Search" on:click=move |_| {
+                    if !search_open.get_untracked() {
+                        search_open.set(true);
+                        set_timeout(move || { if let Some(input) = search_input.get() { let _ = input.focus(); } }, std::time::Duration::ZERO);
+                    } else if query.get_untracked().trim().is_empty() { search_open.set(false); } else { run_search(); }
+                }>
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4.5 4.5"></path></svg>
+                </button>
+                <Show when=move || search_open.get() && !results.get().is_empty()>
                 <div id="history-results">{move || results.get().into_iter().map(|item| {
                     let id = item["id"].as_str().unwrap_or_default().to_owned();
                     let title = item["title"].as_str().unwrap_or_default().to_owned();
                     let excerpt = item["excerpt"].as_str().unwrap_or_default().to_owned();
                     let short = id.chars().take(8).collect::<String>();
-                    view! { <button class="history-result" on:click=move |_| select.call(id.clone())><strong>{title}</strong><small>{short}</small><span>{excerpt}</span></button> }
+                    view! { <button class="history-result" on:click=move |_| { select.call(id.clone()); search_open.set(false); }><strong>{title}</strong><small>{short}</small><span>{excerpt}</span></button> }
                 }).collect_view()}</div>
-                <details><summary>"Filter this view"</summary>
+                </Show>
+            </div>
+            <Show when=move || settings_open.get()>
+                <aside id="history-settings" class="settings-menu" aria-label="Graph settings">
+                    <span class="settings-label">"Filter this view"</span>
                     <label>"Type"<select aria-label="History type" prop:value=move || state.get().classification on:change=move |e| { let mut s = state.get_untracked(); s.classification = event_target_value(&e); commit.call(s); }><option value="">"All types"</option>{move || {
                         let mut types: Vec<_> = data.get().map(|d| d.nodes.into_iter().flat_map(|n| n.types).collect()).unwrap_or_default(); types.sort(); types.dedup(); types.into_iter().map(|t| view! { <option value=t.clone()>{t}</option> }).collect_view()
                     }}</select></label>
@@ -365,28 +377,48 @@ pub fn HistoryApp() -> impl IntoView {
                     <label>"Connections"<select aria-label="History relationship" prop:value=move || state.get().relation on:change=move |e| { let mut s = state.get_untracked(); s.relation = event_target_value(&e); commit.call(s); }><option value="">"All relationships"</option><option>"Hierarchy"</option><option>"Cross-link"</option></select></label>
                     <label><input type="checkbox" prop:checked=move || state.get().organizational on:change=move |e| { let mut s = state.get_untracked(); s.organizational = event_target_checked(&e); commit.call(s); }/>"Show type, tag, and organizational records"</label>
                     <button on:click=move |_| { let mut s = state.get_untracked(); s.classification.clear(); s.tag.clear(); s.relation.clear(); s.organizational = true; commit.call(s); }>"Reveal hidden selection"</button>
-                </details>
+                </aside>
+            </Show>
+            <Show when=move || panel_open.get()>
+            <aside id="history-panel">
+                <div class="history-card-header">
+                {move || data.get().and_then(|d| d.nodes.iter().find(|n| n.id == state.get().selected).cloned().map(|node| {
+                    let category = node.types.iter().find(|name| name.as_str() != "What").cloned().unwrap_or_else(|| match node.kind { 2 => "Type", 4 => "Tag", 5 => "Pinned", _ => "Archive topic" }.to_owned());
+                    let facts = node.types.iter().chain(node.tags.iter()).filter(|name| name.as_str() != "What").cloned().collect::<Vec<_>>();
+                    view! { <span class="settings-label history-category">{category}</span><h2>{node.title}</h2>
+                        {(!facts.is_empty()).then(|| view! { <div class="paper-facts">{facts.into_iter().map(|fact| view! { <span>{fact}</span> }).collect_view()}</div> })}
+                    }
+                }))}
+                <button class="panel-close" type="button" aria-label="Close topic details" title="Close" on:click=move |_| {
+                    panel_open.set(false);
+                    state.update(|s| s.selected.clear());
+                    selected_link.set(String::new());
+                    emit("citation-selection-clear", Value::Null);
+                }>"×"</button>
+                </div>
+                <div class="history-card-scroll">
                 {move || data.get().and_then(|d| d.nodes.iter().find(|n| n.id == state.get().selected).cloned().map(|node| {
                     let id = node.id.clone();
-                    let expand_id = id.clone();
-                    let collapse_id = id.clone();
                     let origin_id = id.clone();
                     let attachments = d.attachments.iter().filter(|a| a.owner == id).cloned().collect::<Vec<_>>();
-                    let connections = d.links.iter().filter(|l| l.source == id || l.target == id).cloned().collect::<Vec<_>>();
-                    view! { <section id="history-node"><h2>{node.title}</h2><p class="history-meta">{format!("{} · {}", node.topic, node.id)}</p>
-                        <div class="history-actions"><button on:click=move |_| select.call(expand_id.clone())>"Expand neighbors"</button><button on:click=move |_| { let mut s = state.get_untracked(); s.expanded.retain(|id| id != &collapse_id); commit.call(s); }>"Collapse branch"</button><button on:click=move |_| emit("citation-focus-selected", Value::Null)>"Focus"</button></div>
+                    let connections = d.links.iter().filter(|l| {
+                        if l.source != id && l.target != id { return false; }
+                        let other = if l.source == id { &l.target } else { &l.source };
+                        !d.nodes.iter().any(|n| &n.id == other && n.title == "What")
+                    }).cloned().collect::<Vec<_>>();
+                    view! { <section id="history-node">
                         <h3>"Notes"</h3><p class="history-note">{if node.notes.is_empty() { "No written note supplied for this topic.".into() } else { node.notes }}</p>
                         <h3>"Sources & attachments"</h3>{attachments.into_iter().map(|a| {
                             let url = if a.status == "external-url" { a.location.clone() } else { format!("/api/v1/history/attachments/{}", a.id) };
                             let available = a.status == "available" || a.status == "external-url";
                             view! { <div class="history-attachment">{if available { view! { <a href=url target="_blank" rel="noopener noreferrer">{a.name}</a> }.into_view() } else { view! { <span>{a.name}</span> }.into_view() }}<small>{a.status}</small></div> }
                         }).collect_view()}
-                        <h3>"Connections"</h3>{connections.into_iter().map(|edge| {
+                        <h3>"Connections"</h3><div class="history-connections">{connections.into_iter().map(|edge| {
                             let other = if edge.source == id { edge.target.clone() } else { edge.source.clone() };
                             let name = d.nodes.iter().find(|n| n.id == other).map(|n| n.title.clone()).unwrap_or_else(|| other.clone());
                             let link_id = edge.id.clone();
                             view! { <div class="history-connection"><button on:click=move |_| select.call(other.clone())>{name}</button><button aria-label="Inspect relationship" on:click=move |_| selected_link.set(link_id.clone())>{format!("{} · {}", edge.kind, edge.meaning_label)}</button></div> }
-                        }).collect_view()}
+                        }).collect_view()}</div>
                         <button on:click=move |_| { path_from.set(origin_id.clone()); notice.set("Path start set. Select another topic, then Find path.".into()); }>"Use as path start"</button>
                         <details><summary>"Original source record"</summary><pre>{serde_json::to_string_pretty(&node.raw).unwrap_or_default()}</pre></details>
                     </section> }
@@ -436,8 +468,45 @@ pub fn HistoryApp() -> impl IntoView {
                     </section> }
                 })}</Show>
                 <p class="history-meta">"Spatial depth is layout only. Direction is unresolved where noted. Editorial tours organize the supplied material."</p>
+                </div>
             </aside>
-            <div class="history-inputs"><button id="enter-vr-button">"Enter VR"</button><span id="vr-status" role="status">"Checking WebXR…"</span><button on:click=move |_| emit("citation-gesture-toggle", json!("webcam"))>"Webcam hands"</button><button on:click=move |_| emit("citation-gesture-toggle", json!("hyperion"))>"Leap hands"</button></div>
+            </Show>
+            <div class="input-controls history-inputs" role="group" aria-label="Input controls">
+                <button class="input-control" type="button" aria-label="Back" title="Back" disabled=move || past.get().is_empty() on:click=move |_| { let mut items = past.get_untracked(); if let Some(previous) = items.pop() { future.update(|f| f.push(state.get_untracked())); past.set(items); state.set(previous); panel_open.set(true); } }>
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="m14 6-6 6 6 6M8 12h12"></path></svg>
+                </button>
+                <button class="input-control" type="button" aria-label="Forward" title="Forward" disabled=move || future.get().is_empty() on:click=move |_| { let mut items = future.get_untracked(); if let Some(next) = items.pop() { past.update(|p| p.push(state.get_untracked())); future.set(items); state.set(next); panel_open.set(true); } }>
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="m10 6 6 6-6 6M4 12h12"></path></svg>
+                </button>
+                <button class="input-control" type="button" aria-label=move || if tour_step.get().is_some() { "Next tour stop" } else { "Guided introduction" } title=move || if tour_step.get().is_some() { "Next tour stop" } else { "Guided introduction" } on:click=move |_| advance_tour()>
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9"></circle><path d="m16 8-2.5 5.5L8 16l2.5-5.5L16 8Z"></path></svg>
+                </button>
+                <button id="history-expand-button" class="input-control" type="button" aria-label="Expand" title="Expand" disabled=move || state.get().selected.is_empty() on:click=move |_| select.call(state.get_untracked().selected)>
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5M3 3l6 6M21 3l-6 6M3 21l6-6M21 21l-6-6"></path></svg>
+                </button>
+                <button id="history-collapse-button" class="input-control" type="button" aria-label="Collapse" title="Collapse" disabled=move || { let s = state.get(); s.selected.is_empty() || !s.expanded.contains(&s.selected) } on:click=move |_| { let mut s = state.get_untracked(); let selected = s.selected.clone(); s.expanded.retain(|id| id != &selected); commit.call(s); }>
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M4 4l5 5M9 4v5H4M20 4l-5 5M15 4v5h5M4 20l5-5M4 15h5v5M20 20l-5-5M20 15h-5v5"></path></svg>
+                </button>
+                <button id="reset-view-button" class="input-control" type="button" aria-label="Refocus selected node" title="Reset view" on:click=move |_| emit("citation-focus-selected", Value::Null)>
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M4.5 9A8 8 0 1 1 4 14"></path><path d="M4.5 4.5V9H9"></path></svg>
+                </button>
+                <button id="webcam-input-button" class="input-control" class:active=move || gesture_source.get() == "webcam" type="button" aria-label="Use webcam hand input" title="Webcam" on:click=move |_| { gesture_source.set("webcam".to_owned()); emit("citation-gesture-toggle", json!("webcam")); }>
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="10" r="6.5"></circle><circle cx="12" cy="10" r="2.25"></circle><path d="M12 16.5v4M8.5 20.5h7"></path></svg>
+                </button>
+                <button id="leap-input-button" class="input-control" class:active=move || gesture_source.get() == "hyperion" type="button" aria-label="Use Leap Motion infrared hand input" title="Leap Motion" on:click=move |_| { gesture_source.set("hyperion".to_owned()); emit("citation-gesture-toggle", json!("hyperion")); }>
+                    <span class="ir-mark" aria-hidden="true">"IR"</span>
+                </button>
+                <button id="enter-vr-button" class="input-control vr-control" type="button" disabled=true aria-label="Enter VR mode" title="Enter VR mode">
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M4 6.5h16a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3.1a2 2 0 0 1-1.42-.59l-2.07-2.07a2 2 0 0 0-2.82 0l-2.07 2.07a2 2 0 0 1-1.42.59H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2Z"></path><circle cx="8" cy="11.5" r="2.25"></circle><circle cx="16" cy="11.5" r="2.25"></circle></svg>
+                </button>
+                <button id="settings-button" class="input-control" class:active=move || settings_open.get() type="button" aria-label="Settings" aria-expanded=move || settings_open.get().to_string() aria-controls="history-settings" title="Settings" on:click=move |_| settings_open.update(|open| *open = !*open)>
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56V21h-4v-.08A1.7 1.7 0 0 0 8.95 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3v-4h.08A1.7 1.7 0 0 0 4.6 8.95a1.7 1.7 0 0 0-.34-1.88L4.2 7l2.83-2.83.06.06A1.7 1.7 0 0 0 8.95 4.6 1.7 1.7 0 0 0 9.98 3H14v.08a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06a1.7 1.7 0 0 0-.34 1.88 1.7 1.7 0 0 0 1.56 1.03H21v4h-.08A1.7 1.7 0 0 0 19.4 15Z"></path>
+                    </svg>
+                </button>
+                <span id="vr-status" class="visually-hidden" role="status">"Checking WebXR…"</span>
+            </div>
             <a-scene id="history-scene" background="color: #e8edf2" cursor="rayOrigin: mouse" raycaster="objects: .citation-graph, .history-xr-button" renderer="colorManagement: true; antialias: true" vr-mode-ui="enabled: false" webxr-launcher history-bridge gesture-controls="worker: /public/hand-worker.js?v=0.10.35-4; graph: #citation-graph; rig: #rig" webxr="requiredFeatures: local-floor; optionalFeatures: bounded-floor; referenceSpaceType: local-floor">
                 <a-entity id="citation-graph" class="citation-graph" position="0 1 -16" af-force-graph="manual: true"></a-entity>
                 <a-entity id="rig" position="0 1.6 7" vr-locomotion><a-camera id="research-camera" look-controls="pointerLockEnabled: false" wasd-controls="acceleration: 28" vertical-controls="speed: 3" camera="fov: 65"></a-camera><a-entity laser-controls="hand: left" raycaster="objects: .citation-graph, .history-xr-button"></a-entity><a-entity laser-controls="hand: right" raycaster="objects: .citation-graph, .history-xr-button"></a-entity></a-entity>
