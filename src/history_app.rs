@@ -439,7 +439,6 @@ pub fn HistoryApp() -> impl IntoView {
                 <div class="history-card-scroll">
                 {move || data.get().and_then(|d| d.nodes.iter().find(|n| n.id == state.get().selected).cloned().map(|node| {
                     let id = node.id.clone();
-                    let origin_id = id.clone();
                     let attachments = d.attachments.iter().filter(|a| a.owner == id).cloned().collect::<Vec<_>>();
                     let connections = d.links.iter().filter(|l| {
                         if l.source != id && l.target != id { return false; }
@@ -459,7 +458,6 @@ pub fn HistoryApp() -> impl IntoView {
                             let link_id = edge.id.clone();
                             view! { <div class="history-connection"><button on:click=move |_| select.call(other.clone())>{name}</button><button aria-label="Inspect relationship" on:click=move |_| selected_link.set(link_id.clone())>{format!("{} · {}", edge.kind, edge.meaning_label)}</button></div> }
                         }).collect_view()}</div>
-                        <button on:click=move |_| { path_from.set(origin_id.clone()); notice.set("Path start set. Select another topic, then Find path.".into()); }>"Use as path start"</button>
                         <details><summary>"Original source record"</summary><pre>{serde_json::to_string_pretty(&node.raw).unwrap_or_default()}</pre></details>
                     </section> }
                 }))}
@@ -532,6 +530,12 @@ pub fn HistoryApp() -> impl IntoView {
                 </button>
                 <button id="home-view-button" class="input-control" type="button" aria-label="Home" title="Return to initial view" on:click=move |_| crate::app::return_home()>
                     <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="m3 10 9-7 9 7"></path><path d="M5 9v12h14V9M9 21v-8h6v8"></path></svg>
+                </button>
+                <button id="history-path-start-button" class="input-control" class:active=move || { let selected = state.get().selected; !selected.is_empty() && path_from.get() == selected } type="button" aria-label="Use as Path Start" title="Use as Path Start" disabled=move || state.get().selected.is_empty() on:click=move |_| {
+                    path_from.set(state.get_untracked().selected);
+                    notice.set("Path start set. Select another topic, then Find path.".into());
+                }>
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M5 21V3M5 4h14l-3 4 3 4H5"></path></svg>
                 </button>
                 <button id="webcam-input-button" class="input-control" class:active=move || gesture_source.get() == "webcam" type="button" aria-label="Use webcam hand input" title="Webcam" on:click=move |_| { gesture_source.set("webcam".to_owned()); emit("citation-gesture-toggle", json!("webcam")); }>
                     <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="10" r="6.5"></circle><circle cx="12" cy="10" r="2.25"></circle><path d="M12 16.5v4M8.5 20.5h7"></path></svg>
