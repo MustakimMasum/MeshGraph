@@ -176,6 +176,52 @@ additions, run `docker compose run --rm -e FORCE_SEED=true graph_seed`.
 For a Docker gateway, run `docker compose up -d --build` after changing image assets.
 Regenerate the citation seed with `npm run seed:generate`.
 
+### Add new data from the professor
+
+The existing JPL experience can load an updated dataset without recreating the
+app. Ask for a **complete updated TheBrain export with attachments**, plus a
+brief description of what was added or corrected. The current importer expects
+TheBrain exchange format version 5.
+
+1. Keep the previous export and generated `data/jpl-history/` files as a backup.
+   Put the new export in a separate folder, keeping its attachment folders intact.
+2. From the repository root, validate and convert the new export. Replace
+   `PATH_TO_NEW_EXPORT` with the folder containing `meta.json`, `thoughts.json`,
+   `links.json`, and `attachments.json`:
+
+   ```powershell
+   python scripts/import-thebrain.py "PATH_TO_NEW_EXPORT" --validate-only
+   python scripts/import-thebrain.py "PATH_TO_NEW_EXPORT"
+   ```
+
+3. Review `data/jpl-history/report.json` for topic, connection, and attachment
+   counts, warnings, and missing attachments. Then load the updated snapshot
+   into the running Oxigraph database:
+
+   ```powershell
+   Invoke-WebRequest -Method Put -ContentType 'text/turtle' `
+     -InFile 'data/jpl-history/history.ttl' `
+     -Uri 'http://localhost:7878/store?graph=http%3A%2F%2Fexample.org%2Fmeshgraph%2Fgraphs%2Fjpl-history'
+   ```
+
+4. If new or changed images were included, run `trunk build` for the local app,
+   or `docker compose up -d --build` for the Docker app. Refresh
+   [JPL History](http://localhost:3000/?collection=history) and check the new topics,
+   notes, connections, and attachments.
+
+**This replaces the JPL snapshot; it does not automatically merge records.**
+The new export must contain the previous records plus the additions you want to
+retain. An export containing only new records needs a merge step before import.
+The JPL-only load above leaves the citation collection intact. A normal seed run
+preserves existing graphs, so it will not apply these updates on its own.
+
+For PDFs, spreadsheets, photos, or written notes supplied separately, first map
+the material to JPL topics, notes, attachments, and connections to existing
+topics. There is currently no general upload or automatic merge feature. The
+importer handles TheBrain exports with Markdown, HTML, or plain-text notes,
+PNG/JPEG/WebP images, and web links; PDFs and other file formats need additional
+handling before their content can appear in the experience.
+
 See the [pilot plan](directive/jpl_history_pilot_plan.md) and
 [evaluation guide](directive/jpl_history_pilot_evaluation.md). Use the
 [acceptance record](directive/jpl_history_acceptance_record.md) for reader, physical
