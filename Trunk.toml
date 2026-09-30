@@ -1,0 +1,2 @@
+[watch]
+watch = ["src", "public", "index.html", "Cargo.toml", "Cargo.lock"]

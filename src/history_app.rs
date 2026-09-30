@@ -530,6 +530,9 @@ pub fn HistoryApp() -> impl IntoView {
                 <button id="reset-view-button" class="input-control" type="button" aria-label="Refocus selected node" title="Reset view" on:click=move |_| emit("citation-focus-selected", Value::Null)>
                     <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M4.5 9A8 8 0 1 1 4 14"></path><path d="M4.5 4.5V9H9"></path></svg>
                 </button>
+                <button id="home-view-button" class="input-control" type="button" aria-label="Home" title="Return to initial view" on:click=move |_| crate::app::return_home()>
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="m3 10 9-7 9 7"></path><path d="M5 9v12h14V9M9 21v-8h6v8"></path></svg>
+                </button>
                 <button id="webcam-input-button" class="input-control" class:active=move || gesture_source.get() == "webcam" type="button" aria-label="Use webcam hand input" title="Webcam" on:click=move |_| { gesture_source.set("webcam".to_owned()); emit("citation-gesture-toggle", json!("webcam")); }>
                     <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="10" r="6.5"></circle><circle cx="12" cy="10" r="2.25"></circle><path d="M12 16.5v4M8.5 20.5h7"></path></svg>
                 </button>

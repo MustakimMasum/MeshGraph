@@ -86,6 +86,14 @@ fn dispatch_macro_event(name: &str, detail: &str) {
     }
 }
 
+pub(crate) fn return_home() {
+    // Reinitialize all scene, camera, filter, and input state for this collection.
+    // Saved viewpoints live in localStorage and survive this navigation.
+    if let Some(browser) = window() {
+        let _ = browser.location().reload();
+    }
+}
+
 #[component]
 pub fn App() -> impl IntoView {
     if window()
@@ -415,6 +423,19 @@ pub fn App() -> impl IntoView {
                     <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
                         <path d="M4.5 9A8 8 0 1 1 4 14"></path>
                         <path d="M4.5 4.5V9H9"></path>
+                    </svg>
+                </button>
+                <button
+                    id="home-view-button"
+                    class="input-control"
+                    type="button"
+                    aria-label="Home"
+                    title="Return to initial view"
+                    on:click=move |_| return_home()
+                >
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+                        <path d="m3 10 9-7 9 7"></path>
+                        <path d="M5 9v12h14V9M9 21v-8h6v8"></path>
                     </svg>
                 </button>
                 <button

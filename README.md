@@ -20,9 +20,14 @@ npm ci
 
 ### Start the database and app
 
+Use this workflow for development: Docker runs Oxigraph, while Rust and Trunk
+run locally. Reserve the full Docker app build for packaged releases.
+
 ```powershell
+docker compose stop axum_gateway
 docker compose up -d oxigraph_db graph_seed
-trunk build
+$env:DATABASE_URL='http://127.0.0.1:7878/query'
+$env:DATABASE_UPDATE_URL='http://127.0.0.1:7878/update'
 cargo run --bin meshgraph_gateway
 ```
 
@@ -43,7 +48,10 @@ Keep the gateway running and use a second terminal:
 trunk watch
 ```
 
-Refresh the browser after frontend changes. Restart `cargo run --bin meshgraph_gateway`
+Trunk makes an initial build, then rebuilds when frontend sources change.
+`Trunk.toml` watches source/assets and Cargo files, keeping generated reports,
+recordings, database files, and docs outside the watch scope. Refresh the browser
+after frontend changes. Restart `cargo run --bin meshgraph_gateway`
 after backend changes. Stop these processes with **Ctrl+C**; stop the database with
 `docker compose down`.
 
@@ -109,6 +117,9 @@ Use mouse drag to look around, **WASD** to move, **E/C** to move vertically, and
 scroll to zoom. Select a node to read its details. The bottom-right icon buttons
 provide refocus, webcam input, Leap Motion input, and VR entry. Citation topology
 and depth options are in **Settings**.
+The **Home** icon immediately after Reset reloads the current collection's initial
+view, restoring its camera, filters, and temporary exploration state. Saved
+viewpoints and database content are retained.
 
 For Leap Motion, install Ultraleap Hyperion and start the Windows host bridge:
 
