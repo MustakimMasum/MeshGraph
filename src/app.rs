@@ -308,7 +308,8 @@ pub fn App() -> impl IntoView {
 
             <a-scene
                 id="citation-scene"
-                background="color: #e8edf2"
+                background="color: #d2dce6"
+                fog="type: linear; color: #d2dce6; near: 18; far: 85"
                 cursor="rayOrigin: mouse"
                 raycaster="objects: .citation-graph"
                 renderer="colorManagement: true; antialias: true; physicallyCorrectLights: true"
@@ -349,7 +350,7 @@ pub fn App() -> impl IntoView {
 
                 <a-entity light="type: ambient; color: #dce8f5; intensity: 1.15"></a-entity>
                 <a-entity light="type: directional; color: #fff4df; intensity: 1.6" position="-4 8 6"></a-entity>
-                <a-sky color="#e8edf2"></a-sky>
+                <a-sky color="#d2dce6"></a-sky>
             </a-scene>
 
             <div id="gesture-pointer" hidden aria-hidden="true"></div>
