@@ -5,6 +5,92 @@ Oxigraph, A-Frame, Three.js, WebXR, and MediaPipe. It ingests a DOI or arXiv
 identifier through OpenAlex and turns the resulting RDF citation network into an
 interactive 3D constellation.
 
+MeshGraph also includes a **JPL History pilot** built from the professor's
+TheBrain export. Open `http://localhost:3000/?collection=history`, or use the
+JPL History link in the citation view. The history collection includes 262
+topics, 418 connections, and 58 attachment records.
+
+## JPL History pilot
+
+The history view starts at the JPL Computer Graphics Laboratory. Select a topic
+or its label to expand its neighborhood. Search names and notes, inspect
+relationships, filter recorded types/tags, follow the guided introduction,
+find connection paths, and save local viewpoints. Back/Forward restores the
+exploration state. Saved viewpoints also restore camera transforms and survive
+a browser restart on the same origin.
+
+The archive is incomplete. Record timestamps are not presented as historical
+dates. Unresolved link direction values are retained without inferred arrows.
+Connection paths use ordinary hierarchy and cross-links in either direction;
+they exclude type, tag, and system shortcuts. Duplicate names remain distinct
+records. The quality report identifies unavailable files and unknown meanings.
+
+The checked-in derived files are `data/jpl-history/history.ttl`,
+`data/jpl-history/report.json`, and `public/history-assets/`. Source files under
+`resources/` remain ignored by Git. Regenerate the derived collection with
+Python 3.10 or later (standard library only):
+
+```powershell
+python scripts/import-thebrain.py "resources/JPL CGL history/JPL CGL history" --validate-only
+python scripts/import-thebrain.py "resources/JPL CGL history/JPL CGL history"
+```
+
+Use `--output` and `--assets` to choose other output directories. Validation
+finishes before output is written. The importer does not connect to the database.
+Malformed JSON reports its filename and line; invalid references abort import.
+HTML notes are converted to readable text, and external filesystem references
+are never opened. Available images are copied under manifest-derived filenames.
+
+Compose seeds both collections into separate named graphs. To reload generated
+data in an existing local stack, run `docker compose run --rm graph_seed`, then
+rebuild the frontend/gateway if attachment assets changed. The seed service
+replaces both named seed graphs, including the citation seed; it therefore resets
+live-ingested citation additions. To replace only history, use:
+
+```powershell
+Invoke-WebRequest -Method Put -ContentType 'text/turtle' `
+  -InFile 'data/jpl-history/history.ttl' `
+  -Uri 'http://localhost:7878/store?graph=http%3A%2F%2Fexample.org%2Fmeshgraph%2Fgraphs%2Fjpl-history'
+```
+
+The graph contains RDF resources for thoughts, links, and attachments, plus a
+versioned JSON snapshot literal containing all source fields and extracted note
+text. The gateway reads that snapshot from Oxigraph for the small pilot; its
+in-memory traversal and search operate on those database-backed records. This
+avoids premature semantic conversion while keeping the storage/API/UI boundary.
+Larger archives should move search and neighborhood selection into indexed
+queries rather than transferring the complete snapshot to the browser.
+
+History endpoints are `/api/v1/history/summary`, `/graph`, `/neighborhood?id=…`,
+`/nodes/:id`, `/links/:id`, `/search?q=…&limit=30&offset=0`, `/path?from=…&to=…`,
+`/attachments/:id`, and `/quality`, all under `/api/v1/history`. The full graph
+endpoint is intended for this bounded local pilot. Notes are served as plain
+text; images use a validated manifest in the built frontend assets.
+
+For **ephemeral integration testing without Docker**, use three terminals:
+
+```powershell
+# Terminal 1: real Oxigraph in memory, seeded from the two checked-in datasets.
+cargo run --example pilot_graph_server
+# Terminal 2: build assets, then run the gateway.
+trunk build
+cargo run --bin meshgraph_gateway
+# Terminal 3: exercise the API and browser.
+python -m unittest discover -s tests -p test_thebrain_import.py
+npm run test:webxr
+```
+
+The example listens on `127.0.0.1:7878`, provides only SPARQL querying, and loses
+all state on exit. It is a verification aid; use Compose for persistence and
+live citation ingestion. If Trunk rejects an inherited `NO_COLOR=1`, set
+`$env:NO_COLOR='true'` before running it.
+
+Generate a local demonstration with `node scripts/record-history-demo.mjs`.
+It writes screenshots and `demo/jpl-history/walkthrough.webm`; these are ignored
+local artifacts. See [execution plan](directive/jpl_history_pilot_plan.md) and
+[evaluation guide](directive/jpl_history_pilot_evaluation.md) for acceptance and
+device coverage. The original rover brief describes the earlier prototype.
+
 ## Architecture
 
 MeshGraph retains three isolated layers:

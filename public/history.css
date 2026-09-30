@@ -1,0 +1,37 @@
+#history-panel { position: fixed; inset: 16px auto 16px 16px; width: 380px; z-index: 15; overflow-y: auto; background: rgba(250,252,253,.96); border: 1px solid #c6d5de; border-radius: 16px; padding: 22px; box-shadow: 0 12px 40px #17324d18; }
+#history-panel header { border-bottom: 1px solid #d4dfe5; margin-bottom: 14px; padding-bottom: 12px; }
+#history-panel h1 { font-size: 32px; margin: 10px 0; letter-spacing: -1px; }
+#history-panel h2 { font-size: 23px; margin-bottom: 8px; }
+#history-panel h3 { margin: 20px 0 8px; font-size: 14px; }
+#history-panel p { line-height: 1.5; }
+#history-panel a { color: #126b83; }
+.history-eyebrow { display: block; margin-top: 24px; font-size: 11px; letter-spacing: 2px; color: #567481; }
+.history-meta, #history-panel small { color: #607581; font-size: 11px; overflow-wrap: anywhere; }
+#history-status { font-size: 12px; background: #e6f0f3; padding: 10px; border-radius: 8px; }
+#history-panel button, .history-inputs button { border: 1px solid #bcced9; background: #fff; color: #17324d; border-radius: 7px; padding: 8px 10px; cursor: pointer; }
+#history-panel button:hover, .history-inputs button:hover { background: #e5f0f5; }
+#history-panel button:disabled { opacity: .4; cursor: default; }
+#history-panel :focus-visible, .history-inputs :focus-visible { outline: 3px solid #087f95; outline-offset: 2px; }
+.history-actions { display: flex; flex-wrap: wrap; gap: 5px; margin: 10px 0; }
+.history-trail { font-size: 10px; color: #617b88; }
+.history-trail button { font-size: 10px; padding: 3px !important; border: 0 !important; background: transparent !important; }
+.history-search { display: flex; gap: 5px; margin: 15px 0; }
+#history-panel input:not([type=checkbox]), #history-panel select { width: 100%; min-width: 0; border: 1px solid #bcced9; border-radius: 7px; padding: 9px; background: #fff; color: #17324d; }
+#history-panel label { display: block; margin: 10px 0; font-size: 12px; }
+#history-panel details { margin: 14px 0; padding: 10px 0; border-top: 1px solid #d4dfe5; }
+#history-panel summary { cursor: pointer; font-size: 13px; font-weight: 600; }
+.history-result { display: block; text-align: left; width: 100%; margin-bottom: 5px; }
+.history-result span, .history-result small { display: block; margin-top: 4px; font-size: 11px; }
+.history-note { white-space: pre-wrap; font-size: 14px; }
+.history-attachment { display: flex; justify-content: space-between; gap: 10px; margin: 10px 0; font-size: 12px; }
+.history-connection { display: flex; flex-direction: column; align-items: stretch; border-left: 2px solid #c4dbe4; margin-bottom: 9px; padding-left: 7px; }
+.history-connection button { text-align: left; border: 0 !important; }
+.history-connection button + button { font-size: 11px; color: #647e8c !important; }
+#history-panel pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 330px; overflow: auto; font-size: 10px; padding: 10px; background: #eaf0f4; }
+.history-inputs { position: fixed; right: 20px; bottom: 20px; z-index: 15; display: flex; align-items: center; gap: 8px; }
+.history-inputs span { font-size: 11px; }
+.history-immersive #history-panel, .history-immersive .history-inputs { visibility: hidden; }
+#history-labels { position: fixed; inset: 0; pointer-events: none; z-index: 8; }
+#history-labels button { position: absolute; pointer-events: auto; font-size: 11px; line-height: 13px; max-height: 28px; overflow: hidden; border: 0; border-radius: 4px; background: #f7fafbe8; color: #284c60; padding: 2px 4px; text-align: left; cursor: pointer; }
+.history-immersive #history-labels { display: none; }
+@media (max-width: 700px) { #history-panel { inset: auto 8px 65px; width: auto; height: 44vh; padding: 15px; } .history-inputs { right: 8px; bottom: 8px; flex-wrap: wrap; } .history-inputs span { display: none; } }

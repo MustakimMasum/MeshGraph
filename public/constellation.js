@@ -22,6 +22,7 @@
     schema: {
       endpoint: { default: "/api/v1/citations/graph?mode=citations" },
       maxNodes: { default: 12000 },
+      manual: { default: false },
     },
 
     init() {
@@ -61,6 +62,7 @@
     },
 
     async loadGraph() {
+      if (this.data.manual) return;
       this.abortController?.abort();
       this.abortController = new AbortController();
       try {
@@ -179,7 +181,9 @@
         const offset = index * 3;
         this.positions[offset] = topicX + Math.cos(angle) * radius;
         this.positions[offset + 1] = topicY + Math.sin(angle) * radius;
-        this.positions[offset + 2] = this.yearToZ(node.year);
+        this.positions[offset + 2] = graph.mode === "history"
+          ? Math.sin(hash(node.id) % 6283) * 1.8
+          : this.yearToZ(node.year);
         this.nodeMesh.setColorAt(index, this.topicColor(topic));
       });
       if (this.nodes.length) {
@@ -397,7 +401,7 @@
       if (window.matchMedia("(max-width: 620px)").matches) {
         return new THREE.Vector2(0, 0);
       }
-      const panel = document.getElementById("paper-panel");
+      const panel = document.getElementById("paper-panel") || document.getElementById("history-panel");
       const gutter = 18;
       const reservedPanelWidth = Math.min(360, window.innerWidth - gutter * 2);
       const panelRight = Math.min(

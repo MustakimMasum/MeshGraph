@@ -88,6 +88,12 @@ fn dispatch_macro_event(name: &str, detail: &str) {
 
 #[component]
 pub fn App() -> impl IntoView {
+    if window()
+        .and_then(|w| w.location().search().ok())
+        .is_some_and(|s| s.contains("collection=history"))
+    {
+        return view! { <crate::history_app::HistoryApp/> }.into_view();
+    }
     let (selected_paper, set_selected_paper) = create_signal::<Option<PaperMetadata>>(None);
     let (paper_loading, set_paper_loading) = create_signal(false);
     let (graph_mode, set_graph_mode) = create_signal("citations".to_owned());
@@ -188,7 +194,7 @@ pub fn App() -> impl IntoView {
         <main id="app-shell">
             <div class="brand-lockup">
                 <h1>"MeshGraph"</h1>
-                <p>"Research Citation Constellation"</p>
+                <p>"Research Citation Constellation · "<a href="/?collection=history">"Explore JPL History"</a></p>
             </div>
 
             <div class="search-controls" class:open=move || search_open.get()>
@@ -475,5 +481,5 @@ pub fn App() -> impl IntoView {
                 <span id="vr-status" class="visually-hidden" role="status">"Checking WebXR…"</span>
             </div>
         </main>
-    }
+    }.into_view()
 }

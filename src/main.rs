@@ -1,5 +1,7 @@
 #[cfg(target_arch = "wasm32")]
 mod app;
+#[cfg(target_arch = "wasm32")]
+mod history_app;
 
 #[cfg(target_arch = "wasm32")]
 fn main() {
@@ -8,6 +10,10 @@ fn main() {
 
 #[cfg(not(target_arch = "wasm32"))]
 mod ingestion;
+
+#[cfg(not(target_arch = "wasm32"))]
+mod history;
+mod history_model;
 
 #[cfg(not(target_arch = "wasm32"))]
 mod gateway {
@@ -208,9 +214,13 @@ GROUP BY ?source ?target
             update_url: update_url(&query_url, env::var("DATABASE_UPDATE_URL").ok().as_deref()),
             query_url,
             openalex_email: env::var("OPENALEX_EMAIL").ok(),
-            client: Client::builder().user_agent("MeshGraph/0.2").build()?,
+            client: Client::builder()
+                .user_agent("MeshGraph/0.2")
+                .timeout(std::time::Duration::from_secs(20))
+                .build()?,
         };
 
+        let history_routes = crate::history::router(state.query_url.clone(), state.client.clone());
         let app = Router::new()
             .route("/api/v1/health", get(health))
             .route("/api/v1/citations/ingest", post(ingest))
@@ -231,7 +241,8 @@ GROUP BY ?source ?target
                     .allow_methods(Any)
                     .allow_headers(Any),
             )
-            .with_state(state);
+            .with_state(state)
+            .merge(history_routes);
 
         let address = SocketAddr::from(([0, 0, 0, 0], 3000));
         let listener = tokio::net::TcpListener::bind(address).await?;

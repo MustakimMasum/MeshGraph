@@ -72,20 +72,22 @@ test("renders all papers and links in two batched GPU objects", async ({ page })
     linkType: "LineSegments",
     graphDomChildren: 0,
   });
-  await expect(page.locator(".graph-overview")).toContainText("3 papers");
-  await expect(page.locator(".graph-overview")).toContainText("2 relationships");
+  await expect(page.locator(".brand-lockup")).toContainText("Research Citation Constellation");
 });
 
 test("maps older papers to negative Z and recent papers to positive Z", async ({ page }) => {
   await loadConstellation(page);
-  const z = await page.evaluate(() => {
-    const positions = document.querySelector("#citation-graph").components["af-force-graph"].positions;
-    return [positions[2], positions[5], positions[8]];
+  const { z, depth } = await page.evaluate(() => {
+    const component = document.querySelector("#citation-graph").components["af-force-graph"];
+    const positions = component.positions;
+    return { z: [positions[2], positions[5], positions[8]], depth: component.yearDepth };
   });
 
-  expect(z[0]).toBeCloseTo(-12);
+  expect(depth).toBeGreaterThanOrEqual(3.5);
+  expect(depth).toBeLessThanOrEqual(7);
+  expect(z[0]).toBeCloseTo(-depth);
   expect(z[1]).toBeGreaterThan(z[0]);
-  expect(z[2]).toBeCloseTo(12);
+  expect(z[2]).toBeCloseTo(depth);
 });
 
 test("instanced ray selection crosses into Leptos as a macro event", async ({ page }) => {
@@ -103,6 +105,7 @@ test("instanced ray selection crosses into Leptos as a macro event", async ({ pa
 
 test("switches SPARQL topology modes without paper DOM nodes", async ({ page }) => {
   await loadConstellation(page);
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page.getByRole("button", { name: "Co-citation" }).click();
   await page.waitForFunction(() =>
     document
@@ -114,15 +117,17 @@ test("switches SPARQL topology modes without paper DOM nodes", async ({ page }) 
   expect(await page.locator("#citation-graph").locator("a-sphere").count()).toBe(0);
 });
 
-test("index sweep filtering updates visibility and the Leptos HUD", async ({ page }) => {
+test("index sweep filtering updates visibility and emits the year range", async ({ page }) => {
   await loadConstellation(page);
-  const visible = await page.evaluate(() => {
+  const result = await page.evaluate(() => {
     const component = document.querySelector("#citation-graph").components["af-force-graph"];
+    let range;
+    window.addEventListener("citation-year-filter", event => { range = event.detail; }, { once: true });
+    component.selectInstance(1);
     component.setYearCutoff(0.5);
-    return [...component.visible];
+    return { visible: [...component.visible], range, selected: component.selectedIndex };
   });
-  expect(visible).toEqual([1, 0, 0]);
-  await expect(page.locator(".graph-overview")).toContainText("1990 – 2008");
+  expect(result).toEqual({ visible: [1, 0, 0], range: "1990 – 2008", selected: -1 });
 });
 
 test("retains WebXR hand tracking and controller raycasting", async ({ page }) => {
@@ -179,9 +184,9 @@ test("uses Hyperion frames as an alternate snapping pointer", async ({ page }) =
     window.WebSocket = MockWebSocket;
   });
 
-  await page.getByLabel("Hand input source").selectOption("hyperion");
-  await page.locator("#gesture-toggle").click();
-  await expect(page.locator(".gesture-state")).toContainText("Hyperion bridge connected");
+  await page.getByRole("button", { name: "Use Leap Motion infrared hand input" }).click();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await expect(page.locator(".input-status")).toContainText("Hyperion bridge connected");
 
   await page.evaluate(() => {
     const graphElement = document.querySelector("#citation-graph");

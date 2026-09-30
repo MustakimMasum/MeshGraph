@@ -1,0 +1,2180 @@
+{
+  "counts": {
+    "thoughts": 262,
+    "links": 418,
+    "attachments": 58
+  },
+  "danglingEndpoints": 0,
+  "duplicateNames": {
+    "Art": [
+      "26f1e31b-3c68-544a-b7fc-53d1a8da469f",
+      "dcf2af52-4fb1-5cf4-9bf2-83d6409c3013"
+    ],
+    "Rick Sternbach": [
+      "394dd41e-6853-5520-809f-3f9e02593d06",
+      "574496ed-26a8-4940-80b2-873e1c88c881"
+    ],
+    "Tony Longson": [
+      "482eefef-8fa3-4055-b682-a63a0eed7a3f",
+      "73a6ba38-2c90-5beb-8f90-2aafc1660baa"
+    ],
+    "Patric Prince": [
+      "7b64cd05-c4c9-413a-8e7c-2cfc7ba4b149",
+      "7f7d03ba-f2a7-4306-93ce-cd5646b7bcd0"
+    ],
+    "grief from NASA HQ about nudity": [
+      "c1c784bf-53b4-5cd0-ba25-b4202fd10a97",
+      "daeb46b9-28af-502c-a647-43d1e48b407f"
+    ]
+  },
+  "warnings": [
+    {
+      "kind": "direction",
+      "id": "0001fcb5-5dfe-5270-8ca0-6573e075fbed",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "011922d0-8b3b-5429-a82d-b0893f1afd18",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "02965170-e8ca-52eb-869b-9f14d888a2b8",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "02a1abfe-f4bf-57d6-8fe9-0e88e933d194",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "02d560e8-2ade-5081-9f5d-670e483e7f7f",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "052cdf71-4a61-4c0d-9a20-4f93f69a3767",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "0558d46b-667a-5b8e-8093-25a196edbefb",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "055bb441-f19b-44fd-a1c2-c5ece586aadd",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "0579d975-0520-5ea2-ae17-b34f7677e2c4",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "05a70545-ddad-54b2-8e1b-05dd7253d79d",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "0606d057-b4ef-5ba1-8623-744e1c6f561b",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "072c04a2-e2a0-5961-a1ef-6cc875857413",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "07ad62f6-3454-4c02-9bcf-c5b9cf6928a5",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "07ef3929-3ead-5642-879c-24b73f368e2c",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "0815eb9b-9ab5-4656-aaef-d50fe1c45798",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "09160e8e-1e02-5abe-9a0b-0e2981eb0ee6",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "0be22700-5d7a-551b-a15f-c4ea6239be1f",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "0c63fe42-f169-5971-a617-1ab6d5daec42",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "0ca1b66e-e5d2-55af-899e-738b12aee0a3",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "0dcb7c16-0a0a-53f0-9f35-7244e53aabd1",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "0deeaec5-7b95-586f-98a8-ff2eb8234cfd",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "0e5a5182-898d-564d-b5b4-32aa0c1fc53c",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "0e6e5335-3af9-580c-af4e-e30b05a9502f",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "0eaabb4f-f844-52a8-8628-8920ebf039bd",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "0eb27fab-afdd-4b77-b093-7640f91b8a83",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "0f203a05-3443-50a3-99d2-30b36682387e",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "0fc128e4-3466-4bd6-aa15-dec02f58770e",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "0fc34ccc-5a4c-55b4-81b1-806430aaffcc",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "11d01832-69b7-5715-8030-4cf96dd0d2e8",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "1222eea4-5de2-4285-b555-ba797b7b6f10",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "1261ea47-c4fe-534c-9b8e-b9e4389c4b54",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "130c4c39-297c-4430-9113-aa486b69937f",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "13ca7d1c-b06b-502d-a868-98d9b37bdfb2",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "149f11e7-9ff7-4826-a8f5-a8e632146d3c",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "14d30ded-381d-4ec3-99d4-69a5622de2c4",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "1548a992-3f88-59f9-9ac0-362c3c2c80aa",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "16be61f9-ef80-4897-a673-f7c483410ede",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "17210e91-9321-4e0f-a5c7-1398935f5a0b",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "1739ce2c-a715-47d8-90d0-86988aa2fd77",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "174bc00c-1284-5e47-bbef-2c5968523dbc",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "178ddf95-d4a1-5981-9524-76ace20df9b8",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "18685c35-9603-52ab-8f70-a1df435f5c32",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "1887906b-12e4-59d3-a525-464595aec7f8",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "1b7017bc-4714-526e-9086-efdc07ed5d37",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "1ba631de-a5f7-54f8-a3d6-f174034addbd",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "1baa097b-c032-5c57-a5f4-c6d068a53bad",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "1c6dca27-ce10-5fef-bc63-a2c9435eef54",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "1d23cd80-19b5-4d41-bd31-85df9ccc7586",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "1d54cf16-ec9c-5eeb-a132-aaf7637b825d",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "1e110bad-4611-5286-bdaa-f6750373a507",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "1ec07aac-3d89-5231-8b2d-ad6ffeb9fdd8",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "1ed3eac0-83ab-5d4f-87ae-364cba2e3987",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "1f2d3e4f-ebf5-5447-91cf-a5076b42a8bb",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "1f3bbdd4-e9ff-5ad6-b341-cd15d6605776",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "1f7fda3c-f041-5878-9f4e-a064d362d63e",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "1ff88832-f8f8-5c9b-a4c6-82fd267ef5c2",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "2016b3b2-3e09-460a-858b-90dcf7e8b59a",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "20b38ae5-861f-51cd-9d42-c55fa77a0d42",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "20cd1151-776c-4a3c-83a8-706cda987f49",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "212c5de2-4342-5335-87bc-c624168d550d",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "212fddc3-f1b1-5b94-8854-b079129a6a5f",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "2131fc9a-d264-55a5-bca5-4a6c93594e42",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "22ec98ad-0504-5c7f-8b20-6b588c733cf2",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "254a7015-4c1f-4b1a-ae41-cf7030629d9f",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "262db8b1-e26f-5384-adf1-b810f443b805",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "26d1d9a7-ec1d-5a64-808a-6cf7b25b1cab",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "26feddc6-9b87-5058-b785-3f4c45da85d7",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "27fb0754-bdc4-598b-8f18-9ef43c255bde",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "28cf1c62-6301-5c20-a293-58f8a84da4d1",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "28f55425-5289-53de-86f9-d3d84cb92ceb",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "2913088c-870d-53d9-81ba-59f001ee768b",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "29a22348-0a19-506c-86bd-d39e07013ea6",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "29cb6334-39e5-59ae-8931-be2718922471",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "29cc5daf-498a-419a-8a6e-b25297ab947d",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "2a27bae8-037a-5212-8e3e-a5d75ed11b7f",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "2a4a04e8-1cc3-5c57-9065-8de4086c43f7",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "2a5bf5fa-613e-4786-b2f2-69070cd0b90b",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "2b72c757-4954-5354-9b6a-8ede1693d3c2",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "2b99e7c1-28ec-5a73-b495-808f4a57fd53",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "2cb0fa87-312c-5e69-83c7-e92edfe6f197",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "2ce53fce-f588-49f5-89f1-de8017dde816",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "2e2a237b-99c4-43ff-9584-edac0bed97b0",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "2f01cb41-3ef1-4dec-b3f5-33a25be99c38",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "2f1d09e1-363d-5e52-a229-6219478b09ab",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "2f56ba18-6f71-5231-94a9-7273ab07638b",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "2fabe1f5-0a30-5608-8a13-a3524f0cb4bc",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "301d754e-2747-5235-9db4-cf65b924442f",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "302c0c97-61b0-568c-936c-60089e6aa538",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "30be3a45-893c-5728-b2b6-b59821d405d5",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "326beea0-a3c9-5559-8b83-b4b6fb8a047a",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "334e4db4-ade9-458e-87aa-beb3fedbab76",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "3374707c-ff9c-5d76-bf22-6a1e5c4b2fcc",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "3439e842-569b-514c-9e4a-93e5ef334133",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "3451f916-d9e6-5b40-b1fa-9ac88c2592d3",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "346d7e25-ea64-5356-b12e-70e708b2cb5e",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "34a22394-705d-4799-a8eb-531f7936724f",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "35b6e5e9-3732-52a4-a24d-6f6e0621ff62",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "36a89e69-b33e-455e-ac6c-a14210d4e9b4",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "36f63a81-97ae-5c7c-9cac-409434116f40",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "370cb176-043f-4088-87d3-ce6075b7d94a",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "376b8adf-dfe2-5dda-9706-ada4f0e0badc",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "38d9eaa9-930f-5867-b049-1bec4bb4861c",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "38f6315f-649d-4957-9fab-cb742d2a0949",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "39459c53-df41-5c2f-a6cd-448cca8d262e",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "3bcd749e-2aca-50ff-ab7e-2fb9dac0ab46",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "3c401252-5ef1-5671-9101-f1bf338b9473",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "3cb21180-2d76-5510-994e-c836ad18368d",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "3f2e6e8a-5bed-56c1-94e6-fc947026b19c",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "3f3fc271-4cb0-56c0-806c-57598248b23f",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "3ff0ee4b-c2d6-5ba4-a841-46e900240694",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "40184cd6-63f4-5c0e-81be-9a8a4ddf765a",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "4046fb3f-5312-53f0-b323-a5a856067ad6",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "40bb8902-f215-50d4-9261-ddcc1112f3a0",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "410e2184-641b-4971-ab49-143ad9430ec4",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "4113f5fe-0a98-4cf5-8cc2-dacacdffd5cf",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "4293300b-630c-48b8-a99e-e6e7fc9ce535",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "43690c5b-f643-4aa6-b39c-6b49c93f0d36",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "43a19760-6b58-556c-9461-4e2c595bd1b6",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "43f01236-86df-573a-9977-b08388338431",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "4528ad86-7cb3-47a0-94d6-10b9f803eedf",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "465a64a0-47d6-42d5-8cdf-90aed9459094",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "4759e379-17df-5f27-a7ab-eccd6dbddc48",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "47f28399-7f3f-4c44-8405-4d013c283ce3",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "4964124d-cc27-4fd9-96ea-57fe5bacc21c",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "4a0e4c35-1a15-51e3-affb-3eb76d942aeb",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "4a248fce-cc90-59af-b282-b3619a4b5cf5",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "4b50cbfa-5676-4728-9dfc-6e18e64e9d7b",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "4c449270-1681-53b0-9df6-589a13f63229",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "4c7c9406-96e8-5e09-984b-a21d2f67118c",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "4d689bfd-dfea-503a-9638-ab8daec5a3b4",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "4d728dc4-fc48-525c-a1d2-23ea9b198131",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "4dd466bc-306a-42c6-b0e1-17350869a218",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "4de8f32c-f396-47c7-b032-921b7dd89d2b",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "4df7b895-dd19-5f84-a4e9-c12b75009db8",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "4e347ebf-4ae1-5b00-8282-a30e90734879",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "4eff82ad-6a35-4927-b832-d834835fa719",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "4f016850-5cf9-56b8-951b-7e799471bae9",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "4f5eb61c-4a6c-56a7-ae83-9d495f9bb983",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "5110e20d-e767-5c1f-9a23-cc2389bba404",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "5202188c-e586-56eb-b2d7-db56760b8a21",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "5210da9f-ab96-5812-afc6-4a2049ab6ef1",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "5422d617-fccb-5c0d-95d6-c17a7476bd06",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "55c4b8b5-ae00-52fd-9def-496394bd7175",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "585005bf-85d0-59a2-96c5-9a265a87342d",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "588eee59-5f9c-5880-a1e0-53e37d413372",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "59aa5d5b-2200-5ca1-8e61-54d6f9bdfe64",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "59fa6a51-27d4-5039-9529-01660b222d6d",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "5a1dc019-607b-5d0c-8443-4c1544383cd5",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "5ac1e15a-c12d-5f20-9518-9b7aeff7b292",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "5adfdd6a-61cc-5642-96d9-4eccff360eb0",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "5ae64bf8-6ac5-5280-9754-0f883aab523e",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "5b00c501-3cca-4cb3-814c-ec8d8a1c58ea",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "5b170886-40fa-550e-99a0-4090858a2f79",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "5db5573d-a5d3-4edf-ab26-b0c60615bcdf",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "5db8ac27-b82f-5530-bd3f-5f251b91d493",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "5e94a13f-0b44-5260-8d43-80ee3864623d",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "5eda3392-969b-502b-896c-12310c6a7860",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "5f79b365-86fc-51f1-a0be-89400978e98a",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "5fa44c89-feee-5065-a645-5e59369b1434",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "5fbe6a15-ad95-5cc8-83c2-7449c6ebaa1f",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "60400d1a-c442-5547-93c2-9a0a3d1516f5",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "6070de3f-af11-45cd-97ee-9e0acf27cab5",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "61b0e3c9-c6c5-516d-85ad-ccad0a6499bd",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "624f9787-acce-50ff-8ac4-3d94f29065ac",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "645c93ed-c589-595c-9358-3306eaac7c51",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "65835972-50d8-53b5-9735-c69db4116242",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "662eef68-9074-4ed1-8265-0f411fa9efea",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "66682590-c5b9-56ca-8e3d-e6c3cbff005c",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "66908dcf-6501-40ca-ada3-e29ec45b4737",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "66beb223-0d2d-47e7-82a9-cc8182bca4a3",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "685a1465-8697-56be-8517-aad12ce29eba",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "68e4a5da-d18b-537a-a6c8-9b9d91276889",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "694cd9fe-79d3-4c46-af92-f159defd357e",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "696522a4-f9f5-5b1a-8f71-62f58fa5a4f4",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "69bee939-936b-5319-8294-932e2d0ae466",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "6a37264f-4620-5859-a931-93aa050d5cb6",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "6ab11c53-849f-5096-bf39-de09e4e0c423",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "6acf5417-c0d5-5295-b9ee-53f5f8abc0d6",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "6b9226ab-bc4c-5b18-bd5b-3f75cbb09f75",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "6cadecf6-05e4-5471-8939-e39ba6719a85",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "6d90b45e-1edd-51a0-afcc-4b358db67e96",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "6da795d4-7211-5925-9c94-3ba52638698c",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "6de429d0-714d-41f5-b8f8-2be7ca1bb2ae",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "6f3c3004-e699-5708-a280-af32cc707c5e",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "713efc38-05fe-5c6c-8904-01fbbe070237",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "717d9c28-7ba1-44fc-b123-d015e53f2d2e",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "728fead6-e285-5bd8-b303-678c8abc8883",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "72cee53d-9707-5eba-8416-129aa6f00f17",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "73eb660d-0d21-5478-ba11-f291478f4e41",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "74159650-cd66-4ab2-8d03-592211454214",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "74a5a133-61f1-520e-8c35-6b9714dd5f57",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "757680cc-1340-5266-ace2-f6949dadbed7",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "758f091d-00ec-57be-9be5-d7a12c3a49e8",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "779899a3-f717-5e1e-8ed9-391c9c754dfc",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "78379cdb-097c-57fb-bfcd-199abee51635",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "7884ad5e-269c-55d6-903b-95afea0e8383",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "78c57aee-dd86-52ba-a3db-f90c8e7910da",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "795e5b95-ef84-4080-b1ed-34b525ba0428",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "7b102916-ba0e-5228-a5a4-5f9bf7cbddba",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "7d23f643-6b16-568b-81e3-ecd76121f7b7",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "7da88871-9e5d-4bbe-b907-9ed91d9d614d",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "7e9482bb-972b-5837-87d5-a369cda66bb6",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "7ee8b44e-6ad2-51c8-a32f-9f7f0ee4e50a",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "803eebb0-5aac-5d30-a387-b98a429b5bf9",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "80e5dc14-0a49-505f-b612-95d56c0fad90",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "82287e0b-4320-555c-93f5-0ba35a49990a",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "82790444-d074-46f1-8604-3a27fd9e426a",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "82ac493e-fa9e-5ff9-a716-784d038cf27a",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "838b1048-246b-5bb6-bf49-e057b381c190",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "83e48331-98ee-59ba-bd24-47fed596cdb8",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "847b4ac7-3e76-5ece-9efb-0971e1ef7b78",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "84881691-cbf7-4b8b-8dc7-888a469be2ae",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "85785bfd-acb2-5d31-9e50-a760dfd0b27a",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "863d5dac-a18c-52aa-a458-b3d1df66a9be",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "86e81347-32e8-5625-9098-4772f78deb68",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "8747733e-55e7-516d-b54a-92a3b776b74c",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "88dc2b44-028a-44ea-9920-649563cb5407",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "8a9db133-015b-536b-8bcc-02df20cfbd3f",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "8b32f84c-b373-5945-9591-1ba0ee116d90",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "8c0fb92b-b225-5a39-a9ea-3dd02efd09fa",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "8c90bab9-8c24-5c8a-9c8a-16a8b677030d",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "8c90e9d1-6f6a-5c08-9085-46454e971c2c",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "8cdd66e9-aea5-5af2-b54e-fe7095502470",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "8d5e9105-f7e1-51be-9a2b-c11a0ca45494",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "8de3c4a5-d696-438f-9382-3e6c3133a44f",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "8ebc1513-3261-5731-95c3-91d661d26d63",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "8ee72bd1-e8dd-4adc-9305-75722be75104",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "8ef7ea71-79d0-519a-8bb3-4705cd497b3a",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "8f35042f-27d1-5cb8-ab05-f3f2a1e7adcc",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "8f5edb7e-fb0a-5c50-a722-3d1487cdc152",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "8fdf1805-983b-5124-bf14-6bbc03d8c086",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "8ff2f376-fcec-5d34-b8e0-824ba9ee1f68",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "902db358-01d8-4221-81d6-843395baf442",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "90d2a5c1-3f2b-59b1-acd5-8579e275ec6b",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "9155ae39-d316-460c-8a44-26af6fb1e898",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "91c2fe47-459f-5aa9-a9c5-faffc8daab41",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "92284cd1-01e6-52c8-a43f-b56c823861dd",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "92a27c0b-23f4-5931-a25c-5a905a913d6a",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "92b51c46-5b59-4caa-a5e2-c761b4eee88d",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "9344d93f-fd06-4d54-b851-ab4648533eda",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "934daac6-6820-59a7-bd62-c3cccf762067",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "934f4a31-a5c8-500e-9d3f-4be5d11fcfe7",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "93581ce6-44bf-5973-82ea-0c5d27840fa3",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "9426da8f-9d00-521b-a98a-5b66b7fb93b2",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "9571bc41-7ebf-539f-aec9-0063fa945b74",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "961977bf-a732-5ba4-9de3-4362503014d6",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "9628bfd4-2db4-57ed-bb09-d2b0354088ce",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "97946ec4-f112-4f68-b6b9-7429279f3294",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "97ef46dd-80f5-5a86-93d8-a9b065023d64",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "98c51ab2-3015-4f34-b6c0-b0c6dab9bb94",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "98e2994c-76ac-5033-846d-57761635aaa2",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "99ac1caa-c9a6-54b2-834e-5b20d35d5ef2",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "99cc3b85-aa1d-5d7c-8840-73c6148fa7df",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "9b085109-c870-5694-a395-9a5f072ef0ba",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "9b6ca2e4-efb3-577b-87e6-60e1f28d80a2",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "9bc427e6-0697-546b-abd6-3c924ad8f3aa",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "9c3c95eb-1093-48cd-bcd6-05ed6abeb00f",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "9c51d352-841d-40d7-a3a2-efee4b617820",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "9c7350aa-5ea2-4d91-b542-e16b408ccaca",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "9d0fdb4f-7181-4051-b6ed-b120c4cc45e9",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "9d135b55-467e-5c0a-9e93-4ae02db8c6a1",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "9d347da3-33ab-4a54-ab91-a4e7ff077fd5",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "9ddb30c1-2fb6-550d-bd6a-e09f90f57c74",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "9ddd1cc3-3cd5-543e-9203-e55fb4047c94",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "9e084bfe-076c-54ed-b774-4d3d582423ce",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "9f1b34a9-2e0c-47c8-9d4e-86245b8263fa",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "a0c10627-4761-4b5e-83ee-038b100cdc72",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "a16ee75b-7526-51f6-8e23-64c5cb0d57a5",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "a1a82ea8-bc45-5933-92a5-2318b56c2070",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "a21f037a-db1b-5295-aab9-09538ea120cd",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "a240142b-29dc-41d9-9fe9-30be40709db0",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "a35e7671-13f2-547d-acde-c5e4b8d7542e",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "a3cb4178-13c7-40f9-8e41-1c85cac392e5",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "a49c898b-00a2-439e-8d84-76d654e64240",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "a4de85c5-56bf-4319-92b7-f2f82e9496fa",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "a607329a-8626-582e-8fdb-6fcd473ab491",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "a6335cfd-5552-5fec-b2ca-37f11a3e7c66",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "a687caa0-9b61-5139-b23e-3884ab205395",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "a6b20eb6-a046-5822-b7e4-e0d70d894980",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "a7739eb6-a0ae-5433-bf30-280fb7062d50",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "a88ad254-4ca6-54c8-b8bc-2448793e6363",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "a9356126-a136-50d9-8626-7aee3437f549",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "a939867a-9c57-5af0-be05-1dd15a559bf9",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "a95f90ca-7fda-567d-8005-f00157ce9db9",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "a97ec60d-aa89-5e26-9dca-ca5532e79ade",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "aa0f584c-804f-587b-8233-f446447d7916",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "aa757be8-4f76-56ca-9c77-f0388001faea",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "aabbf33b-f76f-5ed9-9ad1-8377501078b3",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "ab211964-4ce7-56d8-ae21-271460bef6dc",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "ac513ed6-a3d7-57dc-9910-31b523eab19a",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "ac60b29f-8bda-57fd-98c2-bd88b7add8dd",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "ad15348c-3572-4d20-bb1d-7eb3378f8363",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "af84b330-60fb-5218-9116-c52e8214f866",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "b09cf2dd-c41b-52e8-bd68-c8d0e7d74089",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "b16714b6-078e-556e-a5b8-8deb9bcf176d",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "b1e344ef-cb38-51da-b5e9-bd59fb05450d",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "b2ce5260-58a3-5f44-8bf4-29ae18a07b69",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "b36bbe20-f5a4-5be5-aa61-46f174c9d59d",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "b380937d-8ecd-5244-869b-7a70eb15b4e1",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "b3a48218-735a-52f1-a4de-e84ff4718b3b",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "b466a080-5631-5d5f-81a4-13328c1d0606",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "b49946ed-e6ce-4a4d-9529-6db3d3acf350",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "b60731e7-2f9b-57ea-8049-62dec65ba2a6",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "b63ebe36-568d-59b0-a267-daefea16ab7c",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "b9060a76-d5c0-59d6-8636-6adcbfd26234",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "b9483e7c-8863-4dfa-a321-db512b43aeee",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "b951b27c-22d6-593a-9108-e240ee2e67be",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "b975d7dd-833f-5395-b739-3eb958e83c8f",
+      "value": 5
+    },
+    {
+      "kind": "direction",
+      "id": "bb07d8fb-312f-5623-be30-3b742afd487d",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "bb4edc72-8566-4296-9943-481a2681fdd1",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "bbded814-2219-4318-b813-4691340ab82d",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "bc6b1788-ec22-45db-85d4-3765717839d3",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "bc77bdf9-d251-5468-a382-a11026d944f4",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "bcc97461-5a4e-546e-962c-d6987ed5493c",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "bcd2b6a5-38dd-4fae-86b6-73eae51c3255",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "bcf50d8a-c69d-5b5b-ab00-bc8d25d6ab44",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "bd601a9a-8560-57d4-96fc-fe6d4189c3b4",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "bd869701-d2af-5486-a288-10da507e5048",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "be606f43-9990-4d7e-b7f2-8be9c4088f1a",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "bec5605f-e4e5-52e3-8bd7-bf26b3429372",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "bf0d7477-b307-5597-a955-6ba6213de993",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "bf4cbfd3-c348-5071-afdc-bc28ae68c37b",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "c08a9192-8d89-5bd8-afb4-bda7f7d99147",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "c2bd76be-b14a-455d-b320-059e30f3e63d",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "c3036e42-0224-5efe-860d-9a2899570065",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "c3240c0a-6371-5b4b-89a1-5db6ce99d851",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "c35aba7a-beea-4d61-8f97-d15c546e69e7",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "c40ce881-f72b-5f49-8db9-0e225ac6f88f",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "c4287294-5e62-55ab-bc7d-7b463fd1a8a4",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "c4a7021a-3682-5c43-9a81-8a67d763546d",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "c4b729cc-9b12-4507-b487-cbe0be760d01",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "c4d510e8-bba9-5d3a-926c-b888106de3b3",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "c5416a8f-ac01-5434-acba-67231498f30c",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "c577e090-b79e-58a4-9860-2316c4a980bc",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "c59a6b35-d50d-55f7-8e3c-d1952defa1bf",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "c65ed64a-982f-5fe2-9076-3fecae568ea3",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "c676276e-4d9c-5d87-88fd-bccc5e96ba39",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "c69c0ce2-361d-4741-9b4c-542541dad636",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "c6e8fe5e-9836-5ce9-bbdd-2963abe3a349",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "c82c3c20-c055-5233-a2da-dcc0bf6bff75",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "c9911a38-617c-510a-aef5-404f7c8c3cad",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "c9fef20b-1c3d-5d53-a25f-df9db9a25f7a",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "ca06e1fc-b821-4aa0-8879-cf9081c1aaff",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "cb5c1e95-51ca-51c3-982b-fe3cbf94afcf",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "cbf94cd0-d003-4e05-96e5-181325888ef8",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "cc6c8361-d144-5e0c-b2b1-ab07483cccd2",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "cc937282-4107-5ecd-b1e2-761782a370a8",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "cd3fa557-fdf2-5ddf-b7b0-27cc5addc4a2",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "d12ba17d-1379-550e-93ef-c64499cbe915",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "d165fd81-8e4d-5393-aa0a-318173b55b61",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "d26c6ab6-274b-5edc-9084-2c88ed22c6c7",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "d3a9b498-2f8f-5cfd-922f-eb8705a60c89",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "d3e629b7-928e-5e21-a190-783baec4612a",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "d49700fb-1453-4ada-ad50-362690112a14",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "d5e787ce-55a3-55f9-b74e-554ff5fe335c",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "d603c532-0f27-5044-8a56-01c22d84fae2",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "d6617893-6bb1-5435-9f29-eb6f63f98b87",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "d6b2fcf1-3dcb-4b49-8a8e-c53acafa6e83",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "d72ce21c-41cf-537a-be81-825343ba6abf",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "d77884b8-aa17-5179-adc6-149c71ba38dc",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "d7a68227-547b-5a56-8ecc-3f152667eefd",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "d986c480-7f6e-4672-a898-889486c1e127",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "d9dcffd3-31f3-5066-a5d1-f52fb60f9354",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "da599c0d-8357-5974-9fb3-6b29b251bf78",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "dc845241-e282-57ac-9b98-aa7ff1239be4",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "dd855439-fca4-5c4f-a2e2-8033dbf325d4",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "dedda56c-c93f-59ee-b3c0-ca7fdf3aed6a",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "dfbe86e3-a225-58fc-823a-ed165576ce1c",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "e042dc31-0cba-5114-8776-b536da71ef79",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "e1113aaf-cea7-5427-8d2e-a2d98962c6ba",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "e1d31246-d313-56cc-ae4a-96108fa57cf0",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "e260ba88-3e1b-59f1-a8d2-036cb0596243",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "e270e2e0-f6d9-5afe-944e-756af79611c6",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "e3aff73b-0186-5d80-a13d-571763bcac31",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "e3ce3bfe-20f2-5fe9-97b6-62dfb3bc5a98",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "e421aabd-8776-5049-9017-6e475447c63a",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "e440a49b-a80d-56fc-9b67-c6912de84f73",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "e52086be-0101-5085-b347-52b8f3e549d6",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "e52e0c88-5d41-5d22-86d0-42e13ae75672",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "e710271b-fc23-5ffd-b8bc-3c60d17d6f0b",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "e88010e5-bf98-52f7-a4cf-163daba330ab",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "e8f2077e-5f5f-59a7-8093-d1d0f99579b6",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "e8f56497-6b8d-5e16-ac89-335421ba4031",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "ea7e4c5c-6522-5d24-b633-e2d5eb33c9f2",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "eb018245-1c8f-5f8f-bef5-9348b5816d82",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "ec5b4fd8-bc02-4c4a-9ef2-7e1c9e332b24",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "ec75c4a0-b51a-53ea-96e1-01c8c2c7757e",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "ec8482c9-c64b-5246-91e8-bc0f6cddfb88",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "eddce080-cdf1-5734-ac40-71d76d132960",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "ee2446f6-a98f-586d-aea6-2461360b7196",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "ee65b2ed-a962-5802-a549-fd50709ffd0b",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "ee78c37c-4264-5bb9-8267-b486ad545a6b",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "eebbec04-46ba-5dcd-a61d-813bdc4f8070",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "ef88aa04-0f2e-4327-94b9-2efd59004624",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "effba794-6a98-5e69-a0cf-d7071e56d317",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "f05c3b82-a755-4ed1-ac80-66336bfb7f8a",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "f0e7a764-ae3a-53ab-aca2-b35f1ca1cb84",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "f0ffb072-57d8-4797-b775-1b5d56ccb1ac",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "f1002082-9ee7-5c2f-acab-7db2d6e0a614",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "f29786f5-5560-551a-a32f-bda375b63a0b",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "f2bc707f-aeeb-5985-a4a1-09958edf2b11",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "f2f4f4df-6ef9-4dec-bd5c-2503efdad6ae",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "f2f50094-1dcb-5611-b12d-218f6b61c2e5",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "f350a8b0-26af-5412-a7b9-2dd9be6fbef2",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "f43179b1-9111-5093-9863-353f05ff0cf2",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "f4639e58-e8f5-5899-99fc-26b48cf4be7e",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "f4bd6bff-8844-49a5-9fe7-532c16bbe22f",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "f593f4d7-7946-548f-a351-f894b860699c",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "f65b73ca-2e80-5f5a-8871-049704f80f47",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "f8524b80-9471-5617-aa3a-e095213653e2",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "fb24bf21-c124-5f45-bfcc-6ce7ab06a6d7",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "fb28537d-a348-573e-9716-27c877574a4f",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "fb3ffe56-109c-527a-a110-1e796b52d533",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "fb511810-1461-5639-8fd3-f834a0a44abc",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "fe9a4a57-3810-48f5-abaf-6983aa7a4893",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "ff96bb93-9aad-554d-b770-ab2c889953fc",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "fff256e6-ccf1-5662-9702-053e140046d5",
+      "value": -1
+    },
+    {
+      "kind": "direction",
+      "id": "fffa2f80-c7a9-53bd-98a1-76367d34d43c",
+      "value": -1
+    },
+    {
+      "kind": "attachment",
+      "id": "1d9af198-41e9-51ff-8eca-89776d05a267",
+      "status": "unavailable"
+    },
+    {
+      "kind": "attachment",
+      "id": "4e112c21-de00-5f66-87a6-fa2ce40abcba",
+      "status": "unavailable"
+    },
+    {
+      "kind": "attachment",
+      "id": "a1cf4557-3f73-5f61-9a35-71bcb1141b69",
+      "status": "unavailable"
+    }
+  ],
+  "sourceHashes": {
+    "meta.json": "e033032cbd554d55d4c2a8d53f0d0f0499b49a5785809cdd082a83df4313e198",
+    "thoughts.json": "5c09f9c03206a793a3e264efcfdd840cf64b5461102e6757ab0cfb56bda2ad53",
+    "links.json": "f13f5a7a1e0ecdd3dd86aab0ecebcfd3b670d27f3a6df17bd113864d01c67d16",
+    "attachments.json": "8b86415cc934afa303e15624a141a52d06984798bcf4f498ddc4f8b102b20b5c",
+    "90bf4777-d16a-49df-bb4d-e6bbec0a4983/Notes.md": "1e8453b3ac7df46420f9e6bbdf37615f73dfc892d1368e8107f943a73e957cc1",
+    "81bf9057-b417-5c22-88a6-3e6bed236a9a/Notes/notes.html": "50546b8ab29b5a79a192494c035f771bac0586a892d6386e4bfb4a5bba71013d",
+    "6b8f6622-c037-54f0-9c09-b98a6c2428f0/.data/Icon.png": "6fdd7a45f8f35e073ef3370b29a7ec245590f49c174af1cc14d6487cd4293512",
+    "a30934e4-e894-5cb2-9b7a-65a6fec31460/.data/Icon.png": "1afeb784acf0339aa420dbdc12a907d725fdd66941da6fb4b38c93c62389f0b8",
+    "848eff57-2b00-5de0-b1d2-2f0dd717d1bd/Notes/notes.html": "8b047efa3ab6d2401c8fd16c48972355f8d7026feadeed5c27fc6a29ec8a3f3d",
+    "28dd6c53-7852-5906-8c8c-73a25eb0fe4f/Notes/notes.html": "1c85e2bf0dfd46c07be3d6501024ed4522196cdd7c6ab74040846836c6b9b256",
+    "6b8f6622-c037-54f0-9c09-b98a6c2428f0/Notes/notes.html": "c72ff424b2e6560c4a205d61a5838d7aa9c9b440142046b19dd99d9eb8b8305c",
+    "ebe741c3-71fe-005e-0a17-062a53c5f110/wallpaper.png": "79d98dc74c200dd270d92077f74fdc7e8dcbd7a6659cefa1e685fc4c51fb1b24",
+    "82119e7b-4453-54b0-8bec-8145299bb2ec/Notes.md": "07d17eda15c9b9d32d60d7c683a96a9e59814f40e991ba1b65a7e507e0256a67",
+    "4b098b05-e50e-4285-91ee-ce17b33f32f6/Notes.md": "6f28393b1ed310e4b3a86cd2d88df3328982b58228407d27c6b74dcf084d53ff",
+    "9c4823dd-371d-4a2a-876b-232af3082d19/Notes.md": "6cf6b80ca056973e266204fa6d67bf76256365ec438e23febb6907808fe0af63",
+    "fa02e474-5562-568c-88a2-e9ae80d92dd8/Notes/notes.html": "8519a09c696f118e5a84c155d1ee8db988a0cb2925bbddf3d801bcbb14d4da6c",
+    "2ba4037e-c298-4760-a7d7-c57381a30c04/Notes.md": "40611fa87b859b235fcb6fed64c1acc3e72b46ce011020cfa32e7a37960be92f",
+    "f80b2236-99d2-5485-b1ff-fc514e825afd/Notes/notes.html": "1c85e2bf0dfd46c07be3d6501024ed4522196cdd7c6ab74040846836c6b9b256",
+    "30a48366-f441-5418-9e42-cfb2bc572eab/.data/Icon.png": "ef257b0378bcb2b41353207e924f3fcb5571aa5ac9dc921c4f42a28bddcdb3cf",
+    "4169bdf5-bb51-58c3-8408-b108bed3a3c5/Notes/notes.html": "c212a259293d5b3243d73c6caf58b00014fc17dbb554e74dfa7e5b92d0fb359e",
+    "0417b7a8-f5bd-4945-9a72-d5e492eb7a49/Notes.md": "96ca0f97c19ad5e5f1807f223ec9067ddd46b62590bcbafbdb416e088a35cf1f",
+    "2687f8f7-6a86-5d72-a403-40343d86af48/Notes/notes.html": "4e842f1a5dafb96db9ff50cb0ea7cf6d580761ed1b9003686a9e42c885e2c06b",
+    "c04ee118-8bca-49f6-8f96-3a5b2689bbe0/Notes.md": "b3823bd30935c2dc1db8a10648dc06b796912dd325ba1d5722161cab160e6176",
+    "ce32df7f-5076-423d-bfce-328f471d1f52/Notes.md": "fa4151369f54f409302bd4b9d4f9f4f4f0b326debaef33ae45f0a01f5299459f",
+    "f2569ba4-71d1-5b10-b6a5-6d67ef6c0090/Notes/notes.html": "4b2bf82983c1e8b87ed4916e787d78ee92653cc90684b471f23be7215723fc82",
+    "9fad53b4-243e-5cee-9ebc-7cb006496903/Notes/notes.html": "ce7a56d1df8413d9ad7c5ddc622ac6d879fb00be8181db335df4b80c638a060f",
+    "024c2808-59f5-5341-9843-937aec12fc69/.data/Icon.png": "3ddbfe4629a7e8c79b2b4a33c0cb0522babf8a8c6316e8d3057f25f8dd3b42c3",
+    "b82a3ea2-1b82-5f98-8330-226a84616c4f/.data/Icon.png": "1791e43d5698db862b38f9d4c03f0d0221475fa8ffc82c2de23c57a4efc6e1b6",
+    "d39fe601-826b-520d-b1f6-52fc7a8ee271/.data/Icon.png": "40c1bfe614bf4dabb71313f80a4a96302bd86c2218fd48956551540b88242247",
+    "e70e7a86-91b5-5f9d-9728-dbe13c7147b2/.data/Icon.png": "ef257b0378bcb2b41353207e924f3fcb5571aa5ac9dc921c4f42a28bddcdb3cf",
+    "62ac9ae2-ce0f-5d52-952e-a906980209f9/.data/Icon.png": "996506430ed45089e29087f53c28c3feedc20fbf28ab81569a598786fa127553",
+    "6b2ccff5-addb-5109-ba7d-dc5bf6581cbd/.data/Icon.png": "996506430ed45089e29087f53c28c3feedc20fbf28ab81569a598786fa127553",
+    "7b4a0dd4-1893-5763-b369-b1cfdf4d5561/Notes/notes.html": "cda4373dee801daf69f11bd7c1b85482e0ffdb2a19c40d19e2c13c572c828f83",
+    "d99255d2-1c66-557f-9cb6-33a3eff9aafe/Notes/notes.html": "bb3a6d7933ba586d1f4afc10cd70c37dc03ae5b0c67fdc7ecaf4078708a9d1d1",
+    "c57adcb7-b323-514f-897e-89fcb4ff71a6/Notes/notes.html": "e27ed42dc4930758a1cbe69c69c32513826319fce005cc5624dabb22323045ce",
+    "c0fb41cc-430b-501c-974c-7cf0e8d004f1/Notes/notes.html": "96a1c2fc1ea9f6558b146177938b4cb58af250407e81a85f2ab89841291c94e3",
+    "304af362-3c95-52bf-9a24-71eace44fbe3/.data/Icon.png": "ef257b0378bcb2b41353207e924f3fcb5571aa5ac9dc921c4f42a28bddcdb3cf",
+    "31673b0b-95dd-5773-a31a-3fe10f076a07/Notes/notes.html": "48f001d8b9516b86d621f0ccb2f80dd5395e8edeee55aeb50b31cc6daa043f3e",
+    "9936dee7-5fd0-474e-9bb7-ba90340b6f5c/Notes.md": "5d4a6b3e9f2669171fd4fe7f0b782977381565440a4651bc84d57f9127e60a31",
+    "1ab19f92-d42f-5a47-ae7b-9342f315fa86/Notes/notes.html": "d45c938adc59827d28050a19dabb90ae5a8a2aaed8abeb72ea9e0b06c244f295"
+  },
+  "interpretation": "Direction remains unresolved. Timestamps describe source records, not historical events."
+}

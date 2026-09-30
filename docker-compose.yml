@@ -22,7 +22,11 @@ services:
         curl --fail --request PUT
         --header "Content-Type: text/turtle"
         --data-binary @/seed/citations.ttl
-        "http://oxigraph_db:7878/store?graph=http%3A%2F%2Fexample.org%2Fmeshgraph%2Fgraphs%2Fcitations"
+        "http://oxigraph_db:7878/store?graph=http%3A%2F%2Fexample.org%2Fmeshgraph%2Fgraphs%2Fcitations" &&
+        curl --fail --request PUT
+        --header "Content-Type: text/turtle"
+        --data-binary @/seed/jpl-history/history.ttl
+        "http://oxigraph_db:7878/store?graph=http%3A%2F%2Fexample.org%2Fmeshgraph%2Fgraphs%2Fjpl-history"
     restart: "no"
 
   axum_gateway:
