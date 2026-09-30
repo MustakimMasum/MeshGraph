@@ -362,29 +362,31 @@
       this.selectedIndex = -1;
     },
 
-    rotateAroundSelection(angle) {
+    rotateAroundSelection(angle, pitch = 0, camera = null) {
       const graphObject = this.el.object3D;
       const index = this.selectedIndex;
-      if (
-        !Number.isInteger(index) ||
-        index < 0 ||
-        !this.nodes[index] ||
-        !this.visible[index]
-      ) {
-        graphObject.rotation.y += angle;
-        return;
-      }
-
+      const hasSelection = Number.isInteger(index) && index >= 0 &&
+        this.nodes[index] && this.visible[index];
       const offset = index * 3;
-      const pivotLocal = new THREE.Vector3(
-        this.positions[offset],
-        this.positions[offset + 1],
-        this.positions[offset + 2],
-      );
+      const pivotLocal = hasSelection
+        ? new THREE.Vector3(this.positions[offset], this.positions[offset + 1], this.positions[offset + 2])
+        : new THREE.Vector3();
       graphObject.updateWorldMatrix(true, false);
       const pivotBefore = graphObject.localToWorld(pivotLocal.clone());
 
-      graphObject.rotation.y += angle;
+      if (camera) {
+        const viewRotation = camera.getWorldQuaternion(new THREE.Quaternion());
+        const parentRotation = graphObject.parent
+          ? graphObject.parent.getWorldQuaternion(new THREE.Quaternion()).invert()
+          : new THREE.Quaternion();
+        const up = new THREE.Vector3(0, 1, 0).applyQuaternion(viewRotation).applyQuaternion(parentRotation);
+        const right = new THREE.Vector3(1, 0, 0).applyQuaternion(viewRotation).applyQuaternion(parentRotation);
+        const rotation = new THREE.Quaternion().setFromAxisAngle(up, angle);
+        rotation.multiply(new THREE.Quaternion().setFromAxisAngle(right, pitch));
+        graphObject.quaternion.premultiply(rotation).normalize();
+      } else {
+        graphObject.rotation.y += angle;
+      }
       graphObject.updateWorldMatrix(true, false);
       const pivotAfter = graphObject.localToWorld(pivotLocal.clone());
 
@@ -699,8 +701,7 @@
       this.hyperionHands = new Map();
       this.hyperionPrimaryId = null;
       this.hyperionPinching = false;
-      this.hyperionLastSpread = null;
-      this.hyperionSwipeCooldownUntil = 0;
+      this.resetHyperionNavigation();
       this.onToggle = (event) => {
         const source = event.detail === "hyperion" ? "hyperion" : "webcam";
         if ((this.running || this.starting) && source === this.inputSource) this.stop();
@@ -811,7 +812,7 @@
       this.hyperionHands.clear();
       this.hyperionPrimaryId = null;
       this.hyperionPinching = false;
-      this.hyperionLastSpread = null;
+      this.resetHyperionNavigation();
       const startToken = ++this.startToken;
       emitMacro("citation-gesture-status", "Connecting to the local Hyperion bridge…");
 
@@ -843,6 +844,7 @@
           if (startToken !== this.startToken) return;
           this.running = false;
           this.starting = false;
+          this.resetHyperionNavigation();
           this.updatePointer(null);
           emitMacro("citation-gesture-status", "Hyperion bridge disconnected · toggle to retry");
         });
@@ -854,6 +856,10 @@
 
     onHyperionMessage(message) {
       if (message?.type === "status") {
+        this.resetHyperionNavigation();
+        this.hyperionHands.clear();
+        this.hyperionPinching = false;
+        this.updatePointer(null);
         emitMacro("citation-gesture-status", message.message || `Hyperion · ${message.state}`);
         return;
       }
@@ -861,102 +867,139 @@
       this.applyHyperionFrame(message.hands);
     },
 
+    resetHyperionNavigation() {
+      this.hyperionMode = "idle";
+      this.hyperionModeKey = null;
+      this.hyperionMotion = null;
+      this.hyperionLastFrameAt = null;
+      this.hyperionSelectionBlocked = false;
+    },
+
     applyHyperionFrame(hands) {
-      if (hands.length !== this.handCount) {
-        this.handCount = hands.length;
-        const label = hands.length === 1 ? "hand" : "hands";
-        emitMacro(
-          "citation-gesture-status",
-          hands.length
-            ? `Hyperion active · ${hands.length} ${label} detected`
-            : "Hyperion active · show a hand over the sensor",
-        );
+      const now = performance.now();
+      const gap = this.hyperionLastFrameAt === null ? 0 : now - this.hyperionLastFrameAt;
+      if (gap > 180) {
+        this.resetHyperionNavigation();
+        this.hyperionHands.clear();
+        this.hyperionPinching = false;
       }
-      if (!hands.length) {
+      this.hyperionLastFrameAt = now;
+      const validPosition = (position) => Array.isArray(position) &&
+        position.length === 3 && position.every(Number.isFinite);
+      const tracked = hands.filter((hand) => hand && validPosition(hand.palm?.position) &&
+        (hand.confidence === undefined || hand.confidence >= 0.35));
+      if (tracked.length !== this.handCount) {
+        this.handCount = tracked.length;
+        emitMacro("citation-gesture-status", tracked.length
+          ? `Hyperion active · ${tracked.length} ${tracked.length === 1 ? "hand" : "hands"} detected`
+          : "Hyperion active · show a hand over the sensor");
+      }
+      if (!tracked.length) {
         this.hyperionHands.clear();
         this.hyperionPrimaryId = null;
         this.hyperionPinching = false;
-        this.hyperionLastSpread = null;
+        this.resetHyperionNavigation();
         this.updatePointer(null);
         return;
       }
 
-      const primary =
-        hands.find((hand) => hand.id === this.hyperionPrimaryId) ||
-        hands.find((hand) => hand.chirality === "right") ||
-        hands[0];
+      const primary = tracked.find((hand) => hand.id === this.hyperionPrimaryId) ||
+        tracked.find((hand) => hand.chirality === "right") || tracked[0];
       if (primary.id !== this.hyperionPrimaryId) {
         this.hyperionPrimaryId = primary.id;
         this.hyperionPinching = false;
       }
-
-      const indexTip = primary.digits?.[1]?.tip || primary.palm?.stabilizedPosition;
-      if (!Array.isArray(indexTip)) return;
-      const screenX = THREE.MathUtils.clamp(0.5 + indexTip[0] / 400, 0, 1);
-      const screenY = THREE.MathUtils.clamp(1 - (indexTip[1] - 100) / 350, 0, 1);
-      const pixelX = screenX * window.innerWidth;
-      const pixelY = screenY * window.innerHeight;
-      const gesturePinch = (Number(primary.flags) & 2) !== 0;
-      const pinchStrength = Number(primary.pinchStrength) || 0;
-      const pinching = this.hyperionPinching
-        ? gesturePinch || pinchStrength > 0.5
-        : gesturePinch || pinchStrength > 0.72;
-      this.updatePointer({ pixelX, pixelY, pinching });
-
-      const previous = this.hyperionHands.get(primary.id);
-      const palmPosition = primary.palm?.stabilizedPosition || primary.palm?.position;
-      const extendedDigits = (primary.digits || []).filter((digit) => digit.extended).length;
-      const openPalm = (Number(primary.grabStrength) || 0) < 0.25 && extendedDigits >= 4;
-      if (previous?.openPalm && openPalm && Array.isArray(palmPosition)) {
-        const dx = THREE.MathUtils.clamp((palmPosition[0] - previous.palm[0]) / 320, -0.08, 0.08);
-        const dy = THREE.MathUtils.clamp((previous.palm[1] - palmPosition[1]) / 300, -0.08, 0.08);
-        if (Math.abs(dx) + Math.abs(dy) > 0.001) {
-          this.applyGesture({ kind: "palm_pan", dx, dy });
-        }
+      const poses = new Map(tracked.map((hand) => {
+        const previous = this.hyperionHands.get(hand.id);
+        const fingers = (hand.digits || []).filter((digit) => digit.extended).length;
+        const grab = Number(hand.grabStrength) || 0;
+        const pinch = Number(hand.pinchStrength) || 0;
+        // Separate enter/release thresholds prevent pose chatter. A pinch
+        // releases an open palm; a fist can naturally report a strong pinch.
+        return [hand.id, {
+          openPalm: pinch < 0.45 && grab < (previous?.openPalm ? 0.5 : 0.4) && fingers >= 3,
+          closedHand: fingers <= 2 && grab > (previous?.closedHand ? 0.55 : 0.75),
+        }];
+      }));
+      const pose = poses.get(primary.id);
+      const zoomHands = tracked.length === 2 && tracked.every((hand) => poses.get(hand.id).openPalm);
+      const mode = zoomHands ? "zoom" : tracked.length === 1 && pose.openPalm ? "pan"
+        : tracked.length === 1 && pose.closedHand ? "orbit" : "idle";
+      const modeKey = `${mode}:${tracked.map((hand) => hand.id).sort((a, b) => a - b).join(",")}`;
+      const wasNavigating = this.hyperionMode !== "idle";
+      const changed = modeKey !== this.hyperionModeKey;
+      if (changed) {
+        this.hyperionModeKey = modeKey;
+        this.hyperionMode = mode;
+        this.hyperionMotion = null;
+        // A pinch used to exit navigation must be released before selecting.
+        if (mode !== "idle" || wasNavigating) this.hyperionSelectionBlocked = true;
+        const labels = { pan: "Open palm · move to pan", orbit: "Closed hand · move to orbit",
+          zoom: "Two open palms · spread to zoom · relax either hand to release",
+          idle: "Hyperion ready · open palm to pan · closed hand to orbit" };
+        emitMacro("citation-gesture-status", labels[mode]);
       }
 
-      if (pinching && !this.hyperionPinching) {
-        this.applyGesture({ kind: "pinch", x: 1 - screenX, y: screenY });
+      const pinchStrength = Number(primary.pinchStrength) || 0;
+      const pinching = pinchStrength > (this.hyperionPinching ? 0.5 : 0.72);
+      if (pinchStrength < 0.45) this.hyperionSelectionBlocked = false;
+      const indexTip = primary.digits?.[1]?.tip || primary.palm.position;
+      if (mode === "idle" && validPosition(indexTip)) {
+        const screenX = THREE.MathUtils.clamp(0.5 + indexTip[0] / 400, 0, 1);
+        const screenY = THREE.MathUtils.clamp(1 - (indexTip[1] - 100) / 350, 0, 1);
+        this.updatePointer({ pixelX: screenX * window.innerWidth,
+          pixelY: screenY * window.innerHeight, pinching });
+        if (pinching && !this.hyperionPinching && !this.hyperionSelectionBlocked) {
+          this.applyGesture({ kind: "pinch", x: 1 - screenX, y: screenY });
+        }
+      } else {
+        this.updatePointer(null);
       }
       this.hyperionPinching = pinching;
 
-      const velocity = primary.palm?.velocity || [0, 0, 0];
-      const now = performance.now();
-      if (
-        now >= this.hyperionSwipeCooldownUntil &&
-        Math.abs(velocity[0]) > 900 &&
-        Math.abs(velocity[0]) > Math.abs(velocity[1]) * 1.4
-      ) {
-        this.applyGesture({ kind: "swipe", direction: velocity[0] < 0 ? "left" : "right" });
-        this.hyperionSwipeCooldownUntil = now + 650;
+      // Use raw palm coordinates with a short, time-based filter. The SDK's
+      // stabilized pointer position can resist small navigation movements.
+      let position = primary.palm.position;
+      if (mode === "zoom") {
+        const other = tracked.find((hand) => hand.id !== primary.id).palm.position;
+        position = [Math.hypot(...position.map((value, axis) => value - other[axis])), 0, 0];
       }
-
-      if (hands.length >= 2) {
-        const first = hands[0].palm?.position;
-        const second = hands[1].palm?.position;
-        if (Array.isArray(first) && Array.isArray(second)) {
-          const distance = Math.hypot(first[0] - second[0], first[1] - second[1], first[2] - second[2]);
-          if (this.hyperionLastSpread !== null) {
-            const delta = THREE.MathUtils.clamp((distance - this.hyperionLastSpread) / 300, -0.08, 0.08);
-            if (Math.abs(delta) > 0.001) this.applyGesture({ kind: "spread", delta });
+      if (mode !== "idle") {
+        if (!this.hyperionMotion) {
+          this.hyperionMotion = { filtered: [...position], anchor: [...position] };
+        } else {
+          const motion = this.hyperionMotion;
+          const alpha = 1 - Math.exp(-Math.max(1, gap) / 35);
+          motion.filtered = motion.filtered.map((v, i) => v + (position[i] - v) * alpha);
+          const dx = motion.filtered[0] - motion.anchor[0];
+          const dy = motion.filtered[1] - motion.anchor[1];
+          // Accumulate slow motion instead of discarding each tiny frame delta.
+          if (Math.hypot(dx, dy) >= 0.35) {
+            if (mode === "zoom") {
+              this.applyGesture({ kind: "spread", delta: THREE.MathUtils.clamp(dx / 300, -0.06, 0.06) });
+            } else if (mode === "pan") {
+              this.applyGesture({ kind: "palm_pan", dx: THREE.MathUtils.clamp(dx / 320, -0.06, 0.06),
+                dy: THREE.MathUtils.clamp(-dy / 300, -0.06, 0.06), viewRelative: true });
+            } else {
+              this.applyGesture({ kind: "orbit", yaw: THREE.MathUtils.clamp(dx * 0.009, -0.12, 0.12),
+                pitch: THREE.MathUtils.clamp(-dy * 0.009, -0.12, 0.12) });
+            }
+            motion.anchor = [...motion.filtered];
           }
-          this.hyperionLastSpread = distance;
         }
-      } else {
-        this.hyperionLastSpread = null;
       }
+      this.hyperionHands = poses;
+    },
 
-      this.hyperionHands = new Map(
-        hands.map((hand) => [
-          hand.id,
-          {
-            palm: hand.palm?.stabilizedPosition || hand.palm?.position || [0, 0, 0],
-            openPalm:
-              (Number(hand.grabStrength) || 0) < 0.25 &&
-              (hand.digits || []).filter((digit) => digit.extended).length >= 4,
-          },
-        ]),
-      );
+    tick() {
+      if (this.inputSource === "hyperion" && this.hyperionLastFrameAt !== null &&
+          performance.now() - this.hyperionLastFrameAt > 180) {
+        this.resetHyperionNavigation();
+        this.hyperionHands.clear();
+        this.hyperionPinching = false;
+        this.updatePointer(null);
+        emitMacro("citation-gesture-status", "Hyperion tracking paused · show a hand over the sensor");
+      }
     },
 
     async captureFrame(time) {
@@ -1165,8 +1208,10 @@
       const labels = {
         palm_pan: "Open-palm pan",
         pinch: "Pinch select",
-        spread: "Two-hand zoom",
+        spread: this.inputSource === "hyperion"
+          ? "Two open palms · zoom · relax either hand to release" : "Two-hand zoom",
         swipe: "Hand swipe rotate",
+        orbit: "Closed-hand orbit",
       };
       const now = performance.now();
       if (gesture.kind !== this.lastGestureKind || now - this.lastGestureStatusAt > 500) {
@@ -1175,7 +1220,18 @@
         this.lastGestureStatusAt = now;
       }
 
-      if (gesture.kind === "palm_pan") {
+      if (gesture.kind === "palm_pan" && gesture.viewRelative && this.el.camera) {
+        const camera = this.el.camera;
+        const rotation = camera.getWorldQuaternion(new THREE.Quaternion());
+        const center = graphObject.getWorldPosition(new THREE.Vector3());
+        const distance = Math.max(1, center.distanceTo(camera.getWorldPosition(new THREE.Vector3())));
+        const height = 2 * distance * Math.tan(THREE.MathUtils.degToRad(camera.fov || 60) / 2);
+        const offset = new THREE.Vector3(gesture.dx * height * (camera.aspect || 1), -gesture.dy * height, 0)
+          .applyQuaternion(rotation);
+        const target = center.add(offset);
+        if (graphObject.parent) graphObject.parent.worldToLocal(target);
+        graphObject.position.copy(target);
+      } else if (gesture.kind === "palm_pan") {
         graphObject.position.x = THREE.MathUtils.clamp(
           graphObject.position.x + gesture.dx * 12,
           -12,
@@ -1202,6 +1258,8 @@
         const factor = THREE.MathUtils.clamp(1 + gesture.delta * 1.8, 0.88, 1.12);
         graphObject.scale.multiplyScalar(factor);
         graphObject.scale.clampScalar(0.35, 3.5);
+      } else if (gesture.kind === "orbit") {
+        graph.rotateAroundSelection(gesture.yaw, gesture.pitch, this.el.camera);
       } else if (gesture.kind === "swipe") {
         graph.rotateAroundSelection(gesture.direction === "left" ? -0.45 : 0.45);
       }
@@ -1220,7 +1278,7 @@
       this.hyperionHands.clear();
       this.hyperionPrimaryId = null;
       this.hyperionPinching = false;
-      this.hyperionLastSpread = null;
+      this.resetHyperionNavigation();
       if (this.hyperionSocket) {
         this.hyperionSocket.close();
         this.hyperionSocket = null;

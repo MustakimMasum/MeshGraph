@@ -228,9 +228,9 @@ test("uses Hyperion frames as an alternate snapping pointer", async ({ page }) =
       digits: [
         { extended: true, tip: [-20, 200, 0] },
         { extended: true, tip: indexTip },
-        { extended: true, tip: [0, 220, 0] },
-        { extended: true, tip: [10, 215, 0] },
-        { extended: true, tip: [20, 205, 0] },
+        { extended: false, tip: [0, 220, 0] },
+        { extended: false, tip: [10, 215, 0] },
+        { extended: false, tip: [20, 205, 0] },
       ],
     });
     window.__hyperionTestSocket.sendFrame([hand(0)]);

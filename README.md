@@ -127,6 +127,20 @@ For Leap Motion, install Ultraleap Hyperion and start the Windows host bridge:
 cargo run --bin hyperion_bridge
 ```
 
+IR controls use distinct poses:
+
+- **One open palm:** move left/right or up/down to pan in the camera's view.
+- **One closed hand:** move horizontally or vertically to orbit smoothly around
+  the selected node (or the graph center).
+- **Two open palms:** spread apart to zoom in; bring together to zoom out.
+  Relax/curl either hand to release zoom. Remove the second hand to resume
+  single-hand navigation; each pose change starts from your current hand position.
+- **Point and pinch:** select a node. A pinch that releases navigation does not
+  select until you release and pinch again.
+
+Movement is filtered to reduce jitter, and stops when you release the pose or
+tracking is lost. Gesture regression tests run with `npm run test:gestures`.
+
 The bridge uses `ws://127.0.0.1:6437/hands`. Camera access requires localhost or
 HTTPS. XR and gesture accuracy require verification with physical devices.
 

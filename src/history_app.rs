@@ -407,6 +407,8 @@ pub fn HistoryApp() -> impl IntoView {
             </div>
             <Show when=move || settings_open.get()>
                 <aside id="history-settings" class="settings-menu" aria-label="Graph settings">
+                    <span class="settings-label">"IR hand controls"</span>
+                    <p>"Open palm: pan · Closed hand: orbit · Two open palms: zoom. Relax either hand to release zoom. Point and pinch to select."</p>
                     <span class="settings-label">"Filter this view"</span>
                     <label>"Type"<select aria-label="History type" prop:value=move || state.get().classification on:change=move |e| { let mut s = state.get_untracked(); s.classification = event_target_value(&e); commit.call(s); }><option value="">"All types"</option>{move || {
                         let mut types: Vec<_> = data.get().map(|d| d.nodes.into_iter().flat_map(|n| n.types).collect()).unwrap_or_default(); types.sort(); types.dedup(); types.into_iter().map(|t| view! { <option value=t.clone()>{t}</option> }).collect_view()

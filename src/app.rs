@@ -400,9 +400,10 @@ pub fn App() -> impl IntoView {
                         <div><kbd>"Drag"</kbd><span>"Look around"</span></div>
                         <div><kbd>"Scroll"</kbd><span>"Zoom"</span></div>
                         <div><kbd>"Point + pinch"</kbd><span>"Select"</span></div>
-                        <div><kbd>"Open palm"</kbd><span>"Pan"</span></div>
-                        <div><kbd>"Quick swipe"</kbd><span>"Rotate"</span></div>
-                        <div><kbd>"Two-hand spread"</kbd><span>"Zoom"</span></div>
+                        <div><kbd>"Open palm"</kbd><span>"Pan left/right and up/down"</span></div>
+                        <div><kbd>"Closed hand (IR)"</kbd><span>"Orbit left/right and up/down"</span></div>
+                        <div><kbd>"Quick swipe (webcam)"</kbd><span>"Rotate"</span></div>
+                        <div><kbd>"Two open palms"</kbd><span>"Zoom; relax either hand to release"</span></div>
                     </section>
                     <section class="input-status">
                         <span class="settings-label">"Hand input"</span>
