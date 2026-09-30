@@ -37,8 +37,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Ok(([("content-type", "application/sparql-results+json")], bytes))
     }
     let app = Router::new().route("/query", post(query)).with_state(store);
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:7878").await?;
-    println!("Ephemeral pilot Oxigraph test service at http://127.0.0.1:7878/query");
+    let address = std::env::var("PILOT_GRAPH_ADDR").unwrap_or_else(|_| "127.0.0.1:7878".into());
+    let listener = tokio::net::TcpListener::bind(&address).await?;
+    println!("Ephemeral pilot Oxigraph test service at http://{address}/query");
     axum::serve(listener, app).await?;
     Ok(())
 }

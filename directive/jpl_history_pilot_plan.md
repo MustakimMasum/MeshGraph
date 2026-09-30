@@ -1,7 +1,15 @@
 # JPL History Pilot — Execution Plan
 
-Status: Pilot implemented; automated integration verification passed. Physical-device,
-Docker persistence, and professor evaluation remain explicit acceptance items.
+Status: Phases 1–6 implemented; Phase 7 software and evaluation package implemented.
+Checkpoint D remains open for physical-device, Docker persistence, and professor
+evaluation. The next phase is acceptance and feedback, not authoring or deployment.
+
+Phase 7 acceptance follow-up (2026-09-30): the headset card now cycles all recorded
+connections and exposes endpoints, source IDs, original Relation/Meaning/Direction
+values, and supported labels. Browser simulation covers these controls and shared
+gesture pan/zoom/pinch selection. Use the
+[acceptance record](jpl_history_acceptance_record.md) for actual reader and device
+sessions; do not count simulation as physical acceptance.
 
 Implementation decisions: the importer uses standard-library Python for JSONL,
 HTML text extraction, SHA-256 hashing, and deterministic output. The gateway and
@@ -56,7 +64,7 @@ Defer authoring, collaborative annotation, TheBrain synchronization, automatic i
 
 Keep storage, gateway, and presentation separate. Import into a dedicated JPL named RDF graph. The browser requests history data through Axum.
 
-Use a Rust importer that runs locally against an explicit export directory. Preserve brain and record IDs as stable resource identifiers. Retain source fields, numeric values, and import provenance even when their meaning is unresolved. Record source file hashes and import/schema versions so reports and bookmarks can identify the dataset they refer to.
+Use the standard-library Python importer locally against an explicit export directory (see implementation decisions above). Preserve brain and record IDs as stable resource identifiers. Retain source fields, numeric values, and import provenance even when their meaning is unresolved. Record source file hashes and import/schema versions so reports and bookmarks can identify the dataset they refer to.
 
 Represent links as resources with their own IDs and properties, then derive navigable edges from them. This preserves parallel links, link metadata, and direction uncertainty. Preserve TypeId as well as explicit type/tag links and report inconsistencies. Keep attachment ownership capable of referencing a brain or a thought.
 

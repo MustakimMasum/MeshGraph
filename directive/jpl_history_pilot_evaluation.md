@@ -24,6 +24,8 @@ People → laboratory → Stories → a galaxy for Man and the Cosmos.
 
 Do not record an evaluation as passed until a reader actually performs it.
 Capture completion, time if useful, difficulty, and the reader's explanation.
+Use a copy of the [acceptance record](jpl_history_acceptance_record.md) to retain
+session details, observations, device evidence, and the next decision.
 
 ## Verification coverage
 
@@ -38,6 +40,22 @@ Initial implementation verification completed on 2026-09-30:
 
 These results verify software behavior. Reader evaluation and physical-device
 acceptance below remain open.
+
+Phase 7 acceptance follow-up on 2026-09-30:
+
+- 13 browser tests passed against the actual gateway and an isolated ephemeral
+  Oxigraph service on port 7879. The additional tests exercise all laboratory
+  relationship cards, wraparound, graph-transform preservation, and simulated
+  history gesture pan/zoom/pinch selection.
+- The 12 Rust tests, native/WASM checks and lint checks, formatting, and Trunk
+  build passed. No importer code changed in this follow-up.
+- The refreshed walkthrough includes a simulated XR relationship inspector;
+  `demo/jpl-history/xr-relationship-simulation.png` was visually inspected.
+- An existing `trunk watch` rebuilds when repository test artifacts change.
+  Browser verification wrote output outside the repository to avoid transient
+  page-load 404s during asset replacement; assertions were retained.
+- Docker engine access remains unavailable, and reader/physical-device sessions
+  were not performed. Checkpoint D is still open.
 
 - Importer: deterministic conversion, malformed JSON locations, dangling links,
   path containment, HTML text extraction, and external-file handling.
@@ -57,6 +75,12 @@ acceptance below remain open.
 Browser simulation verifies XR setup and card visibility; it does not establish
 headset readability, comfort, tracking accuracy, or controller usability.
 Physical headset, webcam, and Leap hardware sessions require separate results.
+
+The Phase 7 follow-up adds in-headset **Connection** and **Topic** controls.
+Connection cycles all recorded links for the topic and shows endpoints, IDs,
+original numeric values, and direction uncertainty. Next page handles long text.
+Automated gesture simulation exercises pan, zoom, and pinch against history;
+it does not establish camera recognition or physical Hyperion tracking quality.
 
 Docker Desktop was unavailable during initial implementation. Integration uses
 the real Oxigraph crate in a separate ephemeral HTTP test service and the actual

@@ -73,6 +73,17 @@ cargo run --bin meshgraph_gateway
 This uses real Oxigraph in memory on port 7878. Data disappears on exit, and live
 citation ingestion is unavailable. Use Docker for persistent storage and ingestion.
 
+If an existing database occupies port 7878, isolate the demo without changing it:
+
+```powershell
+# Database terminal
+$env:PILOT_GRAPH_ADDR='127.0.0.1:7879'
+cargo run --example pilot_graph_server
+# Gateway terminal
+$env:DATABASE_URL='http://127.0.0.1:7879/query'
+cargo run --bin meshgraph_gateway
+```
+
 ## Controls
 
 Use mouse drag to look around, **WASD** to move, **E/C** to move vertically, and
@@ -116,8 +127,17 @@ reloads **both** bundled graphs and resets live-ingested citation additions.
 Regenerate the citation seed with `npm run seed:generate`.
 
 See the [pilot plan](directive/jpl_history_pilot_plan.md) and
-[evaluation guide](directive/jpl_history_pilot_evaluation.md). Record a walkthrough
+[evaluation guide](directive/jpl_history_pilot_evaluation.md). Use the
+[acceptance record](directive/jpl_history_acceptance_record.md) for reader, physical
+input, and Docker persistence sessions. In VR, **Connection** cycles recorded
+relationships with source values, **Topic** returns to notes, and **Next page**
+advances long text. Record a walkthrough
 with `node scripts/record-history-demo.mjs`; output goes to `demo/jpl-history/`.
+An optional output directory argument writes elsewhere. The XR segment is a
+browser simulation. Stop `trunk watch` before recording or testing: generated
+artifacts can trigger rebuilds and interrupt page loads. Alternatively, use an
+output directory outside the repository, for example
+`npx playwright test --output "$env:TEMP/meshgraph-webxr"`.
 
 ## Verification
 
@@ -165,6 +185,7 @@ All abbreviated history paths in the table use the `/api/v1/history` prefix.
 | --- | --- |
 | `DATABASE_URL` | `http://localhost:7878/query` |
 | `DATABASE_UPDATE_URL` | Derived from the query URL as `/update`. |
+| `PILOT_GRAPH_ADDR` | `127.0.0.1:7878`; bind address for the ephemeral demo database only. |
 | `OPENALEX_EMAIL` | Optional contact for OpenAlex requests. |
 | `HYPERION_LEAPC_PATH` | Override the installed Hyperion `LeapC.dll` path. |
 | `HYPERION_BRIDGE_ADDR` | `127.0.0.1:6437` |

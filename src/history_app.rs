@@ -146,6 +146,26 @@ pub fn HistoryApp() -> impl IntoView {
                         }
                     }
                     Some("expand") => select.call(state.get_untracked().selected),
+                    Some("connection") => {
+                        if let Some(d) = data.get_untracked() {
+                            let id = state.get_untracked().selected;
+                            let links: Vec<_> = d
+                                .links
+                                .iter()
+                                .filter(|e| e.source == id || e.target == id)
+                                .collect();
+                            if !links.is_empty() {
+                                let current = selected_link.get_untracked();
+                                let next = links
+                                    .iter()
+                                    .position(|e| e.id == current)
+                                    .map(|i| (i + 1) % links.len())
+                                    .unwrap_or(0);
+                                selected_link.set(links[next].id.clone());
+                            }
+                        }
+                    }
+                    Some("topic") => selected_link.set(String::new()),
                     _ => {}
                 }
             });
@@ -234,12 +254,18 @@ pub fn HistoryApp() -> impl IntoView {
                 "history-render",
                 json!({"mode": "history", "nodes": nodes, "links": edges, "selected": current.selected, "path": current.path}),
             );
+        }
+    });
+
+    create_effect(move |_| {
+        if let Some(dataset) = data.get() {
+            let current = state.get();
+            let inspected = selected_link.get();
             if let Some(node) = dataset.nodes.iter().find(|n| n.id == current.selected) {
                 let connections: Vec<_> = dataset
                     .links
                     .iter()
                     .filter(|e| e.source == node.id || e.target == node.id)
-                    .take(6)
                     .map(|e| {
                         let id = if e.source == node.id {
                             &e.target
@@ -260,7 +286,21 @@ pub fn HistoryApp() -> impl IntoView {
                     .collect();
                 emit(
                     "history-detail",
-                    json!({"title": node.title, "notes": node.notes, "connections": connections}),
+                    json!({"title": node.title, "notes": node.notes, "connections": connections,
+                    "relationship": dataset.links.iter().find(|e| e.id == inspected).map(|e| {
+                        let title = |id: &str| dataset.nodes.iter().find(|n| n.id == id)
+                            .map(|n| n.title.as_str()).unwrap_or("Unknown");
+                        json!({"id": e.id, "source": title(&e.source), "target": title(&e.target),
+                            "sourceId": e.source, "targetId": e.target, "name": e.name,
+                            "kind": e.kind, "meaningLabel": e.meaning_label,
+                            "directionLabel": e.direction_label, "relation": e.relation,
+                            "meaning": e.meaning, "direction": e.direction})
+                    })}),
+                );
+            } else {
+                emit(
+                    "history-detail",
+                    json!({"title": "Select a topic", "notes": "", "connections": []}),
                 );
             }
         }

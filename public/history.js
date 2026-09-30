@@ -66,7 +66,7 @@
       this.card.setAttribute("visible", false);
       const background = document.createElement("a-plane");
       background.setAttribute("width", "1.45");
-      background.setAttribute("height", "1.1");
+      background.setAttribute("height", "1.3");
       background.setAttribute("material", "color: #eef4f8; opacity: 0.96; shader: flat; side: double");
       this.card.appendChild(background);
       this.text = document.createElement("a-entity");
@@ -77,12 +77,15 @@
         ["Home", () => notify("history-xr-action", "home")],
         ["Expand", () => notify("history-xr-action", "expand")],
         ["Focus", () => document.getElementById("citation-graph")?.components?.["af-force-graph"]?.focusSelected()],
+        ["Connection", () => notify("history-xr-action", "connection")],
+        ["Topic", () => notify("history-xr-action", "topic")],
         ["Next page", () => { this.page++; this.updateDetail(); }],
       ].forEach(([label, action], i) => {
         const button = document.createElement("a-plane");
         button.classList.add("history-xr-button");
-        button.setAttribute("position", `${-0.52 + i * 0.35} -0.43 0.03`);
-        button.setAttribute("width", "0.32");
+        button.setAttribute("data-action", label);
+        button.setAttribute("position", `${-0.46 + (i % 3) * 0.46} ${-0.4 - Math.floor(i / 3) * 0.16} 0.03`);
+        button.setAttribute("width", "0.42");
         button.setAttribute("height", "0.12");
         button.setAttribute("material", "color: #244d63; shader: flat");
         button.setAttribute("text", { value: label, align: "center", width: 0.85, color: "#fff" });
@@ -93,7 +96,10 @@
     },
     updateDetail() {
       if (!detail || !this.text) return;
-      const content = `${detail.title}\n\n${detail.notes || "No note supplied."}\n\nConnections (direction unresolved):\n${(detail.connections || []).join("\n")}`;
+      const link = detail.relationship;
+      const content = link
+        ? `Relationship\n${link.source}\n${link.target}\n${link.name || "Unnamed connection"}\n${link.kind} · ${link.meaningLabel}\n${link.directionLabel}\nOriginal values: Relation ${link.relation}; Meaning ${link.meaning}; Direction ${link.direction}\nLink ID: ${link.id}\nSource ID: ${link.sourceId}\nTarget ID: ${link.targetId}\n\nConnection cycles through recorded links. Topic returns to notes.`
+        : `${detail.title}\n\n${detail.notes || "No note supplied."}\n\nRecorded connections:\n${(detail.connections || []).join("\n")}\n\nConnection inspects each recorded link.`;
       const chunks = content.match(/[\s\S]{1,520}/g) || [content];
       this.page %= chunks.length;
       this.text.setAttribute("text", "value", `${chunks[this.page]}\n\nPage ${this.page + 1}/${chunks.length}`);
