@@ -187,3 +187,59 @@ test("JPL IR focused pinch selects without panning and empty-space pinch pans", 
   expect(drag.stationaryDelta).toBe(0);
   expect(drag.emptyPanDelta).toBeGreaterThan(0);
 });
+
+
+test("JPL selection preserves zoom, graph transform, camera, and existing node positions", async ({ page }) => {
+  await openHistory(page);
+  await page.waitForFunction(() => document.querySelector("#citation-graph")?.components?.["af-force-graph"]?.nodeMesh);
+  // Allow the initial fit to finish before navigating away from the home view.
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  const before = await page.evaluate(() => {
+    const element = document.getElementById("citation-graph");
+    const renderer = element.components["af-force-graph"];
+    // Freeze the force simulation to isolate movement caused by selection.
+    renderer.tick = () => {};
+    element.object3D.scale.multiplyScalar(1.8);
+    element.object3D.position.add(new THREE.Vector3(1.2, -0.4, 0.7));
+    element.object3D.rotation.set(0.15, 0.35, -0.05);
+    const snapshot = () => {
+      element.object3D.updateWorldMatrix(true, false);
+      return {
+        position: element.object3D.position.toArray(),
+        quaternion: element.object3D.quaternion.toArray(),
+        scale: element.object3D.scale.toArray(),
+        rig: document.getElementById("rig").object3D.position.toArray(),
+        camera: document.getElementById("research-camera").object3D.quaternion.toArray(),
+        nodes: Object.fromEntries(renderer.nodes.map((node, index) => [node.id,
+          element.object3D.localToWorld(new THREE.Vector3().fromArray(renderer.positions, index * 3)).toArray()])),
+      };
+    };
+    window.__historyViewSnapshot = snapshot;
+    const target = renderer.nodes.findIndex(node => node.id !== renderer.lastSelectedId);
+    if (target < 0) throw new Error("No alternate JPL node to select");
+    const view = snapshot();
+    const revision = document.getElementById("history-scene").components["history-bridge"].revision;
+    const title = renderer.nodes[target].title;
+    renderer.selectInstance(target);
+    return { view, revision, title };
+  });
+  await expect(page.locator("#history-panel h2")).toHaveText(before.title);
+  await page.waitForFunction(revision => document.getElementById("history-scene").components["history-bridge"].revision > revision, before.revision);
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  const after = await page.evaluate(() => window.__historyViewSnapshot());
+  for (const field of ["position", "quaternion", "scale", "rig", "camera"]) {
+    expect(after[field]).toEqual(before.view[field]);
+  }
+  for (const [id, position] of Object.entries(before.view.nodes)) {
+    if (after.nodes[id]) expect(after.nodes[id]).toEqual(position);
+  }
+  const unchangedLayout = await page.evaluate(() => {
+    const renderer = document.getElementById("citation-graph").components["af-force-graph"];
+    window.__previousHistoryMesh = renderer.nodeMesh;
+    const revision = document.getElementById("history-scene").components["history-bridge"].revision;
+    renderer.selectInstance(renderer.selectedIndex);
+    return revision;
+  });
+  await page.waitForFunction(revision => document.getElementById("history-scene").components["history-bridge"].revision > revision, unchangedLayout);
+  expect(await page.evaluate(() => document.getElementById("citation-graph").components["af-force-graph"].nodeMesh === window.__previousHistoryMesh)).toBe(true);
+});

@@ -86,10 +86,23 @@
       }
     },
 
-    buildGraph(graph) {
+    buildGraph(graph, { preserveView = false } = {}) {
+      const previousLayout = new Map();
+      if (preserveView) {
+        this.nodes.forEach((node, index) => {
+          previousLayout.set(node.id, {
+            position: this.positions.slice(index * 3, index * 3 + 3),
+            velocity: this.velocities.slice(index * 2, index * 2 + 2),
+            anchor: this.anchorPositions.slice(index * 2, index * 2 + 2),
+          });
+        });
+        this.focusAnimation = null;
+      }
       this.disposeGraph();
-      this.el.object3D.scale.setScalar(1);
-      this.homeScale.setScalar(1);
+      if (!preserveView) {
+        this.el.object3D.scale.setScalar(1);
+        this.homeScale.setScalar(1);
+      }
       this.nodes = (graph.nodes || []).slice(0, this.data.maxNodes);
       const nodeIds = new Set(this.nodes.map((node) => node.id));
       this.links = (graph.links || []).filter(
@@ -208,6 +221,17 @@
           this.anchorPositions[index * 2 + 1] = this.positions[offset + 1];
         });
       }
+      // Expanding a selected neighborhood can add nodes, but existing nodes
+      // retain their current layout and motion instead of jumping to a new fit.
+      if (preserveView) {
+        this.nodes.forEach((node, index) => {
+          const previous = previousLayout.get(node.id);
+          if (!previous) return;
+          this.positions.set(previous.position, index * 3);
+          this.velocities.set(previous.velocity, index * 2);
+          this.anchorPositions.set(previous.anchor, index * 2);
+        });
+      }
       material.needsUpdate = true;
       if (this.nodeMesh.instanceColor) {
         this.nodeMesh.instanceColor.setUsage(THREE.DynamicDrawUsage);
@@ -234,7 +258,12 @@
       this.el.setObject3D("citation-links", this.linkLines);
       this.updateInstances();
       this.updateLinks();
-      requestAnimationFrame(() => this.centerLayoutInViewport());
+      if (!preserveView) {
+        const builtMesh = this.nodeMesh;
+        requestAnimationFrame(() => {
+          if (this.nodeMesh === builtMesh) this.centerLayoutInViewport();
+        });
+      }
     },
 
     yearToZ(year) {

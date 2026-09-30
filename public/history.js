@@ -136,7 +136,18 @@
       }
       if (!renderer || !graph || this.revision === revision) return;
       this.revision = revision;
-      renderer.buildGraph(graph);
+      const layoutSignature = JSON.stringify({ nodes: graph.nodes, links: graph.links });
+      if (!renderer.nodeMesh || this.layoutSignature !== layoutSignature) {
+        renderer.buildGraph(graph, { preserveView: Boolean(renderer.nodeMesh) });
+        this.layoutSignature = layoutSignature;
+      } else {
+        // Selection and path highlights only change colors, not the layout.
+        renderer.clearSelection();
+        renderer.focusAnimation = null;
+        graph.nodes.forEach((node, index) => {
+          renderer.nodeMesh.setColorAt(index, renderer.topicColor(node.topic || "Unclassified"));
+        });
+      }
       this.labels.replaceChildren();
       this.labelItems = graph.nodes.map((node, index) => ({ node, index }))
         .sort((a, b) => Number(b.node.id === graph.selected) - Number(a.node.id === graph.selected)).slice(0, 30)
