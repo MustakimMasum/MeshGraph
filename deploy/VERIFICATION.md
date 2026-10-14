@@ -26,6 +26,11 @@ in Ubuntu WSL. Docker Engine version: 29.8.1.
 | Windows companion installer and background bridge builds | Passed; both use GUI subsystem, no console |
 | Native bridge background startup and Hyperion connection | Passed on the developer's Windows machine |
 | Native duplicate-launch handling and unapproved-origin rejection | Passed |
+| Driver-loading failure recovery | Passed; tracking resumed in the same process after the driver was corrected |
+| Companion restart of a failed bridge | Passed with corrected settings; healthy running bridge retained |
+| App restart after an open Leap connection reports an error | Passed; old socket closed, companion launched once, reconnect succeeded |
+| Backup concurrency/failure regression tests | 3 passed, including cross-checkout overlap and lock retention through restart |
+| Real Docker backup with the default per-volume lock | Passed; archive created, services restarted, history counts preserved |
 
 The tested Oxigraph image is pinned in `.env.cloud.example`:
 

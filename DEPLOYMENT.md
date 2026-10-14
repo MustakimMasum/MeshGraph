@@ -313,6 +313,12 @@ not on the VPS. It is not required for ordinary browsing or webcam controls.
    toggles hand input off when finished. The background bridge can remain running
    for the next session; closing it in Task Manager is optional.
 
+Tracking initialization/polling failures are retried automatically every two
+seconds. If a failure needs corrected driver settings, fix the settings and use
+**Start Leap Motion** in the app's setup panel. The companion restarts only its
+own failed bridge with those settings; a healthy bridge is retained. No terminal
+or Task Manager step is needed for this recovery.
+
 The registered `meshgraph-leap://` handler accepts an application origin, not an
 arbitrary command. The bridge binds only to loopback and permits approved web
 origins. Hyperion must be installed locally; its driver cannot be embedded in a
@@ -362,6 +368,12 @@ existing collections, including live-ingested citations.
 
 The included script makes a consistent filesystem backup by briefly stopping
 the gateway and database. It restarts both on exit, including most failure cases.
+It requires `flock` from `util-linux` (included with normal Ubuntu installations).
+An exclusive lock in `/var/lock/meshgraph/` is keyed to the database volume and
+held until copying and service restart finish. An overlapping run exits **75**
+without stopping services or writing a backup. This applies across deployment
+checkouts and both Compose modes targeting the same volume. Do not remove lock
+files while a backup runs; the kernel releases the lock automatically on exit.
 Run it from `/opt/meshgraph` with the chosen Compose file:
 
 ```sh

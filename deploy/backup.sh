@@ -17,11 +17,6 @@ case "$output" in
     /*.tar.gz) ;;
     *) echo 'Output must be an absolute path ending in .tar.gz' >&2; exit 1 ;;
 esac
-if [ -e "$output" ] || [ -e "$output.partial" ]; then
-    echo 'Output or partial output already exists; choose a new filename' >&2
-    exit 1
-fi
-
 compose() {
     docker compose --env-file .env.cloud -f "$compose_file" "$@"
 }
@@ -31,6 +26,28 @@ if [ -z "$database_container" ]; then
     echo 'Database container does not exist; deploy the stack first' >&2
     exit 1
 fi
+# Use the persistent volume identity, so different checkouts and Compose files
+# targeting the same database share the same lock. Hold it through the EXIT trap.
+data_volume=$(docker inspect --format '{{range .Mounts}}{{if eq .Destination "/data"}}{{.Name}}{{end}}{{end}}' "$database_container")
+case "$data_volume" in
+    ''|*[!a-zA-Z0-9_.-]*) echo 'Could not identify the named database volume' >&2; exit 1 ;;
+esac
+if ! command -v flock >/dev/null 2>&1; then
+    echo 'Install util-linux (flock) before running backups' >&2
+    exit 1
+fi
+lock_dir="${MESHGRAPH_BACKUP_LOCK_DIR:-/var/lock/meshgraph}"
+mkdir -p "$lock_dir"
+exec 9>"$lock_dir/$data_volume.lock"
+if ! flock -n 9; then
+    echo "A backup of $data_volume is already running; this run was skipped" >&2
+    exit 75
+fi
+if [ -e "$output" ] || [ -e "$output.partial" ]; then
+    echo 'Output or partial output already exists; choose a new filename' >&2
+    exit 1
+fi
+
 for service in oxigraph_db axum_gateway; do
     container=$(compose ps --quiet "$service")
     if [ -z "$container" ] || [ "$(docker inspect --format '{{.State.Running}}' "$container")" != true ]; then

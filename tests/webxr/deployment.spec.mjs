@@ -90,3 +90,35 @@ test("Leap Motion opens its companion and reconnects without a command-line inst
   expect(installer.ok()).toBeTruthy();
   expect((await installer.body()).subarray(0, 2).toString()).toBe("MZ");
 });
+
+test("a failed connected Leap bridge can be restarted from the app", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForFunction(() => document.querySelector("a-scene")?.components?.["gesture-controls"]);
+  await page.evaluate(() => {
+    const input = document.querySelector("a-scene").components["gesture-controls"];
+    window.leapLaunches = 0;
+    window.leapConnections = 0;
+    window.leapClosed = 0;
+    input.launchHyperionCompanion = () => { window.leapLaunches++; input.showHyperionSetup(); };
+    const NativeWebSocket = window.WebSocket;
+    window.WebSocket = class {
+      constructor(url) {
+        if (!String(url).includes("127.0.0.1:6437")) return new NativeWebSocket(url);
+        this.listeners = {};
+        const attempt = ++window.leapConnections;
+        setTimeout(() => {
+          this.listeners.open?.({});
+          this.listeners.message?.({ data: JSON.stringify({ type: "status", state: attempt === 1 ? "error" : "connected", message: "Tracking status" }) });
+        }, 20);
+      }
+      addEventListener(name, callback) { this.listeners[name] = callback; }
+      close() { window.leapClosed++; this.listeners.close?.({}); }
+    };
+  });
+  await page.getByRole("button", { name: "Use Leap Motion infrared hand input" }).click();
+  await expect(page.getByRole("dialog", { name: "Leap Motion setup" })).toBeVisible();
+  await page.getByRole("button", { name: "Start Leap Motion", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "Leap Motion setup" })).toHaveCount(0);
+  await page.waitForFunction(() => window.leapConnections === 2 && document.querySelector("a-scene").components["gesture-controls"].running);
+  expect(await page.evaluate(() => [window.leapLaunches, window.leapConnections, window.leapClosed])).toEqual([1, 2, 1]);
+});

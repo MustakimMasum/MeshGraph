@@ -29,6 +29,7 @@ mod windows_bridge {
     const EVENT_TRACKING: i32 = 0x100;
     const DEFAULT_BRIDGE_ADDR: &str = "127.0.0.1:6437";
     const DEFAULT_LEAPC_PATH: &str = r"C:\Program Files\Ultraleap\LeapSDK\lib\x64\LeapC.dll";
+    const TRACKING_RETRY_DELAY: Duration = Duration::from_secs(2);
 
     type LeapConnection = *mut c_void;
     type LeapCreateConnection = unsafe extern "C" fn(*const c_void, *mut LeapConnection) -> u32;
@@ -193,10 +194,11 @@ mod windows_bridge {
         thread::Builder::new()
             .name("hyperion-leapc-poll".to_owned())
             .spawn(move || {
-                if let Err(error) = poll_hyperion(sender.clone()) {
-                    let message = format!("Hyperion bridge stopped: {error}");
-                    eprintln!("{message}");
-                    let _ = sender.send(status_json("error", &message));
+                while let Err(error) = poll_hyperion(sender.clone()) {
+                        let message = format!("Hyperion tracking unavailable: {error}. Retrying in 2 seconds; use Start Leap Motion to restart with updated settings.");
+                        eprintln!("{message}");
+                        let _ = sender.send(status_json("error", &message));
+                        thread::sleep(TRACKING_RETRY_DELAY);
                 }
             })?;
 
@@ -345,10 +347,7 @@ mod windows_bridge {
                 continue;
             }
             if result != LEAP_SUCCESS {
-                let detail = format!("LeapPollConnection failed with 0x{result:08X}");
-                let _ = sender.send(status_json("error", &detail));
-                thread::sleep(Duration::from_millis(250));
-                continue;
+                return Err(format!("LeapPollConnection failed with 0x{result:08X}").into());
             }
 
             match message.event_type {

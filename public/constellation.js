@@ -837,7 +837,7 @@
       }
     },
 
-    startHyperion() {
+    startHyperion(companionRequested = false) {
       if (this.running || this.starting) return;
       this.starting = true;
       this.handCount = -1;
@@ -846,7 +846,7 @@
       this.hyperionPinching = false;
       this.resetHyperionNavigation();
       const startToken = ++this.startToken;
-      let launchAttempted = false;
+      let launchAttempted = companionRequested;
       const deadline = performance.now() + 30000;
       const connect = () => {
         if (startToken !== this.startToken) return;
@@ -927,8 +927,10 @@
       open.type = "button";
       open.textContent = "Start Leap Motion";
       open.addEventListener("click", () => {
+        this.stop();
+        this.inputSource = "hyperion";
         this.launchHyperionCompanion();
-        if (!this.running && !this.starting) this.startHyperion();
+        this.startHyperion(true);
       });
       const close = document.createElement("button");
       close.type = "button";
@@ -940,6 +942,13 @@
 
     onHyperionMessage(message) {
       if (message?.type === "status") {
+        if (message.state === "error") {
+          this.hyperionFailed = true;
+          this.showHyperionSetup();
+        } else if (this.hyperionFailed && ["connected", "device-connected"].includes(message.state)) {
+          this.hyperionFailed = false;
+          document.getElementById("leap-companion-setup")?.remove();
+        }
         this.resetHyperionNavigation();
         this.hyperionHands.clear();
         this.hyperionPinching = false;

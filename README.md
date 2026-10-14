@@ -212,6 +212,10 @@ The companion installs for the current Windows account and registers the
 interface; it does not connect to the developer's machine. The VPS release
 includes the installer at `/public/downloads/MeshGraphLeapSetup.exe`.
 
+Tracking failures retry automatically. After correcting driver settings, use
+**Start Leap Motion** in the app's setup panel to restart a failed companion;
+healthy running bridges are retained.
+
 For maintainers rebuilding the installer on Windows:
 
 ```powershell

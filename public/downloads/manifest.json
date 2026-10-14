@@ -1,5 +1,5 @@
 {
-    "installer_sha256":  "0970d39d71362018e1954ac5108b6f71fde3faae78851fd289ce5a3b71cc6dd7",
-    "bridge_sha256":  "6ed2c169f8f2c4a02f349be40d55c36b803267493ea802fa4f31813b9a65e42f",
+    "installer_sha256":  "78b9f812d8aec5f9a647da941b9c2bf078f62087ed3b3f52e68bba52853c01d6",
+    "bridge_sha256":  "6fd2a979a79b6602851e5eadf36a63c57496f529e70d4b3efe823dbd96d9f5f3",
     "platform":  "Windows x86-64"
 }

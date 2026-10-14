@@ -10,7 +10,7 @@ try {
     $meshgraphBridgeBinary = Join-Path $meshgraphRoot 'target\release\hyperion_bridge.exe'
     $meshgraphSetupBinary = Join-Path $meshgraphDownloadDir 'MeshGraphLeapSetup.exe'
     $meshgraphCompanionSource = Join-Path $meshgraphRoot 'deploy\windows\LeapCompanion.cs'
-    & $meshgraphCompiler /nologo /target:winexe /platform:x64 /reference:System.Windows.Forms.dll `
+    & $meshgraphCompiler /nologo /target:winexe /platform:x64 /reference:System.Windows.Forms.dll /reference:System.Web.Extensions.dll `
         "/resource:$meshgraphBridgeBinary,hyperion_bridge.exe" `
         "/out:$meshgraphSetupBinary" $meshgraphCompanionSource
     if ($LASTEXITCODE -ne 0) { throw 'Companion build failed' }
