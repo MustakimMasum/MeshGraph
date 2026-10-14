@@ -209,8 +209,12 @@ background, with no terminal or `cargo run` step.
 
 The companion installs for the current Windows account and registers the
 `meshgraph-leap://` launcher. It connects only to the sensor computer's loopback
-interface; it does not connect to the developer's machine. The VPS release
-includes the installer at `/public/downloads/MeshGraphLeapSetup.exe`.
+interface; it does not connect to the developer's machine. The complete VPS
+release includes the installer at `/public/downloads/MeshGraphLeapSetup.exe`.
+The `meshgraph-vps-server.zip` variant omits the installer and native companion
+build files. New Leap Motion users then need an approved installer from their
+administrator; already-installed companions still launch from the app.
+Mouse/keyboard, webcam, and supported WebXR do not need the companion.
 
 Tracking failures retry automatically. After correcting driver settings, use
 **Start Leap Motion** in the app's setup panel to restart a failed companion;

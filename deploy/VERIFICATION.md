@@ -42,6 +42,28 @@ The checks used isolated Compose projects. Their temporary containers and
 database volumes were removed after testing; the developer's database was
 untouched.
 
+## Server-only release
+
+The `meshgraph-vps-server.zip` variant was additionally checked on 14 October
+2026. It omits the Windows companion installer/manifest, C# launcher source,
+native bridge source, and PowerShell build script. The native checks in the
+table above apply to the complete release, not to an included installer in this
+variant.
+
+- ZIP integrity, source-file comparison, and all 14 browser asset hashes passed.
+- Windows Defender custom archive scan reported no threats.
+- Packaging from an extracted server-only ZIP passed.
+- Docker frontend/gateway build and fresh database seeding passed using only
+  the extracted server-only release.
+- Three browser checks passed: both collections and webcam model with external
+  requests blocked; omitted-installer explanation; app restart of an already
+  installed failed companion. The included-installer check was deliberately
+  skipped because this variant contains no installer.
+- All 21 gesture regression tests passed.
+
+These checks do not establish which file Google flagged or guarantee acceptance
+by Google Drive or Gmail.
+
 Public DNS/certificate issuance, integration with the professor's existing proxy,
 visual browser acceptance, and physical webcam/VR/Leap Motion behavior require
 the on-server and browser checks in `DEPLOYMENT.md`. This record does not claim

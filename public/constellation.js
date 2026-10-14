@@ -923,6 +923,16 @@
       download.href = "/public/downloads/MeshGraphLeapSetup.exe";
       download.textContent = "Download Windows companion";
       download.setAttribute("download", "MeshGraphLeapSetup.exe");
+      download.hidden = true;
+      const availability = document.createElement("p");
+      availability.textContent = "Checking Windows companion availability…";
+      fetch(download.href, { method: "HEAD" }).then((response) => {
+        if (!response.ok) throw new Error("Companion unavailable");
+        download.hidden = false;
+        availability.remove();
+      }).catch(() => {
+        availability.textContent = "The Windows companion is not included on this server. Ask your administrator for an approved installer. If it is already installed, use Start Leap Motion below.";
+      });
       const open = document.createElement("button");
       open.type = "button";
       open.textContent = "Start Leap Motion";
@@ -936,7 +946,7 @@
       close.type = "button";
       close.textContent = "Close";
       close.addEventListener("click", () => panel.remove());
-      panel.append(heading, description, download, document.createElement("br"), open, close);
+      panel.append(heading, description, availability, download, document.createElement("br"), open, close);
       document.body.append(panel);
     },
 

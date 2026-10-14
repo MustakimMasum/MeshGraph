@@ -5,6 +5,22 @@ Citation Explorer and JPL History app on an existing Linux VPS. All server
 commands below run in a Linux shell. No Rust, Node.js, or Trunk installation is
 needed on the host: Docker builds the application.
 
+## Release variants
+
+Use **`meshgraph-vps-server.zip`** for the server-only handoff. It includes the
+complete VPS app, datasets, browser libraries, and webcam model, but omits the
+optional Windows Leap Motion installer, its manifest, and its native build
+sources/scripts. Ordinary browsing, webcam input, and supported WebXR still work.
+New Leap Motion users need an administrator-approved companion installer supplied
+separately; an already-installed companion can still be started from the app.
+The app explains when the installer is unavailable instead of offering a broken
+download link. Removing the installer does not guarantee Google will accept the
+archive, and Gmail still blocks JavaScript files inside ZIP attachments.
+
+The original **`meshgraph-vps.zip`** also includes the Windows companion.
+Instructions below use the server-only filename; substitute the original
+filename if deploying the complete release.
+
 ## Independence from the developer's computer
 
 The VPS hosts the frontend, gateway, persistent Oxigraph database, bundled
@@ -112,26 +128,24 @@ sudo docker compose version
 
 ## 3. Transfer the release
 
-The supplied `meshgraph-vps.zip` contains the application source, bundled RDF
+The supplied `meshgraph-vps-server.zip` contains the application source, bundled RDF
 data, frontend assets, deployment configuration, and this guide. It excludes the
 developer's database, compiled assets, Git metadata, and private environment file.
 
 From your own workstation, transfer it using your normal SSH credentials:
 
 ```sh
-scp meshgraph-vps.zip meshgraph-vps.zip.sha256 ADMIN_USER@VPS_IP:/tmp/
+scp meshgraph-vps-server.zip ADMIN_USER@VPS_IP:/tmp/
 ```
 
 On the VPS, use a new directory for the first deployment:
 
 ```sh
 cd /tmp
-sha256sum -c meshgraph-vps.zip.sha256
-# Continue only when the checksum reports OK.
 sudo mkdir -p /opt/meshgraph
 sudo chown "$(id -un):$(id -gn)" /opt/meshgraph
 cd /opt/meshgraph
-unzip /tmp/meshgraph-vps.zip
+unzip /tmp/meshgraph-vps-server.zip
 test -f Cargo.lock
 test -f data/citations.ttl
 test -f data/jpl-history/history.ttl
@@ -139,11 +153,10 @@ test -f scripts/seed-graphs.sh
 ```
 
 Install `unzip` through your OS package manager if needed. Alternatively, clone
-the complete repository into `/opt/meshgraph` and ensure the prebuilt
-`public/downloads/MeshGraphLeapSetup.exe` from the supplied release is present.
-Building that optional Windows installer from source requires a Windows build
-machine; the ZIP already contains it, so the VPS administrator needs no Windows
-tools or connection to the developer's computer.
+the repository into `/opt/meshgraph`. The Windows companion is optional and is
+not needed to build or run the VPS app. The complete release contains its
+prebuilt installer; the server-only release omits it. Building that installer
+from source requires a Windows build machine and the complete repository.
 On an existing installation, back up first and follow the update section instead
 of extracting over a live release.
 
@@ -304,8 +317,10 @@ not on the VPS. It is not required for ordinary browsing or webcam controls.
 1. Install Ultraleap Hyperion and connect the Leap Motion sensor on that computer.
 2. In the deployed app, click **Leap Motion**. The app attempts to open the
    companion automatically and shows setup instructions when it cannot connect.
-3. On first use, download **Windows companion** from the app and double-click
-   `MeshGraphLeapSetup.exe`. This per-user GUI installer needs no command prompt.
+3. On first use, download **Windows companion** from the app if offered, or obtain
+   the administrator-approved installer separately. The server-only release
+   does not include it. Double-click `MeshGraphLeapSetup.exe`; this per-user GUI
+   installer needs no command prompt.
 4. Return to the app and click **Start Leap Motion** or its Leap Motion button.
    Allow the browser to open `MeshGraphLeap`, and approve this app's hostname in
    the companion's first-use dialog. The bridge starts in the background.
@@ -332,6 +347,12 @@ institution's current Visual C++ Redistributable if Windows reports a missing
 For a Hyperion DLL installed outside the standard path, the administrator can
 set the user's `HYPERION_LEAPC_PATH` environment variable through Windows System
 Properties. No daily command-line operation is needed.
+
+To add the optional installer to a server-only deployment later, obtain an
+approved build from the complete repository, put `MeshGraphLeapSetup.exe` and
+its matching `manifest.json` in `public/downloads/`, rebuild the gateway image,
+and redeploy using the update procedure below. The app will then offer its
+download. Do not download an installer from an untrusted source.
 
 ### Record the deployed image
 
@@ -468,8 +489,10 @@ to perform a JPL-only update.
 ## Release preparation and references
 
 To regenerate the handoff archive from the development repository, run
-`python scripts/package-deployment.py`. Output is `releases/meshgraph-vps.zip`
-with a SHA-256 checksum file next to it. Give the archive and this guide to the
+`python scripts/package-deployment.py --server-only`. Output is
+`releases/meshgraph-vps-server.zip`. Omit `--server-only` to build the complete
+release with the Windows companion. A checksum file is generated for internal
+verification; sharing it is optional. Give the archive and this guide to the
 tech person; share server credentials through the institution's usual channel.
 
 Configuration references:

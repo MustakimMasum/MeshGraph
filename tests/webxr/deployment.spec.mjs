@@ -59,6 +59,7 @@ test("deployed collections and webcam runtime work with all external browser req
 });
 
 test("Leap Motion opens its companion and reconnects without a command-line instruction", async ({ page }) => {
+  test.skip(process.env.MESHGRAPH_SERVER_ONLY === "1", "Server-only release intentionally omits the installer");
   await page.goto("/");
   await page.waitForFunction(() => document.querySelector("a-scene")?.components?.["gesture-controls"]);
   await page.evaluate(() => {
@@ -89,6 +90,17 @@ test("Leap Motion opens its companion and reconnects without a command-line inst
   const installer = await page.request.get("/public/downloads/MeshGraphLeapSetup.exe");
   expect(installer.ok()).toBeTruthy();
   expect((await installer.body()).subarray(0, 2).toString()).toBe("MZ");
+});
+
+test("Leap setup explains an omitted installer and keeps the app launch control", async ({ page }) => {
+  await page.route("**/public/downloads/MeshGraphLeapSetup.exe", (route) => route.fulfill({ status: 404, body: "Not found" }));
+  await page.goto("/");
+  await page.waitForFunction(() => document.querySelector("a-scene")?.components?.["gesture-controls"]);
+  await page.evaluate(() => document.querySelector("a-scene").components["gesture-controls"].showHyperionSetup());
+  const panel = page.getByRole("dialog", { name: "Leap Motion setup" });
+  await expect(panel).toContainText("The Windows companion is not included on this server");
+  await expect(panel.getByRole("link", { name: "Download Windows companion" })).toHaveCount(0);
+  await expect(panel.getByRole("button", { name: "Start Leap Motion", exact: true })).toBeVisible();
 });
 
 test("a failed connected Leap bridge can be restarted from the app", async ({ page }) => {
