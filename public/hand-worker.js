@@ -1,6 +1,5 @@
-const MEDIAPIPE_VERSION = "0.10.35";
-const MEDIAPIPE_MODULE_URL =
-  `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MEDIAPIPE_VERSION}/vision_bundle.mjs`;
+const MEDIAPIPE_BASE_URL = new URL("./vendor/mediapipe/", self.location.href).href;
+const MEDIAPIPE_MODULE_URL = `${MEDIAPIPE_BASE_URL}vision_bundle.mjs`;
 
 const MAX_FLOATS = 126;
 let handLandmarker;
@@ -26,12 +25,12 @@ async function initialize(sharedBuffer) {
     initialization = (async () => {
       const { FilesetResolver, HandLandmarker } = await import(MEDIAPIPE_MODULE_URL);
       const files = await FilesetResolver.forVisionTasks(
-        `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MEDIAPIPE_VERSION}/wasm`,
+        `${MEDIAPIPE_BASE_URL}wasm`,
       );
       handLandmarker = await HandLandmarker.createFromOptions(files, {
         baseOptions: {
           modelAssetPath:
-            "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
+            `${MEDIAPIPE_BASE_URL}hand_landmarker.task`,
           delegate: "CPU",
         },
         runningMode: "VIDEO",

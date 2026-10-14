@@ -704,7 +704,7 @@
 
   AFRAME.registerComponent("gesture-controls", {
     schema: {
-      worker: { default: "/public/hand-worker.js?v=0.10.35-4" },
+      worker: { default: "/public/hand-worker.js?v=0.10.35-5" },
       hyperionUrl: { default: "ws://127.0.0.1:6437/hands" },
       graph: { type: "selector" },
       rig: { type: "selector" },
@@ -843,44 +843,96 @@
       this.hyperionPinching = false;
       this.resetHyperionNavigation();
       const startToken = ++this.startToken;
-      emitMacro("citation-gesture-status", "Connecting to the local Hyperion bridge…");
+      let launchAttempted = false;
+      const deadline = performance.now() + 30000;
+      const connect = () => {
+        if (startToken !== this.startToken) return;
+        emitMacro("citation-gesture-status", "Connecting to Leap Motion…");
+        try {
+          const socket = new WebSocket(this.data.hyperionUrl);
+          this.hyperionSocket = socket;
+          socket.addEventListener("open", () => {
+            if (startToken !== this.startToken) return;
+            document.getElementById("leap-companion-setup")?.remove();
+            this.running = true;
+            this.starting = false;
+            emitMacro("citation-gesture-status", "Hyperion bridge connected · waiting for tracking");
+          });
+          socket.addEventListener("message", (event) => {
+            if (startToken !== this.startToken) return;
+            try {
+              this.onHyperionMessage(JSON.parse(event.data));
+            } catch (error) {
+              console.warn("Ignoring invalid Hyperion bridge message", error);
+            }
+          });
+          socket.addEventListener("error", () => {
+            if (startToken !== this.startToken) return;
+            if (!launchAttempted) {
+              launchAttempted = true;
+              this.launchHyperionCompanion();
+            }
+          });
+          socket.addEventListener("close", () => {
+            if (startToken !== this.startToken) return;
+            if (this.starting && performance.now() < deadline) {
+              this.hyperionRetry = setTimeout(connect, 1000);
+              return;
+            }
+            this.running = false;
+            this.starting = false;
+            this.resetHyperionNavigation();
+            this.updatePointer(null);
+            this.showHyperionSetup();
+            emitMacro("citation-gesture-status", "Leap Motion unavailable · install the companion or allow it to open");
+          });
+        } catch (error) {
+          console.error("Unable to start Hyperion input", error);
+          this.showHyperionSetup();
+          this.stop(error?.message || "Hyperion input failed to initialize");
+        }
+      };
+      connect();
+    },
 
-      try {
-        const socket = new WebSocket(this.data.hyperionUrl);
-        this.hyperionSocket = socket;
-        socket.addEventListener("open", () => {
-          if (startToken !== this.startToken) return;
-          this.running = true;
-          this.starting = false;
-          emitMacro("citation-gesture-status", "Hyperion bridge connected · waiting for tracking");
-        });
-        socket.addEventListener("message", (event) => {
-          if (startToken !== this.startToken) return;
-          try {
-            this.onHyperionMessage(JSON.parse(event.data));
-          } catch (error) {
-            console.warn("Ignoring invalid Hyperion bridge message", error);
-          }
-        });
-        socket.addEventListener("error", () => {
-          if (startToken !== this.startToken) return;
-          emitMacro(
-            "citation-gesture-status",
-            "Hyperion bridge unavailable · run cargo run --bin hyperion_bridge",
-          );
-        });
-        socket.addEventListener("close", () => {
-          if (startToken !== this.startToken) return;
-          this.running = false;
-          this.starting = false;
-          this.resetHyperionNavigation();
-          this.updatePointer(null);
-          emitMacro("citation-gesture-status", "Hyperion bridge disconnected · toggle to retry");
-        });
-      } catch (error) {
-        console.error("Unable to start Hyperion input", error);
-        this.stop(error?.message || "Hyperion input failed to initialize");
+    launchHyperionCompanion() {
+      this.showHyperionSetup();
+      emitMacro("citation-gesture-status", "Allow the browser to open the Leap Motion companion…");
+      if (/Windows/i.test(navigator.userAgent)) {
+        window.location.href = `meshgraph-leap://start?origin=${encodeURIComponent(window.location.origin)}`;
       }
+    },
+
+    showHyperionSetup() {
+      if (document.getElementById("leap-companion-setup")) return;
+      const panel = document.createElement("section");
+      panel.id = "leap-companion-setup";
+      panel.setAttribute("role", "dialog");
+      panel.setAttribute("aria-label", "Leap Motion setup");
+      Object.assign(panel.style, { position: "fixed", right: "18px", bottom: "90px",
+        zIndex: "100", maxWidth: "340px", padding: "18px", borderRadius: "12px",
+        background: "#fff", color: "#17324d", boxShadow: "0 8px 36px #0003" });
+      const heading = document.createElement("h3");
+      heading.textContent = "Enable Leap Motion";
+      const description = document.createElement("p");
+      description.textContent = "On the Windows computer with the sensor, install Ultraleap Hyperion and the MeshGraph companion once. Then start it from this app. No terminal is needed.";
+      const download = document.createElement("a");
+      download.href = "/public/downloads/MeshGraphLeapSetup.exe";
+      download.textContent = "Download Windows companion";
+      download.setAttribute("download", "MeshGraphLeapSetup.exe");
+      const open = document.createElement("button");
+      open.type = "button";
+      open.textContent = "Start Leap Motion";
+      open.addEventListener("click", () => {
+        this.launchHyperionCompanion();
+        if (!this.running && !this.starting) this.startHyperion();
+      });
+      const close = document.createElement("button");
+      close.type = "button";
+      close.textContent = "Close";
+      close.addEventListener("click", () => panel.remove());
+      panel.append(heading, description, download, document.createElement("br"), open, close);
+      document.body.append(panel);
     },
 
     onHyperionMessage(message) {
@@ -1370,6 +1422,7 @@
 
     stop(status) {
       this.startToken += 1;
+      clearTimeout(this.hyperionRetry);
       this.running = false;
       this.starting = false;
       this.framePending = false;

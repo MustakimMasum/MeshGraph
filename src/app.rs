@@ -316,7 +316,7 @@ pub fn App() -> impl IntoView {
                 webxr="requiredFeatures: local-floor; optionalFeatures: bounded-floor, hand-tracking; referenceSpaceType: local-floor"
                 vr-mode-ui="enabled: false"
                 webxr-launcher
-                gesture-controls="worker: /public/hand-worker.js?v=0.10.35-4; graph: #citation-graph; rig: #rig"
+                gesture-controls="worker: /public/hand-worker.js?v=0.10.35-5; graph: #citation-graph; rig: #rig"
             >
                 <a-entity
                     id="citation-graph"

@@ -1,0 +1,70 @@
+{
+  "assets": [
+    {
+      "path": "public/vendor/aframe/aframe-1.4.2.min.js",
+      "source": "https://registry.npmjs.org/aframe/-/aframe-1.4.2.tgz",
+      "sha256": "7c31db6d32d2d16c5c9be7d7726ae67c03887d560701a9fa937a3a5c6bcae6db",
+      "bytes": 1325925
+    },
+    {
+      "path": "public/vendor/aframe/LICENSE",
+      "source": "https://registry.npmjs.org/aframe/-/aframe-1.4.2.tgz",
+      "sha256": "62ad4012d4dca628fccc35994e4d5bbd41991225f402642e31145d97f641a9cd",
+      "bytes": 1081
+    },
+    {
+      "path": "public/vendor/mediapipe/wasm/vision_wasm_internal.js",
+      "source": "https://registry.npmjs.org/@mediapipe/tasks-vision/-/tasks-vision-0.10.35.tgz",
+      "sha256": "e7fd9858e8e8f221d9b96eddc11f8e077f263e0b7bbd79d3cbe882b134274f8c",
+      "bytes": 322044
+    },
+    {
+      "path": "public/vendor/mediapipe/wasm/vision_wasm_module_internal.js",
+      "source": "https://registry.npmjs.org/@mediapipe/tasks-vision/-/tasks-vision-0.10.35.tgz",
+      "sha256": "1f1d6215324a1fe62f6742d49a3db911170987ca18ad8c1b75f1a1c82acf2b44",
+      "bytes": 322082
+    },
+    {
+      "path": "public/vendor/mediapipe/wasm/vision_wasm_nosimd_internal.js",
+      "source": "https://registry.npmjs.org/@mediapipe/tasks-vision/-/tasks-vision-0.10.35.tgz",
+      "sha256": "438d1fe8ff7f4d946025bc211c291543c037d8a3785ed4eee60f1f521b236296",
+      "bytes": 321847
+    },
+    {
+      "path": "public/vendor/mediapipe/vision_bundle.mjs",
+      "source": "https://registry.npmjs.org/@mediapipe/tasks-vision/-/tasks-vision-0.10.35.tgz",
+      "sha256": "55d7ab624fbb70dcc5adc4ae6d7ea9cfcb569139d3dbfbf2b1deafcb966bc0fe",
+      "bytes": 136993
+    },
+    {
+      "path": "public/vendor/mediapipe/wasm/vision_wasm_internal.wasm",
+      "source": "https://registry.npmjs.org/@mediapipe/tasks-vision/-/tasks-vision-0.10.35.tgz",
+      "sha256": "6a5c64584c2ab61c763b6e204afbdbc7ce1caf7f5216187322bca8df94f646bc",
+      "bytes": 11153617
+    },
+    {
+      "path": "public/vendor/mediapipe/wasm/vision_wasm_module_internal.wasm",
+      "source": "https://registry.npmjs.org/@mediapipe/tasks-vision/-/tasks-vision-0.10.35.tgz",
+      "sha256": "617b8e0248dbd27e9d7ece4218004eae4cefb499196d1bb4fa0e3fef21708756",
+      "bytes": 11153641
+    },
+    {
+      "path": "public/vendor/mediapipe/wasm/vision_wasm_nosimd_internal.wasm",
+      "source": "https://registry.npmjs.org/@mediapipe/tasks-vision/-/tasks-vision-0.10.35.tgz",
+      "sha256": "8a3092d34c79d3f57e6ba8592105e8a90f6b07c27891ffecd14cca428bfd3e31",
+      "bytes": 10481398
+    },
+    {
+      "path": "public/vendor/mediapipe/hand_landmarker.task",
+      "source": "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
+      "sha256": "fbc2a30080c3c557093b5ddfc334698132eb341044ccee322ccf8bcf3607cde1",
+      "bytes": 7819105
+    },
+    {
+      "path": "public/vendor/mediapipe/LICENSE",
+      "source": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "bytes": 11358
+    }
+  ]
+}

@@ -12,4 +12,7 @@ demo
 test-results
 playwright-report
 __pycache__
+.env.cloud
+releases
+deployed-compose.yml
 

@@ -1,5 +1,8 @@
 FROM rust:1-bookworm AS builder
 
+ARG CARGO_BUILD_JOBS=2
+ENV CARGO_BUILD_JOBS=${CARGO_BUILD_JOBS}
+
 RUN rustup target add wasm32-unknown-unknown \
     && cargo install trunk --version 0.21.14 --locked
 

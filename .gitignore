@@ -8,3 +8,6 @@
 /demo/
 /resources/
 __pycache__/
+.env.cloud
+/releases/
+/deployed-compose.yml

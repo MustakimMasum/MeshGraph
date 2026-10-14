@@ -1,0 +1,73 @@
+name: meshgraph
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  oxigraph_db:
+    image: ${OXIGRAPH_IMAGE:-ghcr.io/oxigraph/oxigraph:latest}
+    command: serve --location /data --bind 0.0.0.0:7878
+    volumes:
+      - graph_data:/data
+    restart: unless-stopped
+    logging: *logging
+
+  graph_seed:
+    image: curlimages/curl:8.12.1
+    depends_on:
+      - oxigraph_db
+    volumes:
+      - ./data:/seed:ro
+      - ./scripts/seed-graphs.sh:/seed-graphs.sh:ro
+    environment:
+      FORCE_SEED: "false"
+    entrypoint: ["/bin/sh", "/seed-graphs.sh"]
+    restart: "no"
+    logging: *logging
+
+  axum_gateway:
+    build:
+      context: .
+      args:
+        CARGO_BUILD_JOBS: ${CARGO_BUILD_JOBS:-2}
+    depends_on:
+      graph_seed:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: http://oxigraph_db:7878/query
+      DATABASE_UPDATE_URL: http://oxigraph_db:7878/update
+      OPENALEX_EMAIL: ${OPENALEX_EMAIL:-}
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:3000/api/v1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+    restart: unless-stopped
+    logging: *logging
+
+  caddy:
+    image: caddy:2-alpine
+    depends_on:
+      axum_gateway:
+        condition: service_healthy
+    environment:
+      DOMAIN: ${DOMAIN:?Set DOMAIN in .env.cloud to your public hostname}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    restart: unless-stopped
+    logging: *logging
+
+volumes:
+  graph_data:
+  caddy_data:
+  caddy_config:

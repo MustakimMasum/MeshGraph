@@ -1,3 +1,5 @@
+#![cfg_attr(windows, windows_subsystem = "windows")]
+
 #[cfg(windows)]
 mod windows_bridge {
     use axum::{
@@ -5,6 +7,7 @@ mod windows_bridge {
             ws::{Message, WebSocket, WebSocketUpgrade},
             State,
         },
+        http::{HeaderMap, StatusCode},
         response::IntoResponse,
         routing::get,
         Router,
@@ -181,6 +184,10 @@ mod windows_bridge {
     }
 
     pub async fn run() -> Result<(), Box<dyn Error>> {
+        let _instance = match InstanceGuard::acquire()? {
+            Some(instance) => instance,
+            None => return Ok(()),
+        };
         let initial = status_json("starting", "Loading the Hyperion LeapC runtime");
         let (sender, receiver) = watch::channel(initial);
         thread::Builder::new()
@@ -196,6 +203,9 @@ mod windows_bridge {
         let address: SocketAddr = std::env::var("HYPERION_BRIDGE_ADDR")
             .unwrap_or_else(|_| DEFAULT_BRIDGE_ADDR.to_owned())
             .parse()?;
+        if !address.ip().is_loopback() {
+            return Err("The hardware bridge must bind to a loopback address".into());
+        }
         let app = Router::new()
             .route("/health", get(health))
             .route("/hands", get(hands_socket))
@@ -212,9 +222,63 @@ mod windows_bridge {
 
     async fn hands_socket(
         upgrade: WebSocketUpgrade,
+        headers: HeaderMap,
         State(state): State<BridgeState>,
     ) -> impl IntoResponse {
-        upgrade.on_upgrade(move |socket| stream_hands(socket, state.latest))
+        let origin = headers.get("origin").and_then(|value| value.to_str().ok());
+        if !origin.is_some_and(origin_allowed) {
+            return StatusCode::FORBIDDEN.into_response();
+        }
+        upgrade
+            .on_upgrade(move |socket| stream_hands(socket, state.latest))
+            .into_response()
+    }
+
+    fn origin_allowed(origin: &str) -> bool {
+        if matches!(origin, "http://127.0.0.1:3000" | "http://localhost:3000") {
+            return true;
+        }
+        let Some(local_app_data) = std::env::var_os("LOCALAPPDATA") else {
+            return false;
+        };
+        std::fs::read_to_string(PathBuf::from(local_app_data).join("MeshGraph/allowed-origins.txt"))
+            .map(|origins| origins.lines().any(|allowed| allowed.trim() == origin))
+            .unwrap_or(false)
+    }
+
+    #[link(name = "kernel32")]
+    extern "system" {
+        fn CreateMutexW(attributes: *const c_void, owner: i32, name: *const u16) -> *mut c_void;
+        fn GetLastError() -> u32;
+        fn CloseHandle(handle: *mut c_void) -> i32;
+    }
+
+    struct InstanceGuard(*mut c_void);
+
+    impl InstanceGuard {
+        fn acquire() -> Result<Option<Self>, std::io::Error> {
+            let name: Vec<u16> = "Local\\MeshGraphHyperionBridge\0".encode_utf16().collect();
+            let handle = unsafe { CreateMutexW(ptr::null(), 0, name.as_ptr()) };
+            if handle.is_null() {
+                return Err(std::io::Error::last_os_error());
+            }
+            let already_running = unsafe { GetLastError() } == 183;
+            let guard = Self(handle);
+            if already_running {
+                drop(guard);
+                Ok(None)
+            } else {
+                Ok(Some(guard))
+            }
+        }
+    }
+
+    impl Drop for InstanceGuard {
+        fn drop(&mut self) {
+            unsafe {
+                CloseHandle(self.0);
+            }
+        }
     }
 
     async fn stream_hands(mut socket: WebSocket, mut latest: watch::Receiver<String>) {

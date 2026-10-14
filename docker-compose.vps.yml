@@ -1,0 +1,24 @@
+# Standalone alternative for a VPS with an existing host reverse proxy.
+# Shared service definitions come from docker-compose.cloud.yml.
+name: meshgraph
+
+services:
+  oxigraph_db:
+    extends:
+      file: docker-compose.cloud.yml
+      service: oxigraph_db
+
+  graph_seed:
+    extends:
+      file: docker-compose.cloud.yml
+      service: graph_seed
+
+  axum_gateway:
+    extends:
+      file: docker-compose.cloud.yml
+      service: axum_gateway
+    ports:
+      - "127.0.0.1:${GATEWAY_PORT:-3000}:3000"
+
+volumes:
+  graph_data:

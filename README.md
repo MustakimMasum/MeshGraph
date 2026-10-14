@@ -111,6 +111,86 @@ $env:DATABASE_URL='http://127.0.0.1:7879/query'
 cargo run --bin meshgraph_gateway
 ```
 
+## Cloud deployment
+
+For the professor's VPS administrator, use the complete step-by-step
+[deployment handoff](DEPLOYMENT.md). It covers a dedicated HTTPS setup and an
+existing reverse proxy, verification, backups, restore, and updates. Generate a
+shareable source release with `python scripts/package-deployment.py`; send
+`releases/meshgraph-vps.zip` to the administrator.
+
+The VPS release runs independently of the developer's computer. Its database,
+seed data, frontend, A-Frame, and webcam libraries/model are included or run on
+the VPS; browser API requests use the deployed hostname. No local server or
+tunnel is needed. New citation imports optionally use OpenAlex; Leap Motion
+optionally uses the visitor's own hardware bridge. See the handoff guide's
+connection table for the meaning of remaining loopback addresses.
+
+Use `docker-compose.cloud.yml` as a standalone Compose file on a Linux cloud
+server with Docker Engine and the Compose plugin installed. It builds the same
+frontend and gateway as the local stack, seeds missing collections, and adds
+Caddy for automatic HTTPS. Only Caddy publishes ports; Oxigraph and the gateway
+are accessible inside the Docker network. This cloud stack uses its own named
+database volume; it does not copy the local `local_graph_store/` database.
+
+1. Upload or clone this repository to the server, including `Cargo.lock`, `data/`,
+   `public/`, `scripts/`, and `deploy/`. Generated `dist/` and `target/` are not needed.
+2. Point your domain's DNS A record at the server's public IPv4 address. Only add
+   an AAAA record if the server has working public IPv6. Allow inbound TCP ports
+   80 and 443 in the cloud firewall; UDP 443 is optional for HTTP/3. Keep SSH
+   access restricted to your administration address. Do not open 3000 or 7878.
+3. From the repository root on the server, create the environment file and edit
+   `DOMAIN` to your hostname, without a scheme or path:
+
+   ```sh
+   cp .env.cloud.example .env.cloud
+   nano .env.cloud
+   ```
+
+4. Validate and launch:
+
+   ```sh
+   docker compose --env-file .env.cloud -f docker-compose.cloud.yml config --quiet
+   docker compose --env-file .env.cloud -f docker-compose.cloud.yml up -d --build
+   docker compose --env-file .env.cloud -f docker-compose.cloud.yml ps -a
+   docker compose --env-file .env.cloud -f docker-compose.cloud.yml logs --tail=100 graph_seed axum_gateway caddy
+   ```
+
+   The first build compiles Rust, Trunk, and WASM and can take several minutes.
+   `graph_seed` should exit successfully, the gateway should become healthy,
+   and Caddy should obtain a certificate. See
+   [Caddy's HTTPS prerequisites](https://caddyserver.com/docs/automatic-https).
+
+5. Replace the example hostname and verify both data collections:
+
+   ```sh
+   curl --fail --silent --show-error -o /dev/null https://meshgraph.example.com/api/v1/health
+   curl --fail --silent --show-error https://meshgraph.example.com/api/v1/citations/graph
+   curl --fail --silent --show-error https://meshgraph.example.com/api/v1/history/summary
+   ```
+
+   Open `https://YOUR_DOMAIN/` and `https://YOUR_DOMAIN/?collection=history` to
+   check the 3D views. Webcam and WebXR use the HTTPS origin. The existing citation
+   ingestion endpoint is also public and can add data to the citation collection.
+
+To deploy updates, upload the changed source and repeat the `up -d --build`
+command. Existing graphs are preserved; updating the bundled history RDF alone
+does not replace an existing graph. Use the documented explicit history import
+when replacing that snapshot.
+
+Database and HTTPS state survive container replacement and normal `down`.
+Do not run `down --volumes`, which deletes these volumes. Before upgrades, take
+a provider disk snapshot with the stack stopped, then start it again:
+
+```sh
+docker compose --env-file .env.cloud -f docker-compose.cloud.yml stop
+# Take the cloud provider's disk snapshot here and wait for it to complete.
+docker compose --env-file .env.cloud -f docker-compose.cloud.yml start
+```
+
+Ensure the snapshot includes Docker's volume storage and retain an off-server
+backup. Test restoration on a separate server before relying on it.
+
 ## Controls
 
 Use mouse drag to look around, **WASD** to move, **E/C** to move vertically, and
@@ -121,10 +201,21 @@ The **Home** icon immediately after Reset reloads the current collection's initi
 view, restoring its camera, filters, and temporary exploration state. Saved
 viewpoints and database content are retained.
 
-For Leap Motion, install Ultraleap Hyperion and start the Windows host bridge:
+For Leap Motion on Windows, install Ultraleap Hyperion, then click the app's
+**Leap Motion** button. Download and double-click the offered MeshGraph companion
+installer once. Allow the browser to open the companion and approve the app's
+hostname when prompted. Subsequent use starts the bridge from the app in the
+background, with no terminal or `cargo run` step.
+
+The companion installs for the current Windows account and registers the
+`meshgraph-leap://` launcher. It connects only to the sensor computer's loopback
+interface; it does not connect to the developer's machine. The VPS release
+includes the installer at `/public/downloads/MeshGraphLeapSetup.exe`.
+
+For maintainers rebuilding the installer on Windows:
 
 ```powershell
-cargo run --bin hyperion_bridge
+powershell -ExecutionPolicy Bypass -File scripts/build-leap-companion.ps1
 ```
 
 IR controls use distinct poses:
