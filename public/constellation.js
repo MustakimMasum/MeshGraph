@@ -1,6 +1,9 @@
 /* global AFRAME, THREE */
 
 (() => {
+  if (AFRAME.components?.text) {
+    AFRAME.components.text.schema.font.default = "/public/vendor/aframe/Roboto-msdf.json";
+  }
   const emitMacro = (name, detail) => {
     window.dispatchEvent(
       new CustomEvent(name, {

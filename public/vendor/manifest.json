@@ -65,6 +65,24 @@
       "source": "https://www.apache.org/licenses/LICENSE-2.0.txt",
       "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
       "bytes": 11358
+    },
+    {
+      "path": "public/vendor/aframe/Roboto-msdf.json",
+      "source": "https://raw.githubusercontent.com/aframevr/assets/master/fonts/Roboto-msdf.json",
+      "sha256": "217b4e06b3a9caf5d07c72deb8aeefd95e99176467b2a06199c3b7dee319be04",
+      "bytes": 31510
+    },
+    {
+      "path": "public/vendor/aframe/Roboto-msdf.png",
+      "source": "https://raw.githubusercontent.com/aframevr/assets/master/fonts/Roboto-msdf.png",
+      "sha256": "b738616df3178050bb52f980b7ecebd15b91f2269612812408103498eb862ebd",
+      "bytes": 80743
+    },
+    {
+      "path": "public/vendor/aframe/Roboto-LICENSE",
+      "source": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "bytes": 11358
     }
   ]
 }

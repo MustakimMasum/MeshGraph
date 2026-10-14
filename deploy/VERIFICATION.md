@@ -18,6 +18,14 @@ in Ubuntu WSL. Docker Engine version: 29.8.1.
 | Restore into a separate empty volume | Passed; both collections matched the originals |
 | Seed after restore | Preserved both existing graphs |
 | Release archive and SHA-256 checksum | Verified |
+| Bundled browser libraries, fonts, webcam WASM/model | Checksums verified; no CDN required |
+| Browser exploration and webcam inference with external requests blocked | Passed |
+| Gateway/database with outbound network disabled | Passed |
+| Build using only an extracted deployment ZIP | Passed |
+| Leap companion launch/reconnect browser flow | Passed using a simulated native connection |
+| Windows companion installer and background bridge builds | Passed; both use GUI subsystem, no console |
+| Native bridge background startup and Hyperion connection | Passed on the developer's Windows machine |
+| Native duplicate-launch handling and unapproved-origin rejection | Passed |
 
 The tested Oxigraph image is pinned in `.env.cloud.example`:
 

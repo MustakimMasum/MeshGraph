@@ -4,6 +4,7 @@ The app serves these files from its own origin, including optional webcam hand
 tracking. No CDN or connection to the developer's computer is used to load them.
 
 - A-Frame 1.4.2: MIT; license in `aframe/LICENSE`.
+- Roboto MSDF font atlas supplied by A-Frame: Apache 2.0; `aframe/Roboto-LICENSE`.
 - MediaPipe Tasks Vision 0.10.35: Apache 2.0; license in `mediapipe/LICENSE`.
 - Google MediaPipe Hand Landmarker float16 model, version 1, downloaded from the
   official MediaPipe model distribution. Its source URL is in the manifest.

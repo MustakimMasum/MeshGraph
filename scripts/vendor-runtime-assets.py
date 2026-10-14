@@ -58,6 +58,9 @@ def main():
             write_asset(relative, archive.extractfile(member).read(),
                         "https://registry.npmjs.org/aframe/-/aframe-1.4.2.tgz", manifest)
     archive, source = package("@mediapipe/tasks-vision", "0.10.35")
+    for filename in ["Roboto-msdf.json", "Roboto-msdf.png"]:
+        url = f"https://raw.githubusercontent.com/aframevr/assets/master/fonts/{filename}"
+        write_asset(f"aframe/{filename}", download(url), url, manifest)
     with archive:
         members = [m for m in archive.getmembers() if m.isfile() and (
             m.name == "package/vision_bundle.mjs" or
@@ -69,6 +72,7 @@ def main():
     write_asset("mediapipe/hand_landmarker.task", download(MODEL_URL), MODEL_URL, manifest)
     license_url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
     write_asset("mediapipe/LICENSE", download(license_url), license_url, manifest)
+    write_asset("aframe/Roboto-LICENSE", download(license_url), license_url, manifest)
     (VENDOR / "manifest.json").write_text(
         json.dumps({"assets": manifest}, indent=2) + "\n", encoding="utf-8"
     )

@@ -9,9 +9,8 @@ RUN rustup target add wasm32-unknown-unknown \
 WORKDIR /app
 COPY Cargo.toml Cargo.lock index.html ./
 COPY src ./src
-COPY public ./public
-
-RUN trunk build --release \
+RUN mkdir -p public \
+    && trunk build --release \
     && cargo build --release --locked --bin meshgraph_gateway
 
 FROM debian:bookworm-slim AS runtime
@@ -23,6 +22,7 @@ RUN apt-get update \
 WORKDIR /app
 COPY --from=builder /app/target/release/meshgraph_gateway /usr/local/bin/meshgraph_gateway
 COPY --from=builder /app/dist ./dist
+COPY public ./dist/public
 
 EXPOSE 3000
 CMD ["meshgraph_gateway"]

@@ -4,6 +4,9 @@ test("deployed collections and webcam runtime work with all external browser req
   test.setTimeout(90000);
   const origin = new URL(baseURL).origin;
   const externalRequests = [];
+  page.on("console", (message) => { if (message.type() === "error") console.log("Browser:", message.text()); });
+  page.on("pageerror", (error) => console.log("Page error:", error.message));
+  page.on("requestfailed", (request) => console.log("Failed request:", request.url(), request.failure()?.errorText));
   await context.route("**/*", async (route) => {
     const url = new URL(route.request().url());
     if (["http:", "https:"].includes(url.protocol) && url.origin !== origin) {
@@ -36,6 +39,7 @@ test("deployed collections and webcam runtime work with all external browser req
       if (data.type === "error") finish(new Error(data.message));
       if (data.type === "ready") {
         const canvas = new OffscreenCanvas(128, 128);
+        canvas.getContext("2d").fillRect(0, 0, 128, 128);
         const frame = canvas.transferToImageBitmap();
         worker.postMessage({ type: "frame", frame, timestamp: 1 }, [frame]);
       }
